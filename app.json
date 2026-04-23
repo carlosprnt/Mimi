@@ -22,9 +22,6 @@
         "backgroundColor": "#0E0F12"
       }
     },
-    "backgroundColor": "#0E0F12",
-    "plugins": [
-      "expo-haptics"
-    ]
+    "backgroundColor": "#0E0F12"
   }
 }
