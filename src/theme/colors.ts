@@ -1,0 +1,34 @@
+export const colors = {
+  bg: {
+    base: '#0E0F12',
+    elevated: '#16181D',
+    sunken: '#0A0B0E',
+    overlay: 'rgba(6, 7, 10, 0.72)',
+  },
+  border: {
+    hairline: '#1E2128',
+    strong: '#2A2D35',
+  },
+  text: {
+    primary: '#ECECEE',
+    secondary: '#9A9BA3',
+    tertiary: '#62646B',
+    onAccent: '#0E0F12',
+  },
+  accent: {
+    base: '#A8A5E6',
+    pressed: '#918EDC',
+    soft: 'rgba(168, 165, 230, 0.14)',
+    glow: 'rgba(168, 165, 230, 0.22)',
+  },
+  warn: {
+    soft: '#D9B382',
+  },
+  pure: {
+    white: '#FFFFFF',
+    black: '#000000',
+    transparent: 'transparent',
+  },
+} as const;
+
+export type Colors = typeof colors;

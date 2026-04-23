@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Mimi",
+    "slug": "mimi",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "mimi",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mimi.app",
+      "userInterfaceStyle": "dark",
+      "infoPlist": {
+        "UIStatusBarStyle": "UIStatusBarStyleLightContent"
+      }
+    },
+    "android": {
+      "package": "com.mimi.app",
+      "userInterfaceStyle": "dark",
+      "adaptiveIcon": {
+        "backgroundColor": "#0E0F12"
+      }
+    },
+    "backgroundColor": "#0E0F12",
+    "plugins": [
+      "expo-haptics"
+    ]
+  }
+}
