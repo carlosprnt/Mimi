@@ -18,6 +18,7 @@ import {
 import { colors, spacing, screenGutter } from '@/theme';
 import { useActiveBaby, useBabyStore } from '@/state/babyStore';
 import { useSleepStore } from '@/state/sleepStore';
+import { useCareEventStore } from '@/state/careEventStore';
 import { ageLabel } from '@/logic/age';
 import { DrawerParamList } from '@/navigation/types';
 import { t } from '@/i18n';
@@ -33,6 +34,7 @@ export const ProfileScreen: React.FC = () => {
   const updateBaby = useBabyStore((s) => s.updateBaby);
   const removeBaby = useBabyStore((s) => s.removeBaby);
   const dropBabySessions = useSleepStore((s) => s.dropBaby);
+  const dropBabyCareEvents = useCareEventStore((s) => s.dropBaby);
 
   const [editing, setEditing] = useState<EditingField>(null);
   const close = () => setEditing(null);
@@ -58,6 +60,7 @@ export const ProfileScreen: React.FC = () => {
     close();
     removeBaby(babyId);
     dropBabySessions(babyId);
+    dropBabyCareEvents(babyId);
     navigation.dispatch(DrawerActions.openDrawer());
   };
 

@@ -6,8 +6,15 @@ import {
   expectedNapsForAge,
   bedtimeHintForAge,
 } from './recommendation';
+import { CareEvent } from './careEvents';
 
-export type TimelineKind = 'wake' | 'nap' | 'bedtime';
+export type TimelineKind =
+  | 'wake'
+  | 'nap'
+  | 'bedtime'
+  | 'feeding'
+  | 'diaper'
+  | 'nightWake';
 export type TimelineStatus = 'real' | 'active' | 'suggested';
 
 export interface TimelineEvent {
@@ -15,6 +22,7 @@ export interface TimelineEvent {
   kind: TimelineKind;
   status: TimelineStatus;
   sessionId?: string;
+  careEventId?: string;
   at?: Date;
   from?: Date;
   to?: Date;
@@ -32,11 +40,18 @@ const floatToDate = (day: Date, hoursFloat: number): Date => {
   return d;
 };
 
+const careEventPosition = (event: TimelineEvent): number => {
+  if (event.at) return event.at.getTime();
+  if (event.from) return event.from.getTime();
+  return 0;
+};
+
 export function buildTimeline(
   baby: Baby,
   sessions: SleepSession[],
   day: Date = new Date(),
   now: Date = new Date(),
+  careEvents: CareEvent[] = [],
 ): TimelineEvent[] {
   const events: TimelineEvent[] = [];
   const dayStart = startOfDay(day);
@@ -155,6 +170,22 @@ export function buildTimeline(
       to: bedtimeEnd,
     });
   }
+
+  const careEventsForDay = careEvents.filter((e) => {
+    const t = new Date(e.at).getTime();
+    return t >= dayStartMs && t < dayEndMs;
+  });
+  for (const ev of careEventsForDay) {
+    events.push({
+      id: `care-${ev.id}`,
+      kind: ev.kind,
+      status: 'real',
+      careEventId: ev.id,
+      at: new Date(ev.at),
+    });
+  }
+
+  events.sort((a, b) => careEventPosition(a) - careEventPosition(b));
 
   return events;
 }

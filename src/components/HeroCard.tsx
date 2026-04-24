@@ -20,7 +20,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
 }) => {
   return (
     <Card variant="bordered" tone="night" style={styles.wrap}>
-      <Eyebrow tone={muted ? 'tertiary' : 'secondary'}>{eyebrow}</Eyebrow>
+      <Eyebrow tone="tertiary">{eyebrow}</Eyebrow>
       <Text
         variant="display"
         tone={muted ? 'primary' : 'accent'}

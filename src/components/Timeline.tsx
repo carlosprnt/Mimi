@@ -26,6 +26,12 @@ const iconFor = (kind: TimelineKind): keyof typeof Ionicons.glyphMap => {
       return 'moon';
     case 'nap':
       return 'bed';
+    case 'feeding':
+      return 'water';
+    case 'diaper':
+      return 'reload';
+    case 'nightWake':
+      return 'flash';
   }
 };
 
@@ -37,6 +43,12 @@ const labelFor = (kind: TimelineKind): string => {
       return t('timeline.bedtime');
     case 'nap':
       return t('timeline.nap');
+    case 'feeding':
+      return t('timeline.feeding');
+    case 'diaper':
+      return t('timeline.diaper');
+    case 'nightWake':
+      return t('timeline.nightWake');
   }
 };
 

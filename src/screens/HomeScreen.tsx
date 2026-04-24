@@ -22,13 +22,21 @@ import {
   type TimelineEditKind,
   DashboardHeader,
   DayCalendar,
+  ActionMenuSheet,
+  type ActionMenuItem,
+  PointEventSheet,
 } from '@/components';
 import { buildTimeline, TimelineEvent } from '@/logic/timeline';
 import { pickInsightTip, resolveInsightTip } from '@/logic/insights';
+import { CareEventKind } from '@/logic/careEvents';
 import { makeId } from '@/utils/id';
 import { colors, spacing, screenGutter } from '@/theme';
 import { useActiveBaby, useBabyStore } from '@/state/babyStore';
 import { useSessionsForBaby, useSleepStore } from '@/state/sleepStore';
+import {
+  useCareEventsForBaby,
+  useCareEventStore,
+} from '@/state/careEventStore';
 import {
   activeSession,
   computeRecommendation,
@@ -57,10 +65,12 @@ export const HomeScreen: React.FC = () => {
   const baby = useActiveBaby();
   const use24h = useBabyStore((s) => s.preferences.use24h);
   const sessions = useSessionsForBaby(baby?.id ?? null);
+  const careEvents = useCareEventsForBaby(baby?.id ?? null);
   const startSleep = useSleepStore((s) => s.startSleep);
   const endSleep = useSleepStore((s) => s.endSleep);
   const updateSession = useSleepStore((s) => s.updateSession);
   const addSession = useSleepStore((s) => s.addSession);
+  const addCareEvent = useCareEventStore((s) => s.addCareEvent);
 
   const [now, setNow] = useState<Date>(() => new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
@@ -68,12 +78,18 @@ export const HomeScreen: React.FC = () => {
   );
   const [insightSeed] = useState<number>(() => Math.floor(Math.random() * 1e6));
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [editing, setEditing] = useState<{
     kind: TimelineEditKind;
     sessionId: string | null;
     mode: 'edit' | 'addNap' | 'addWake';
     start?: Date;
     end?: Date;
+  } | null>(null);
+  const [pointEvent, setPointEvent] = useState<{
+    kind: CareEventKind;
+    title: string;
+    initial: Date;
   } | null>(null);
 
   const scrollY = useSharedValue(0);
@@ -98,8 +114,9 @@ export const HomeScreen: React.FC = () => {
   const active = useMemo(() => activeSession(sessions), [sessions]);
   const last = useMemo(() => lastCompletedSession(sessions), [sessions]);
   const timeline = useMemo(
-    () => (baby ? buildTimeline(baby, sessions, selectedDate, now) : []),
-    [baby, sessions, selectedDate, now],
+    () =>
+      baby ? buildTimeline(baby, sessions, selectedDate, now, careEvents) : [],
+    [baby, sessions, selectedDate, now, careEvents],
   );
 
   const insightTip = useMemo(
@@ -188,6 +205,62 @@ export const HomeScreen: React.FC = () => {
     });
   };
 
+  const onPressMore = () => setActionMenuOpen(true);
+
+  const openPointEvent = (kind: CareEventKind, title: string) => {
+    setActionMenuOpen(false);
+    setPointEvent({ kind, title, initial: new Date(now) });
+  };
+
+  const actionItems: ActionMenuItem[] = [
+    {
+      id: 'nap',
+      label: t('timeline.addNap'),
+      icon: 'bed-outline',
+      onPress: () => {
+        setActionMenuOpen(false);
+        onPressAddNap();
+      },
+    },
+    {
+      id: 'wake',
+      label: t('timeline.addWake'),
+      icon: 'sunny-outline',
+      onPress: () => {
+        setActionMenuOpen(false);
+        onPressAddWake();
+      },
+    },
+    {
+      id: 'feeding',
+      label: t('timeline.addFeeding'),
+      icon: 'water-outline',
+      onPress: () => openPointEvent('feeding', t('timeline.addFeeding')),
+    },
+    {
+      id: 'diaper',
+      label: t('timeline.addDiaper'),
+      icon: 'reload-outline',
+      onPress: () => openPointEvent('diaper', t('timeline.addDiaper')),
+    },
+    {
+      id: 'nightWake',
+      label: t('timeline.addNightWake'),
+      icon: 'flash-outline',
+      onPress: () => openPointEvent('nightWake', t('timeline.addNightWake')),
+    },
+  ];
+
+  const onSavePointEvent = (time: Date) => {
+    if (!pointEvent) return;
+    addCareEvent(baby.id, {
+      id: makeId(),
+      kind: pointEvent.kind,
+      at: time.toISOString(),
+    });
+    setPointEvent(null);
+  };
+
   const onSaveEdit = (update: { startedAt?: string; endedAt?: string }) => {
     if (!editing) return;
     if (editing.sessionId) {
@@ -261,7 +334,7 @@ export const HomeScreen: React.FC = () => {
                 <Text variant="eyebrow" tone="accent" style={styles.insightEyebrow}>
                   {t('home.tipEyebrow')}
                 </Text>
-                <Text variant="footnote" tone="secondary">
+                <Text variant="callout" tone="secondary">
                   {resolveInsightTip(insightTip)}
                 </Text>
               </View>
@@ -351,8 +424,8 @@ export const HomeScreen: React.FC = () => {
         <StickyAction
           title={active ? t('home.endSleep') : t('home.startSleep')}
           onPress={onPressAction}
-          variant={active ? 'subtle' : 'primary'}
-          onPressMore={onPressAddNap}
+          variant={active ? 'subtle' : 'outline'}
+          onPressMore={onPressMore}
           moreLabel={t('home.moreActions')}
         />
       ) : null}
@@ -382,6 +455,21 @@ export const HomeScreen: React.FC = () => {
         initialEnd={editing?.end}
         onClose={() => setEditing(null)}
         onSave={onSaveEdit}
+      />
+
+      <ActionMenuSheet
+        visible={actionMenuOpen}
+        onClose={() => setActionMenuOpen(false)}
+        items={actionItems}
+        title={t('home.moreActions')}
+      />
+
+      <PointEventSheet
+        visible={pointEvent !== null}
+        title={pointEvent?.title ?? ''}
+        initial={pointEvent?.initial ?? now}
+        onClose={() => setPointEvent(null)}
+        onSave={onSavePointEvent}
       />
     </Screen>
   );

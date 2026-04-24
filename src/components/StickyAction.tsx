@@ -8,7 +8,7 @@ import { Button } from './Button';
 interface StickyActionProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'subtle';
+  variant?: 'primary' | 'subtle' | 'outline';
   onPressMore?: () => void;
   moreLabel?: string;
 }

@@ -10,7 +10,7 @@ import {
 import { colors, fonts, radii, spacing } from '@/theme';
 import { Text } from './Text';
 
-type Variant = 'primary' | 'ghost' | 'subtle';
+type Variant = 'primary' | 'ghost' | 'subtle' | 'outline';
 
 interface ButtonProps extends Omit<PressableProps, 'style'> {
   title: string;
@@ -89,10 +89,16 @@ const variantStyle: Record<Variant, ViewStyle> = {
   primary: { backgroundColor: colors.accent.base },
   ghost: { backgroundColor: 'transparent' },
   subtle: { backgroundColor: colors.bg.elevated },
+  outline: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+  },
 };
 
 const pressedStyle: Record<Variant, ViewStyle> = {
   primary: { backgroundColor: colors.accent.pressed, transform: [{ scale: 0.995 }] },
   ghost: { opacity: 0.6 },
   subtle: { backgroundColor: colors.border.hairline },
+  outline: { backgroundColor: 'rgba(255, 255, 255, 0.08)' },
 };

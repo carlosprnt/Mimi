@@ -92,18 +92,18 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
           >
             <Text
               variant="title"
-              tone={isSelected ? 'primary' : isToday ? 'primary' : 'tertiary'}
+              tone="primary"
               style={[
                 styles.dayNumber,
-                isSelected && styles.dayNumberSelected,
+                !isSelected && styles.dayNumberInactive,
               ]}
             >
               {formatDayNumber(d)}
             </Text>
             <Text
               variant="eyebrow"
-              tone={isSelected ? 'accent' : 'tertiary'}
-              style={styles.weekday}
+              tone={isSelected ? 'accent' : 'primary'}
+              style={[styles.weekday, !isSelected && styles.weekdayInactive]}
             >
               {formatWeekday(d)}
             </Text>
@@ -140,10 +140,13 @@ const styles = StyleSheet.create({
     fontSize: 22,
     lineHeight: 26,
   },
-  dayNumberSelected: {
-    color: colors.text.primary,
+  dayNumberInactive: {
+    opacity: 0.4,
   },
   weekday: {
     marginTop: 4,
+  },
+  weekdayInactive: {
+    opacity: 0.4,
   },
 });
