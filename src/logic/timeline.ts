@@ -1,5 +1,5 @@
 import { Baby, ageInMonths } from './age';
-import { startOfDay } from './format';
+import { isSameDay, startOfDay } from './format';
 import {
   SleepSession,
   wakeWindowForAge,
@@ -22,6 +22,7 @@ export interface TimelineEvent {
 }
 
 const TYPICAL_NAP_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const floatToDate = (day: Date, hoursFloat: number): Date => {
   const d = new Date(day);
@@ -34,11 +35,14 @@ const floatToDate = (day: Date, hoursFloat: number): Date => {
 export function buildTimeline(
   baby: Baby,
   sessions: SleepSession[],
+  day: Date = new Date(),
   now: Date = new Date(),
 ): TimelineEvent[] {
   const events: TimelineEvent[] = [];
-  const today = startOfDay(now);
-  const todayStartMs = today.getTime();
+  const dayStart = startOfDay(day);
+  const dayStartMs = dayStart.getTime();
+  const dayEndMs = dayStartMs + DAY_MS;
+  const isToday = isSameDay(day, now);
 
   const completed = sessions
     .filter((s) => s.endedAt)
@@ -47,32 +51,30 @@ export function buildTimeline(
         new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime(),
     );
 
-  const lastNightEndedToday = [...completed]
+  const lastNightEndedThatDay = [...completed]
     .reverse()
-    .find(
-      (s) =>
-        s.kind === 'night' &&
-        s.endedAt &&
-        new Date(s.endedAt).getTime() >= todayStartMs,
-    );
+    .find((s) => {
+      if (s.kind !== 'night' || !s.endedAt) return false;
+      const endMs = new Date(s.endedAt).getTime();
+      return endMs >= dayStartMs && endMs < dayEndMs;
+    });
 
-  if (lastNightEndedToday) {
+  if (lastNightEndedThatDay) {
     events.push({
-      id: `wake-${lastNightEndedToday.id}`,
+      id: `wake-${lastNightEndedThatDay.id}`,
       kind: 'wake',
       status: 'real',
-      sessionId: lastNightEndedToday.id,
-      at: new Date(lastNightEndedToday.endedAt!),
+      sessionId: lastNightEndedThatDay.id,
+      at: new Date(lastNightEndedThatDay.endedAt!),
     });
   }
 
-  const todayNaps = completed.filter(
-    (s) =>
-      s.kind === 'nap' &&
-      s.endedAt &&
-      new Date(s.endedAt).getTime() >= todayStartMs,
-  );
-  for (const nap of todayNaps) {
+  const dayNaps = completed.filter((s) => {
+    if (s.kind !== 'nap' || !s.endedAt) return false;
+    const endMs = new Date(s.endedAt).getTime();
+    return endMs >= dayStartMs && endMs < dayEndMs;
+  });
+  for (const nap of dayNaps) {
     const start = new Date(nap.startedAt);
     const end = new Date(nap.endedAt!);
     events.push({
@@ -86,8 +88,15 @@ export function buildTimeline(
     });
   }
 
+  const nightStartedThatDay = completed.find((s) => {
+    if (s.kind !== 'night') return false;
+    const startMs = new Date(s.startedAt).getTime();
+    return startMs >= dayStartMs && startMs < dayEndMs;
+  });
+
   const active = sessions.find((s) => !s.endedAt);
-  if (active) {
+
+  if (isToday && active) {
     events.push({
       id: `active-${active.id}`,
       kind: active.kind === 'night' ? 'bedtime' : 'nap',
@@ -100,17 +109,17 @@ export function buildTimeline(
   const wakeWin = wakeWindowForAge(months);
   const expectedNaps = expectedNapsForAge(months);
   const bedtime = bedtimeHintForAge(months);
-  const bedtimeStart = floatToDate(today, bedtime.earliest);
-  const bedtimeEnd = floatToDate(today, bedtime.latest);
+  const bedtimeStart = floatToDate(dayStart, bedtime.earliest);
+  const bedtimeEnd = floatToDate(dayStart, bedtime.latest);
 
-  if (!active) {
+  if (isToday && !active) {
     const lastKnownPoint =
       events.length > 0
         ? events[events.length - 1].to ?? events[events.length - 1].at ?? null
         : null;
 
     if (lastKnownPoint) {
-      const remaining = Math.max(0, expectedNaps - todayNaps.length);
+      const remaining = Math.max(0, expectedNaps - dayNaps.length);
       let cursor = lastKnownPoint.getTime();
       for (let i = 0; i < remaining; i++) {
         const fromMs = cursor + wakeWin.minMs;
@@ -128,13 +137,24 @@ export function buildTimeline(
     }
   }
 
-  events.push({
-    id: 'bedtime',
-    kind: 'bedtime',
-    status: active?.kind === 'night' ? 'active' : 'suggested',
-    from: bedtimeStart,
-    to: bedtimeEnd,
-  });
+  if (nightStartedThatDay) {
+    events.push({
+      id: `bedtime-${nightStartedThatDay.id}`,
+      kind: 'bedtime',
+      status: 'real',
+      sessionId: nightStartedThatDay.id,
+      from: new Date(nightStartedThatDay.startedAt),
+      to: new Date(nightStartedThatDay.endedAt!),
+    });
+  } else if (isToday) {
+    events.push({
+      id: 'bedtime',
+      kind: 'bedtime',
+      status: active?.kind === 'night' ? 'active' : 'suggested',
+      from: bedtimeStart,
+      to: bedtimeEnd,
+    });
+  }
 
   return events;
 }

@@ -1,11 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Screen,
-  HeaderBar,
   HeroCard,
   Card,
   ListRow,
@@ -16,6 +20,8 @@ import {
   Timeline,
   TimelineEditSheet,
   type TimelineEditKind,
+  DashboardHeader,
+  DayCalendar,
 } from '@/components';
 import { buildTimeline, TimelineEvent } from '@/logic/timeline';
 import { makeId } from '@/utils/id';
@@ -27,22 +33,26 @@ import {
   computeRecommendation,
   lastCompletedSession,
   lastWakeWindowMs,
-  napsCountToday,
-  totalSleepTodayMs,
+  napsCountForDay,
+  totalSleepForDayMs,
 } from '@/logic/recommendation';
 import {
   formatClock,
   formatDuration,
   formatRelativePast,
+  isSameDay,
+  startOfDay,
 } from '@/logic/format';
 import { softImpact, lightImpact } from '@/utils/haptics';
 import { DrawerParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
 const TICK_MS = 30 * 1000;
+const HEADER_EXPANDED = 72;
 
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList, 'Home'>>();
+  const insets = useSafeAreaInsets();
   const baby = useActiveBaby();
   const use24h = useBabyStore((s) => s.preferences.use24h);
   const sessions = useSessionsForBaby(baby?.id ?? null);
@@ -52,46 +62,61 @@ export const HomeScreen: React.FC = () => {
   const addSession = useSleepStore((s) => s.addSession);
 
   const [now, setNow] = useState<Date>(() => new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() =>
+    startOfDay(new Date()),
+  );
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [editing, setEditing] = useState<{
     kind: TimelineEditKind;
     sessionId: string | null;
+    mode: 'edit' | 'addNap' | 'addWake';
     start?: Date;
     end?: Date;
   } | null>(null);
+
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), TICK_MS);
     return () => clearInterval(id);
   }, []);
 
+  const isToday = useMemo(() => isSameDay(selectedDate, now), [selectedDate, now]);
+
   const recommendation = useMemo(
-    () => (baby ? computeRecommendation(baby, sessions, now) : null),
-    [baby, sessions, now],
+    () => (baby && isToday ? computeRecommendation(baby, sessions, now) : null),
+    [baby, sessions, now, isToday],
   );
 
   const active = useMemo(() => activeSession(sessions), [sessions]);
   const last = useMemo(() => lastCompletedSession(sessions), [sessions]);
   const timeline = useMemo(
-    () => (baby ? buildTimeline(baby, sessions, now) : []),
-    [baby, sessions, now],
+    () => (baby ? buildTimeline(baby, sessions, selectedDate, now) : []),
+    [baby, sessions, selectedDate, now],
   );
 
-  if (!baby || !recommendation) return null;
+  if (!baby) return null;
 
-  const totalMs = totalSleepTodayMs(sessions, now);
-  const naps = napsCountToday(sessions, now);
-  const wakeMs = lastWakeWindowMs(sessions, now);
+  const totalMs = totalSleepForDayMs(sessions, selectedDate, now);
+  const naps = napsCountForDay(sessions, selectedDate, now);
+  const wakeMs = isToday ? lastWakeWindowMs(sessions, now) : null;
 
-  const lastCaption = last
-    ? `ended ${formatRelativePast(now.getTime() - new Date(last.endedAt!).getTime())}`
-    : undefined;
+  const lastCaption =
+    isToday && last
+      ? `ended ${formatRelativePast(now.getTime() - new Date(last.endedAt!).getTime())}`
+      : undefined;
 
-  const lastValue = last
-    ? formatDuration(
-        new Date(last.endedAt!).getTime() - new Date(last.startedAt).getTime(),
-      )
-    : '—';
+  const lastValue =
+    isToday && last
+      ? formatDuration(
+          new Date(last.endedAt!).getTime() - new Date(last.startedAt).getTime(),
+        )
+      : '—';
 
   const onPressAction = () => {
     if (active) {
@@ -117,12 +142,14 @@ export const HomeScreen: React.FC = () => {
       setEditing({
         kind: 'wake',
         sessionId: event.sessionId,
+        mode: 'edit',
         end: event.at,
       });
     } else if (event.kind === 'nap') {
       setEditing({
         kind: 'nap',
         sessionId: event.sessionId,
+        mode: 'edit',
         start: event.from,
         end: event.to,
       });
@@ -130,16 +157,35 @@ export const HomeScreen: React.FC = () => {
   };
 
   const onPressAddWake = () => {
-    const defaultWake = new Date(now);
+    const defaultWake = new Date(selectedDate);
     defaultWake.setHours(7, 0, 0, 0);
-    setEditing({ kind: 'wake', sessionId: null, end: defaultWake });
+    setEditing({
+      kind: 'wake',
+      sessionId: null,
+      mode: 'addWake',
+      end: defaultWake,
+    });
+  };
+
+  const onPressAddNap = () => {
+    const defaultStart = new Date(now);
+    defaultStart.setHours(defaultStart.getHours() - 1, 0, 0, 0);
+    const defaultEnd = new Date(now);
+    defaultEnd.setMinutes(0, 0, 0);
+    setEditing({
+      kind: 'nap',
+      sessionId: null,
+      mode: 'addNap',
+      start: defaultStart,
+      end: defaultEnd,
+    });
   };
 
   const onSaveEdit = (update: { startedAt?: string; endedAt?: string }) => {
     if (!editing) return;
     if (editing.sessionId) {
       updateSession(baby.id, editing.sessionId, update);
-    } else if (editing.kind === 'wake' && update.endedAt) {
+    } else if (editing.mode === 'addWake' && update.endedAt) {
       const endTime = new Date(update.endedAt);
       const startTime = new Date(endTime);
       startTime.setDate(startTime.getDate() - 1);
@@ -150,31 +196,46 @@ export const HomeScreen: React.FC = () => {
         endedAt: endTime.toISOString(),
         kind: 'night',
       });
+    } else if (editing.mode === 'addNap' && update.startedAt && update.endedAt) {
+      addSession(baby.id, {
+        id: makeId(),
+        startedAt: update.startedAt,
+        endedAt: update.endedAt,
+        kind: 'nap',
+      });
     }
     setEditing(null);
   };
 
+  const scrollPaddingTop = insets.top + HEADER_EXPANDED + spacing.sm;
+
   return (
-    <Screen backdrop="night">
-      <HeaderBar
-        leading={{
-          icon: 'menu',
-          label: t('nav.menu'),
-          onPress: () => navigation.dispatch(DrawerActions.openDrawer()),
-        }}
+    <Screen backdrop="night" edges={['left', 'right']}>
+      <DashboardHeader
+        name={baby.name}
+        scrollY={scrollY}
+        onPressMenu={() => navigation.dispatch(DrawerActions.openDrawer())}
+        menuLabel={t('nav.menu')}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.scroll}
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: scrollPaddingTop },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.nameBlock}>
-          <Text variant="display" tone="primary" style={styles.babyName}>
-            {baby.name}
-          </Text>
+        <View style={styles.calendarWrap}>
+          <DayCalendar
+            selectedDate={selectedDate}
+            onSelect={setSelectedDate}
+            now={now}
+          />
         </View>
 
-        {recommendation.context ? (
+        {isToday && recommendation?.context ? (
           <View style={styles.insightBanner}>
             <Text
               variant="callout"
@@ -185,18 +246,20 @@ export const HomeScreen: React.FC = () => {
           </View>
         ) : null}
 
-        <HeroCard
-          eyebrow={recommendation.eyebrow}
-          primary={recommendation.primary}
-          supporting={recommendation.supporting}
-          muted={recommendation.state === 'sleeping'}
-        />
+        {isToday && recommendation ? (
+          <HeroCard
+            eyebrow={recommendation.eyebrow}
+            primary={recommendation.primary}
+            supporting={recommendation.supporting}
+            muted={recommendation.state === 'sleeping'}
+          />
+        ) : null}
 
         <Card variant="bordered" tone="night" style={styles.planCard}>
           <Text variant="eyebrow" tone="tertiary" style={styles.planHeading}>
             {t('home.plan')}
           </Text>
-          {!hasWakeEvent ? (
+          {isToday && !hasWakeEvent ? (
             <Pressable
               onPress={onPressAddWake}
               style={({ pressed }) => [
@@ -222,27 +285,36 @@ export const HomeScreen: React.FC = () => {
 
         <Card variant="bordered" tone="night" style={styles.todayCard}>
           <Text variant="eyebrow" tone="tertiary" style={styles.todayHeading}>
-            {t('home.today')}
+            {isToday ? t('home.today') : t('home.daySummary')}
           </Text>
           <ListRow
             label={t('home.totalSleep')}
             value={totalMs > 0 ? formatDuration(totalMs) : '—'}
           />
           <ListRow label={t('home.naps')} value={naps.toString()} />
-          <ListRow
-            label={t('home.lastSleep')}
-            value={lastValue}
-            caption={lastCaption}
-          />
-          <ListRow
-            label={t('home.lastWakeWindow')}
-            value={wakeMs !== null ? formatDuration(wakeMs) : '—'}
-            showDivider={false}
-          />
+          {isToday ? (
+            <>
+              <ListRow
+                label={t('home.lastSleep')}
+                value={lastValue}
+                caption={lastCaption}
+              />
+              <ListRow
+                label={t('home.lastWakeWindow')}
+                value={wakeMs !== null ? formatDuration(wakeMs) : '—'}
+                showDivider={false}
+              />
+            </>
+          ) : null}
         </Card>
 
-        {active ? (
-          <Text variant="footnote" tone="tertiary" align="center" style={styles.activeNote}>
+        {isToday && active ? (
+          <Text
+            variant="footnote"
+            tone="tertiary"
+            align="center"
+            style={styles.activeNote}
+          >
             {t('home.startedAt', {
               time: formatClock(new Date(active.startedAt), use24h),
             })}
@@ -250,13 +322,17 @@ export const HomeScreen: React.FC = () => {
         ) : null}
 
         <View style={styles.bottomSpacer} />
-      </ScrollView>
+      </Animated.ScrollView>
 
-      <StickyAction
-        title={active ? t('home.endSleep') : t('home.startSleep')}
-        onPress={onPressAction}
-        variant={active ? 'subtle' : 'primary'}
-      />
+      {isToday ? (
+        <StickyAction
+          title={active ? t('home.endSleep') : t('home.startSleep')}
+          onPress={onPressAction}
+          variant={active ? 'subtle' : 'primary'}
+          onPressMore={onPressAddNap}
+          moreLabel={t('home.moreActions')}
+        />
+      ) : null}
 
       <Sheet visible={confirmEnd} onClose={() => setConfirmEnd(false)}>
         <Text variant="title" style={styles.sheetTitle}>
@@ -293,15 +369,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenGutter,
     paddingBottom: 120,
   },
-  nameBlock: {
-    marginTop: spacing.sm,
-    marginBottom: spacing.base,
-  },
-  babyName: {
-    // display variant already large; no extra sizing needed
+  calendarWrap: {
+    marginHorizontal: -screenGutter,
+    marginBottom: spacing.lg,
   },
   insightBanner: {
-    marginTop: spacing.lg,
+    marginTop: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     backgroundColor: 'rgba(22, 35, 90, 0.35)',

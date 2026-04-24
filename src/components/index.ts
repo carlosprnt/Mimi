@@ -21,3 +21,5 @@ export {
 export { Timeline } from './Timeline';
 export { TimelineEditSheet } from './TimelineEditSheet';
 export type { TimelineEditKind } from './TimelineEditSheet';
+export { DashboardHeader } from './DashboardHeader';
+export { DayCalendar } from './DayCalendar';

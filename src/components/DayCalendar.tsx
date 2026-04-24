@@ -1,0 +1,149 @@
+import React, { useEffect, useMemo, useRef } from 'react';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { colors, fonts, spacing } from '@/theme';
+import { Text } from './Text';
+import { isSameDay, startOfDay } from '@/logic/format';
+
+interface DayCalendarProps {
+  selectedDate: Date;
+  onSelect: (date: Date) => void;
+  daysBack?: number;
+  now?: Date;
+}
+
+const DAY_CELL_WIDTH = 56;
+const DAY_CELL_GAP = 8;
+
+const dayNumberFormatter = new Intl.DateTimeFormat(undefined, {
+  day: '2-digit',
+});
+const weekdayFormatter = new Intl.DateTimeFormat(undefined, {
+  weekday: 'short',
+});
+
+const formatDayNumber = (d: Date) => dayNumberFormatter.format(d);
+const formatWeekday = (d: Date) =>
+  weekdayFormatter.format(d).replace('.', '').toUpperCase();
+
+export const DayCalendar: React.FC<DayCalendarProps> = ({
+  selectedDate,
+  onSelect,
+  daysBack = 30,
+  now = new Date(),
+}) => {
+  const { width } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
+
+  const days = useMemo(() => {
+    const result: Date[] = [];
+    const today = startOfDay(now);
+    for (let i = daysBack; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      result.push(d);
+    }
+    return result;
+  }, [daysBack, now]);
+
+  const selectedIndex = useMemo(
+    () => days.findIndex((d) => isSameDay(d, selectedDate)),
+    [days, selectedDate],
+  );
+
+  useEffect(() => {
+    if (selectedIndex < 0) return;
+    const idx = selectedIndex;
+    const cellSpan = DAY_CELL_WIDTH + DAY_CELL_GAP;
+    const offset = Math.max(
+      0,
+      idx * cellSpan - width / 2 + DAY_CELL_WIDTH / 2 + spacing.lg,
+    );
+    const id = setTimeout(() => {
+      scrollRef.current?.scrollTo({ x: offset, animated: true });
+    }, 50);
+    return () => clearTimeout(id);
+  }, [selectedIndex, width]);
+
+  return (
+    <ScrollView
+      ref={scrollRef}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.content}
+    >
+      {days.map((d) => {
+        const isSelected = isSameDay(d, selectedDate);
+        const isToday = isSameDay(d, now);
+        return (
+          <Pressable
+            key={d.toISOString()}
+            onPress={() => onSelect(d)}
+            style={({ pressed }) => [
+              styles.cell,
+              isSelected && styles.cellSelected,
+              pressed && !isSelected && styles.cellPressed,
+            ]}
+          >
+            <Text
+              variant="title"
+              tone={isSelected ? 'primary' : isToday ? 'primary' : 'tertiary'}
+              style={[
+                styles.dayNumber,
+                isSelected && styles.dayNumberSelected,
+              ]}
+            >
+              {formatDayNumber(d)}
+            </Text>
+            <Text
+              variant="eyebrow"
+              tone={isSelected ? 'accent' : 'tertiary'}
+              style={styles.weekday}
+            >
+              {formatWeekday(d)}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  content: {
+    paddingHorizontal: spacing.lg,
+    gap: DAY_CELL_GAP,
+    paddingVertical: spacing.sm,
+  },
+  cell: {
+    width: DAY_CELL_WIDTH,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+  },
+  cellSelected: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  cellPressed: {
+    opacity: 0.6,
+  },
+  dayNumber: {
+    fontFamily: fonts.medium,
+    fontSize: 22,
+    lineHeight: 26,
+  },
+  dayNumberSelected: {
+    color: colors.text.primary,
+  },
+  weekday: {
+    marginTop: 4,
+  },
+});

@@ -1,5 +1,6 @@
 import { Baby, ageInMonths } from './age';
 import { startOfDay } from './format';
+import { formatShortDuration } from './format';
 import { t } from '@/i18n';
 
 export type SleepKind = 'nap' | 'night';
@@ -55,26 +56,61 @@ export function bedtimeHintForAge(months: number): { earliest: number; latest: n
   return { earliest: 19.5, latest: 21 };
 }
 
-export function sessionsToday(sessions: SleepSession[], now = new Date()): SleepSession[] {
-  const dayStart = startOfDay(now).getTime();
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function dayBounds(day: Date, now: Date): [number, number] {
+  const dayStart = startOfDay(day).getTime();
+  const dayEnd = dayStart + DAY_MS;
+  const todayStart = startOfDay(now).getTime();
+  const isToday = dayStart === todayStart;
+  const upper = isToday ? now.getTime() : dayEnd;
+  return [dayStart, upper];
+}
+
+export function sessionsForDay(
+  sessions: SleepSession[],
+  day: Date = new Date(),
+  now: Date = new Date(),
+): SleepSession[] {
+  const [dayStart, upper] = dayBounds(day, now);
   return sessions.filter((s) => {
+    const start = new Date(s.startedAt).getTime();
     const end = s.endedAt ? new Date(s.endedAt).getTime() : now.getTime();
-    return end >= dayStart;
+    return end >= dayStart && start < upper;
   });
 }
 
-export function totalSleepTodayMs(sessions: SleepSession[], now = new Date()): number {
-  const dayStart = startOfDay(now).getTime();
-  return sessionsToday(sessions, now).reduce((sum, s) => {
-    const start = Math.max(new Date(s.startedAt).getTime(), dayStart);
+export function totalSleepForDayMs(
+  sessions: SleepSession[],
+  day: Date = new Date(),
+  now: Date = new Date(),
+): number {
+  const [dayStart, upper] = dayBounds(day, now);
+  return sessions.reduce((sum, s) => {
+    const start = new Date(s.startedAt).getTime();
     const end = s.endedAt ? new Date(s.endedAt).getTime() : now.getTime();
-    return sum + Math.max(0, end - start);
+    const overlapStart = Math.max(start, dayStart);
+    const overlapEnd = Math.min(end, upper);
+    return sum + Math.max(0, overlapEnd - overlapStart);
   }, 0);
 }
 
-export function napsCountToday(sessions: SleepSession[], now = new Date()): number {
-  return sessionsToday(sessions, now).filter((s) => s.kind === 'nap' && s.endedAt).length;
+export function napsCountForDay(
+  sessions: SleepSession[],
+  day: Date = new Date(),
+  now: Date = new Date(),
+): number {
+  return sessionsForDay(sessions, day, now).filter(
+    (s) => s.kind === 'nap' && s.endedAt,
+  ).length;
 }
+
+export const sessionsToday = (sessions: SleepSession[], now = new Date()) =>
+  sessionsForDay(sessions, now, now);
+export const totalSleepTodayMs = (sessions: SleepSession[], now = new Date()) =>
+  totalSleepForDayMs(sessions, now, now);
+export const napsCountToday = (sessions: SleepSession[], now = new Date()) =>
+  napsCountForDay(sessions, now, now);
 
 export function lastCompletedSession(sessions: SleepSession[]): SleepSession | undefined {
   const completed = sessions.filter((s) => s.endedAt);
@@ -206,7 +242,9 @@ export function computeRecommendation(
       primary:
         minsToLatest < 20
           ? t('recommendation.inFewMin')
-          : t('recommendation.inMin', { min: Math.round(minsToLatest) }),
+          : t('recommendation.inMin', {
+              min: formatShortDuration(minsToLatest * MINUTE),
+            }),
       supporting: t('recommendation.calmWindDown'),
       context,
       contextTone,
@@ -231,7 +269,7 @@ export function computeRecommendation(
       state: 'due',
       eyebrow: t('recommendation.napWindow'),
       primary: t('recommendation.withinMin', {
-        max: Math.round(untilMax / MINUTE),
+        max: formatShortDuration(untilMax),
       }),
       supporting: t('recommendation.goodTime'),
       context,
@@ -245,10 +283,12 @@ export function computeRecommendation(
     state: 'countdown',
     eyebrow: t('recommendation.nextNapIn'),
     primary: t('recommendation.range', {
-      min: Math.round(untilMin / MINUTE),
-      max: Math.round(untilMax / MINUTE),
+      min: formatShortDuration(untilMin),
+      max: formatShortDuration(untilMax),
     }),
-    supporting: t('recommendation.startInAbout', { min: supportingMinutes }),
+    supporting: t('recommendation.startInAbout', {
+      min: formatShortDuration(supportingMinutes * MINUTE),
+    }),
     context,
     contextTone,
     primaryAction: 'start',
