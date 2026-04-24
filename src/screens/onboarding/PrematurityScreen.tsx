@@ -7,13 +7,14 @@ import { Text } from '@/components';
 import { colors, radii, spacing } from '@/theme';
 import { useBabyStore } from '@/state/babyStore';
 import { RootStackParamList } from '@/navigation/types';
+import { t, type TranslationKey } from '@/i18n';
 
-const OPTIONS: { label: string; value: number }[] = [
-  { label: 'Born on time', value: 0 },
-  { label: '2 weeks early', value: 2 },
-  { label: '4 weeks early', value: 4 },
-  { label: '6 weeks early', value: 6 },
-  { label: '8 weeks early', value: 8 },
+const OPTIONS: { labelKey: TranslationKey; value: number }[] = [
+  { labelKey: 'onboarding.prematurity.options.onTime', value: 0 },
+  { labelKey: 'onboarding.prematurity.options.weeks2', value: 2 },
+  { labelKey: 'onboarding.prematurity.options.weeks4', value: 4 },
+  { labelKey: 'onboarding.prematurity.options.weeks6', value: 6 },
+  { labelKey: 'onboarding.prematurity.options.weeks8', value: 8 },
 ];
 
 export const PrematurityScreen: React.FC = () => {
@@ -37,12 +38,12 @@ export const PrematurityScreen: React.FC = () => {
   return (
     <OnboardingShell
       step={{ index: 3, total: 3 }}
-      eyebrow="CORRECTED AGE"
-      title="Was your baby born early?"
-      subtitle="Optional — helps Mimi use a gentler wake window when it's relevant."
+      eyebrow={t('onboarding.prematurity.eyebrow')}
+      title={t('onboarding.prematurity.title')}
+      subtitle={t('onboarding.prematurity.subtitle')}
       onBack={() => navigation.goBack()}
       onCta={finish}
-      ctaTitle="Finish setup"
+      ctaTitle={t('onboarding.prematurity.finishSetup')}
     >
       <View style={styles.list}>
         {OPTIONS.map((opt) => {
@@ -62,7 +63,7 @@ export const PrematurityScreen: React.FC = () => {
                 tone={isSelected ? 'primary' : 'secondary'}
                 style={isSelected ? styles.selectedLabel : undefined}
               >
-                {opt.label}
+                {t(opt.labelKey)}
               </Text>
               {isSelected ? (
                 <Text variant="body" tone="accent">

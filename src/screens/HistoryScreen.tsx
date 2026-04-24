@@ -21,6 +21,7 @@ import {
   startOfDay,
 } from '@/logic/format';
 import { RootStackParamList } from '@/navigation/types';
+import { t } from '@/i18n';
 
 interface Section {
   title: string;
@@ -57,10 +58,10 @@ export const HistoryScreen: React.FC = () => {
   return (
     <Screen>
       <HeaderBar
-        title="History"
+        title={t('history.title')}
         leading={{
           glyph: '‹',
-          label: 'Back',
+          label: t('common.back'),
           onPress: () => navigation.goBack(),
         }}
       />
@@ -68,7 +69,7 @@ export const HistoryScreen: React.FC = () => {
       {sections.length === 0 ? (
         <View style={styles.empty}>
           <Text variant="headline" tone="secondary" align="center">
-            No sleep logged yet.
+            {t('history.empty')}
           </Text>
           <Text
             variant="callout"
@@ -76,7 +77,7 @@ export const HistoryScreen: React.FC = () => {
             align="center"
             style={styles.emptySub}
           >
-            Start the first sleep from home.
+            {t('history.emptyHint')}
           </Text>
         </View>
       ) : (
@@ -99,7 +100,7 @@ export const HistoryScreen: React.FC = () => {
             return (
               <Card padded={false} style={styles.card}>
                 <ListRow
-                  label={item.kind === 'night' ? 'Night sleep' : 'Nap'}
+                  label={item.kind === 'night' ? t('history.nightSleep') : t('history.nap')}
                   value={formatDuration(duration)}
                   caption={`${formatClock(start, use24h)} → ${formatClock(end, use24h)}`}
                   showDivider={!isLast}

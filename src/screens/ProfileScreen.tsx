@@ -14,6 +14,7 @@ import { colors, spacing, screenGutter } from '@/theme';
 import { useBabyStore } from '@/state/babyStore';
 import { ageLabel } from '@/logic/age';
 import { RootStackParamList } from '@/navigation/types';
+import { t } from '@/i18n';
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -26,10 +27,10 @@ export const ProfileScreen: React.FC = () => {
   return (
     <Screen>
       <HeaderBar
-        title="Settings"
+        title={t('profile.title')}
         leading={{
           glyph: '‹',
-          label: 'Back',
+          label: t('common.back'),
           onPress: () => navigation.goBack(),
         }}
       />
@@ -38,12 +39,12 @@ export const ProfileScreen: React.FC = () => {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <SectionLabel label="BABY" />
+        <SectionLabel label={t('profile.baby')} />
         <Card padded={false}>
           <View style={styles.inner}>
-            <ListRow label="Name" value={baby.name} />
+            <ListRow label={t('profile.name')} value={baby.name} />
             <ListRow
-              label="Date of birth"
+              label={t('profile.dob')}
               value={new Date(baby.dateOfBirth).toLocaleDateString(undefined, {
                 day: 'numeric',
                 month: 'short',
@@ -52,22 +53,22 @@ export const ProfileScreen: React.FC = () => {
               caption={ageLabel(baby)}
             />
             <ListRow
-              label="Born early"
+              label={t('profile.bornEarly')}
               value={
                 baby.prematureWeeks
-                  ? `${baby.prematureWeeks} weeks`
-                  : 'No'
+                  ? t('profile.weeks', { count: baby.prematureWeeks })
+                  : t('common.no')
               }
               showDivider={false}
             />
           </View>
         </Card>
 
-        <SectionLabel label="PREFERENCES" />
+        <SectionLabel label={t('profile.preferences')} />
         <Card padded={false}>
           <View style={styles.inner}>
             <ListRow
-              label="24-hour time"
+              label={t('profile.clock24h')}
               trailing={
                 <Switch
                   value={preferences.use24h}
@@ -79,7 +80,7 @@ export const ProfileScreen: React.FC = () => {
               }
             />
             <ListRow
-              label="Reminders"
+              label={t('profile.reminders')}
               trailing={
                 <Switch
                   value={preferences.remindersEnabled}
@@ -91,7 +92,7 @@ export const ProfileScreen: React.FC = () => {
               }
             />
             <ListRow
-              label="Bedtime reminder"
+              label={t('profile.bedtimeReminder')}
               trailing={
                 <Switch
                   value={preferences.bedtimeReminder}
@@ -106,10 +107,10 @@ export const ProfileScreen: React.FC = () => {
           </View>
         </Card>
 
-        <SectionLabel label="ABOUT" />
+        <SectionLabel label={t('profile.about')} />
         <Card padded={false}>
           <View style={styles.inner}>
-            <ListRow label="Version" value="0.1.0" showDivider={false} />
+            <ListRow label={t('profile.version')} value="0.1.0" showDivider={false} />
           </View>
         </Card>
 
@@ -119,7 +120,7 @@ export const ProfileScreen: React.FC = () => {
           align="center"
           style={styles.note}
         >
-          Mimi offers gentle guidance — not medical advice.
+          {t('profile.disclaimer')}
         </Text>
       </ScrollView>
     </Screen>

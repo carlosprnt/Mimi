@@ -1,3 +1,5 @@
+import { t } from '@/i18n';
+
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const DAYS_PER_MONTH = 30.4375;
 
@@ -18,11 +20,11 @@ export function ageLabel(baby: Baby, now = new Date()): string {
   const months = ageInMonths(baby, now);
   if (months < 1) {
     const days = Math.floor(months * DAYS_PER_MONTH);
-    return days <= 1 ? 'Newborn' : `${days} days`;
+    return days <= 1 ? t('age.newborn') : t('age.days', { count: days });
   }
   const rounded = Math.round(months * 10) / 10;
   if (rounded < 2) {
-    return `${rounded.toFixed(1)} months`;
+    return t('age.monthsFractional', { value: rounded.toFixed(1) });
   }
-  return `${Math.round(months)} months`;
+  return t('age.months', { count: Math.round(months) });
 }

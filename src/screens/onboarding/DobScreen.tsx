@@ -7,6 +7,7 @@ import { OnboardingShell } from './OnboardingShell';
 import { Text } from '@/components';
 import { colors, radii, spacing } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
+import { t } from '@/i18n';
 
 export const DobScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -28,9 +29,9 @@ export const DobScreen: React.FC = () => {
   return (
     <OnboardingShell
       step={{ index: 2, total: 3 }}
-      eyebrow="DATE OF BIRTH"
-      title="When were they born?"
-      subtitle="This helps Mimi tailor nap and bedtime suggestions."
+      eyebrow={t('onboarding.dob.eyebrow')}
+      title={t('onboarding.dob.title')}
+      subtitle={t('onboarding.dob.subtitle')}
       onBack={() => navigation.goBack()}
       onCta={() =>
         navigation.navigate('OnboardingPrematurity', {
@@ -59,7 +60,7 @@ export const DobScreen: React.FC = () => {
             style={({ pressed }) => [styles.androidRow, pressed && styles.pressed]}
           >
             <Text variant="callout" tone="secondary">
-              Selected date
+              {t('onboarding.dob.selectedDate')}
             </Text>
             <Text variant="body" tone="primary" tabular>
               {formatted}

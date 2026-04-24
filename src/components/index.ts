@@ -11,3 +11,4 @@ export { StickyAction } from './StickyAction';
 export { HeroCard } from './HeroCard';
 export { Eyebrow } from './Eyebrow';
 export { SectionLabel } from './SectionLabel';
+export { StarField } from './StarField';

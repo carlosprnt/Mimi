@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { colors, radii, spacing } from '@/theme';
+import { colors, spacing } from '@/theme';
+import { Card } from './Card';
 import { Text } from './Text';
 import { Eyebrow } from './Eyebrow';
 
@@ -20,7 +21,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
   return (
     <View style={styles.wrap}>
       <View style={styles.glow} />
-      <View style={styles.card}>
+      <Card variant="bordered" tone="night">
         <Eyebrow tone={muted ? 'tertiary' : 'secondary'}>{eyebrow}</Eyebrow>
         <Text
           variant="display"
@@ -35,7 +36,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
             {supporting}
           </Text>
         ) : null}
-      </View>
+      </Card>
     </View>
   );
 };
@@ -55,12 +56,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent.glow,
     opacity: 0.9,
     transform: [{ scaleX: 1.2 }],
-  },
-  card: {
-    backgroundColor: colors.bg.elevated,
-    borderRadius: radii.xl,
-    paddingVertical: spacing.xl,
-    paddingHorizontal: spacing.xl,
   },
   primary: {
     marginTop: spacing.md,

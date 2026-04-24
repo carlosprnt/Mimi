@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OnboardingShell } from './OnboardingShell';
 import { colors, spacing, typography } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
+import { t } from '@/i18n';
 
 export const NameScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -15,9 +16,9 @@ export const NameScreen: React.FC = () => {
   return (
     <OnboardingShell
       step={{ index: 1, total: 3 }}
-      eyebrow="YOUR BABY"
-      title="What's their name?"
-      subtitle="Just a first name. Mimi keeps this on your device."
+      eyebrow={t('onboarding.name.eyebrow')}
+      title={t('onboarding.name.title')}
+      subtitle={t('onboarding.name.subtitle')}
       onBack={() => navigation.goBack()}
       onCta={() =>
         navigation.navigate('OnboardingDob', { name: trimmed })
@@ -27,7 +28,7 @@ export const NameScreen: React.FC = () => {
       <TextInput
         value={name}
         onChangeText={setName}
-        placeholder="Name"
+        placeholder={t('onboarding.name.placeholder')}
         placeholderTextColor={colors.text.tertiary}
         autoFocus
         autoCapitalize="words"

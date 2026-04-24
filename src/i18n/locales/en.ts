@@ -1,0 +1,145 @@
+export const en = {
+  common: {
+    confirm: 'Confirm',
+    notYet: 'Not yet',
+    back: 'Back',
+    continue: 'Continue',
+    no: 'No',
+  },
+  nav: {
+    profile: 'Profile',
+    history: 'History',
+    settings: 'Settings',
+  },
+  home: {
+    today: 'TODAY',
+    totalSleep: 'Total sleep',
+    naps: 'Naps',
+    lastSleep: 'Last sleep',
+    lastWakeWindow: 'Last wake window',
+    startedAt: 'Started at {time}',
+    startSleep: 'Start sleep',
+    endSleep: 'End sleep',
+    endConfirmTitle: 'End this sleep?',
+    endConfirmBody: 'Mimi will log the duration and update today.',
+  },
+  history: {
+    title: 'History',
+    empty: 'No sleep logged yet.',
+    emptyHint: 'Start the first sleep from home.',
+    nightSleep: 'Night sleep',
+    nap: 'Nap',
+  },
+  profile: {
+    title: 'Settings',
+    baby: 'BABY',
+    name: 'Name',
+    dob: 'Date of birth',
+    bornEarly: 'Born early',
+    weeks: '{count} weeks',
+    preferences: 'PREFERENCES',
+    clock24h: '24-hour time',
+    reminders: 'Reminders',
+    bedtimeReminder: 'Bedtime reminder',
+    about: 'ABOUT',
+    version: 'Version',
+    disclaimer: 'Mimi offers gentle guidance — not medical advice.',
+  },
+  onboarding: {
+    stepOf: 'Step {step} of {total}',
+    welcome: {
+      title: "A calm companion for your baby's sleep.",
+      subtitle:
+        "Mimi gently suggests the next nap or bedtime, based on your baby's age and the sleep already logged today.",
+      cta: 'Get started',
+    },
+    name: {
+      eyebrow: 'YOUR BABY',
+      title: "What's their name?",
+      subtitle: 'Just a first name. Mimi keeps this on your device.',
+      placeholder: 'Name',
+    },
+    dob: {
+      eyebrow: 'DATE OF BIRTH',
+      title: 'When were they born?',
+      subtitle: 'This helps Mimi tailor nap and bedtime suggestions.',
+      selectedDate: 'Selected date',
+    },
+    prematurity: {
+      eyebrow: 'CORRECTED AGE',
+      title: 'Was your baby born early?',
+      subtitle:
+        "Optional — helps Mimi use a gentler wake window when it's relevant.",
+      options: {
+        onTime: 'Born on time',
+        weeks2: '2 weeks early',
+        weeks4: '4 weeks early',
+        weeks6: '6 weeks early',
+        weeks8: '8 weeks early',
+      },
+      finishSetup: 'Finish setup',
+    },
+  },
+  recommendation: {
+    nightSleepInProgress: 'NIGHT SLEEP IN PROGRESS',
+    napInProgress: 'NAP IN PROGRESS',
+    restingNight: 'Resting. Mimi will wait.',
+    sleepingSince: 'Sleeping since {time}',
+    shortNapsWarn: 'Short naps today — a slightly earlier bedtime may help.',
+    goingSmoothly: 'Today is going smoothly.',
+    noSleepYet: 'No sleep logged yet today — trust your instincts.',
+    tonight: 'TONIGHT',
+    windDown: 'A calm wind-down can begin any time.',
+    readyWhenYouAre: 'READY WHEN YOU ARE',
+    anytime: 'Anytime',
+    firstSleep: 'Start the first sleep whenever it feels right.',
+    bedtimeWindow: 'BEDTIME WINDOW',
+    now: 'Now',
+    earlierTonight: 'A little earlier tonight may feel easier.',
+    bedtimeRoutine: 'BEDTIME ROUTINE',
+    inFewMin: 'In a few min',
+    inMin: 'In ~{min} min',
+    calmWindDown: 'A calm wind-down can begin now.',
+    napWindow: 'NAP WINDOW',
+    settleSoon: 'Try settling in the next few minutes.',
+    napWindowOpen: 'Nap window has opened.',
+    withinMin: 'Within ~{max} min',
+    goodTime: 'Good time to begin the routine.',
+    nextNapIn: 'NEXT NAP LIKELY IN',
+    range: '{min} – {max} min',
+    startInAbout: 'Start the routine in about {min} min.',
+  },
+  duration: {
+    hm: '{hours}h {minutes}m',
+    hOnly: '{hours}h',
+    mOnly: '{minutes}m',
+    minutesShort: '{minutes} min',
+    range: '{min} – {max} min',
+  },
+  relativePast: {
+    justNow: 'just now',
+    minAgo: '{min}m ago',
+    hAgo: '{h}h ago',
+    hmAgo: '{h}h {m}m ago',
+  },
+  date: {
+    today: 'Today',
+    yesterday: 'Yesterday',
+  },
+  age: {
+    newborn: 'Newborn',
+    days: '{count} days',
+    monthsFractional: '{value} months',
+    months: '{count} months',
+  },
+} as const;
+
+type WidenStrings<T> = {
+  [K in keyof T]: T[K] extends string
+    ? string
+    : T[K] extends Record<string, unknown>
+      ? WidenStrings<T[K]>
+      : T[K];
+};
+
+export type Translations = WidenStrings<typeof en>;

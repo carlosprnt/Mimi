@@ -1,13 +1,18 @@
 import React from 'react';
 import { StyleSheet, View, ViewStyle, StatusBar, Platform } from 'react-native';
 import { SafeAreaView, Edge } from 'react-native-safe-area-context';
-import { colors } from '@/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, gradients } from '@/theme';
+import { StarField } from './StarField';
+
+type Backdrop = 'flat' | 'night';
 
 interface ScreenProps {
   children: React.ReactNode;
   style?: ViewStyle;
   edges?: readonly Edge[];
   background?: 'base' | 'sunken' | 'elevated';
+  backdrop?: Backdrop;
 }
 
 export const Screen: React.FC<ScreenProps> = ({
@@ -15,13 +20,28 @@ export const Screen: React.FC<ScreenProps> = ({
   style,
   edges = ['top', 'left', 'right'],
   background = 'base',
+  backdrop = 'flat',
 }) => {
-  const bg = colors.bg[background];
+  const flatBg = colors.bg[background];
+  const rootBg = backdrop === 'night' ? colors.night.bottom : flatBg;
+
   return (
-    <View style={[styles.root, { backgroundColor: bg }]}>
+    <View style={[styles.root, { backgroundColor: rootBg }]}>
       {Platform.OS === 'android' && (
-        <StatusBar barStyle="light-content" backgroundColor={bg} />
+        <StatusBar barStyle="light-content" backgroundColor={rootBg} />
       )}
+      {backdrop === 'night' ? (
+        <>
+          <LinearGradient
+            colors={gradients.nightSky.colors}
+            locations={gradients.nightSky.locations}
+            start={gradients.nightSky.start}
+            end={gradients.nightSky.end}
+            style={StyleSheet.absoluteFill}
+          />
+          <StarField />
+        </>
+      ) : null}
       <SafeAreaView style={[styles.safe, style]} edges={edges}>
         {children}
       </SafeAreaView>

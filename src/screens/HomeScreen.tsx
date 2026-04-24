@@ -32,6 +32,7 @@ import {
 } from '@/logic/format';
 import { softImpact, lightImpact } from '@/utils/haptics';
 import { RootStackParamList } from '@/navigation/types';
+import { t } from '@/i18n';
 
 const TICK_MS = 30 * 1000;
 
@@ -92,19 +93,19 @@ export const HomeScreen: React.FC = () => {
   };
 
   return (
-    <Screen>
+    <Screen backdrop="night">
       <HeaderBar
         showWordmark
         subtitle={`${baby.name} · ${ageLabel(baby, now)}`}
         leading={{
           glyph: '☰',
-          label: 'Profile',
+          label: t('nav.profile'),
           onPress: () => navigation.navigate('Profile'),
         }}
         trailing={[
           {
             glyph: '◷',
-            label: 'History',
+            label: t('nav.history'),
             onPress: () => navigation.navigate('History'),
           },
         ]}
@@ -121,22 +122,22 @@ export const HomeScreen: React.FC = () => {
           muted={recommendation.state === 'sleeping'}
         />
 
-        <Card style={styles.todayCard}>
+        <Card variant="bordered" tone="night" style={styles.todayCard}>
           <Text variant="eyebrow" tone="tertiary" style={styles.todayHeading}>
-            TODAY
+            {t('home.today')}
           </Text>
           <ListRow
-            label="Total sleep"
+            label={t('home.totalSleep')}
             value={totalMs > 0 ? formatDuration(totalMs) : '—'}
           />
-          <ListRow label="Naps" value={naps.toString()} />
+          <ListRow label={t('home.naps')} value={naps.toString()} />
           <ListRow
-            label="Last sleep"
+            label={t('home.lastSleep')}
             value={lastValue}
             caption={lastCaption}
           />
           <ListRow
-            label="Last wake window"
+            label={t('home.lastWakeWindow')}
             value={wakeMs !== null ? formatDuration(wakeMs) : '—'}
             showDivider={false}
           />
@@ -155,7 +156,9 @@ export const HomeScreen: React.FC = () => {
 
         {active ? (
           <Text variant="footnote" tone="tertiary" align="center" style={styles.activeNote}>
-            Started at {formatClock(new Date(active.startedAt), use24h)}
+            {t('home.startedAt', {
+              time: formatClock(new Date(active.startedAt), use24h),
+            })}
           </Text>
         ) : null}
 
@@ -163,23 +166,23 @@ export const HomeScreen: React.FC = () => {
       </ScrollView>
 
       <StickyAction
-        title={active ? 'End sleep' : 'Start sleep'}
+        title={active ? t('home.endSleep') : t('home.startSleep')}
         onPress={onPressAction}
         variant={active ? 'subtle' : 'primary'}
       />
 
       <Sheet visible={confirmEnd} onClose={() => setConfirmEnd(false)}>
         <Text variant="title" style={styles.sheetTitle}>
-          End this sleep?
+          {t('home.endConfirmTitle')}
         </Text>
         <Text variant="callout" tone="secondary" style={styles.sheetBody}>
-          Mimi will log the duration and update today.
+          {t('home.endConfirmBody')}
         </Text>
         <View style={styles.sheetActions}>
-          <Button title="Confirm" onPress={confirmEndSleep} />
+          <Button title={t('common.confirm')} onPress={confirmEndSleep} />
           <View style={{ height: spacing.md }} />
           <Button
-            title="Not yet"
+            title={t('common.notYet')}
             variant="ghost"
             onPress={() => setConfirmEnd(false)}
           />

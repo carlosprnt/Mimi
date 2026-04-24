@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Text, Button } from '@/components';
 import { spacing, screenGutter } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
+import { t } from '@/i18n';
 
 export const WelcomeScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -17,17 +18,19 @@ export const WelcomeScreen: React.FC = () => {
         </Text>
 
         <Text variant="title" align="center" style={styles.title}>
-          A calm companion for your baby's sleep.
+          {t('onboarding.welcome.title')}
         </Text>
 
         <Text variant="callout" align="center" tone="secondary" style={styles.sub}>
-          Mimi gently suggests the next nap or bedtime, based on your baby's age
-          and the sleep already logged today.
+          {t('onboarding.welcome.subtitle')}
         </Text>
       </View>
 
       <View style={styles.cta}>
-        <Button title="Get started" onPress={() => navigation.navigate('OnboardingName')} />
+        <Button
+          title={t('onboarding.welcome.cta')}
+          onPress={() => navigation.navigate('OnboardingName')}
+        />
       </View>
     </Screen>
   );

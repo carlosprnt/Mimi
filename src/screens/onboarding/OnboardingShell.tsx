@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Screen, Text, Button, HeaderBar } from '@/components';
 import { spacing, screenGutter, colors } from '@/theme';
+import { t } from '@/i18n';
 
 interface OnboardingShellProps {
   step?: { index: number; total: number };
@@ -23,23 +24,26 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
   title,
   subtitle,
   children,
-  ctaTitle = 'Continue',
+  ctaTitle,
   ctaDisabled,
   onCta,
   onBack,
   secondaryTitle,
   onSecondary,
 }) => {
+  const resolvedCta = ctaTitle ?? t('common.continue');
   return (
     <Screen>
       <HeaderBar
         leading={
           onBack
-            ? { glyph: '‹', label: 'Back', onPress: onBack }
+            ? { glyph: '‹', label: t('common.back'), onPress: onBack }
             : undefined
         }
         subtitle={
-          step ? `Step ${step.index} of ${step.total}` : undefined
+          step
+            ? t('onboarding.stepOf', { step: step.index, total: step.total })
+            : undefined
         }
       />
 
@@ -62,7 +66,7 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
       </View>
 
       <View style={styles.ctaWrap}>
-        <Button title={ctaTitle} onPress={onCta} disabled={ctaDisabled} />
+        <Button title={resolvedCta} onPress={onCta} disabled={ctaDisabled} />
         {secondaryTitle && onSecondary ? (
           <>
             <View style={{ height: spacing.sm }} />

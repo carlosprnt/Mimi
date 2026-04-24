@@ -1,5 +1,6 @@
 import { Baby, ageInMonths } from './age';
 import { startOfDay } from './format';
+import { t } from '@/i18n';
 
 export type SleepKind = 'nap' | 'night';
 
@@ -115,9 +116,17 @@ export function computeRecommendation(
     const elapsed = now.getTime() - new Date(active.startedAt).getTime();
     return {
       state: 'sleeping',
-      eyebrow: active.kind === 'night' ? 'NIGHT SLEEP IN PROGRESS' : 'NAP IN PROGRESS',
+      eyebrow:
+        active.kind === 'night'
+          ? t('recommendation.nightSleepInProgress')
+          : t('recommendation.napInProgress'),
       primary: formatElapsed(elapsed),
-      supporting: active.kind === 'night' ? 'Resting. Mimi will wait.' : 'Sleeping since ' + formatClock(new Date(active.startedAt)),
+      supporting:
+        active.kind === 'night'
+          ? t('recommendation.restingNight')
+          : t('recommendation.sleepingSince', {
+              time: formatClock(new Date(active.startedAt)),
+            }),
       primaryAction: 'end',
     };
   }
@@ -141,23 +150,23 @@ export function computeRecommendation(
   let contextTone: 'neutral' | 'warn' = 'neutral';
 
   if (shortNaps >= 2) {
-    context = 'Short naps today — a slightly earlier bedtime may help.';
+    context = t('recommendation.shortNapsWarn');
     contextTone = 'warn';
   } else if (napsDone >= expectedNaps && expectedNaps > 0 && !isEvening) {
-    context = 'Today is going smoothly.';
+    context = t('recommendation.goingSmoothly');
   } else if (totalSleep === 0 && hoursNow > 10) {
-    context = 'No sleep logged yet today — trust your instincts.';
+    context = t('recommendation.noSleepYet');
   } else {
-    context = 'Today is going smoothly.';
+    context = t('recommendation.goingSmoothly');
   }
 
   if (!last) {
     if (isEvening) {
       return {
         state: 'bedtime',
-        eyebrow: 'TONIGHT',
+        eyebrow: t('recommendation.tonight'),
         primary: formatBedtimeRange(bedtime),
-        supporting: 'A calm wind-down can begin any time.',
+        supporting: t('recommendation.windDown'),
         context,
         contextTone,
         primaryAction: 'start',
@@ -165,9 +174,9 @@ export function computeRecommendation(
     }
     return {
       state: 'due',
-      eyebrow: 'READY WHEN YOU ARE',
-      primary: 'Anytime',
-      supporting: 'Start the first sleep whenever it feels right.',
+      eyebrow: t('recommendation.readyWhenYouAre'),
+      primary: t('recommendation.anytime'),
+      supporting: t('recommendation.firstSleep'),
       context,
       contextTone,
       primaryAction: 'start',
@@ -182,9 +191,9 @@ export function computeRecommendation(
     if (pastLatestBedtime) {
       return {
         state: 'bedtime',
-        eyebrow: 'BEDTIME WINDOW',
-        primary: 'Now',
-        supporting: 'A little earlier tonight may feel easier.',
+        eyebrow: t('recommendation.bedtimeWindow'),
+        primary: t('recommendation.now'),
+        supporting: t('recommendation.earlierTonight'),
         context,
         contextTone: 'warn',
         primaryAction: 'start',
@@ -193,9 +202,12 @@ export function computeRecommendation(
     const minsToLatest = Math.max(0, (bedtime.latest - hoursNow) * 60);
     return {
       state: 'bedtime',
-      eyebrow: 'BEDTIME ROUTINE',
-      primary: minsToLatest < 20 ? 'In a few min' : `In ~${Math.round(minsToLatest)} min`,
-      supporting: 'A calm wind-down can begin now.',
+      eyebrow: t('recommendation.bedtimeRoutine'),
+      primary:
+        minsToLatest < 20
+          ? t('recommendation.inFewMin')
+          : t('recommendation.inMin', { min: Math.round(minsToLatest) }),
+      supporting: t('recommendation.calmWindDown'),
       context,
       contextTone,
       primaryAction: 'start',
@@ -205,10 +217,10 @@ export function computeRecommendation(
   if (untilMax <= 0) {
     return {
       state: 'overdue',
-      eyebrow: 'NAP WINDOW',
-      primary: 'Now',
-      supporting: 'Try settling in the next few minutes.',
-      context: context ?? 'Nap window has opened.',
+      eyebrow: t('recommendation.napWindow'),
+      primary: t('recommendation.now'),
+      supporting: t('recommendation.settleSoon'),
+      context: context ?? t('recommendation.napWindowOpen'),
       contextTone: 'warn',
       primaryAction: 'start',
     };
@@ -217,9 +229,11 @@ export function computeRecommendation(
   if (untilMin <= 0) {
     return {
       state: 'due',
-      eyebrow: 'NAP WINDOW',
-      primary: `Within ~${Math.round(untilMax / MINUTE)} min`,
-      supporting: 'Good time to begin the routine.',
+      eyebrow: t('recommendation.napWindow'),
+      primary: t('recommendation.withinMin', {
+        max: Math.round(untilMax / MINUTE),
+      }),
+      supporting: t('recommendation.goodTime'),
       context,
       contextTone,
       primaryAction: 'start',
@@ -229,9 +243,12 @@ export function computeRecommendation(
   const supportingMinutes = Math.max(1, Math.round(untilMin / MINUTE) - 10);
   return {
     state: 'countdown',
-    eyebrow: 'NEXT NAP LIKELY IN',
-    primary: `${Math.round(untilMin / MINUTE)} – ${Math.round(untilMax / MINUTE)} min`,
-    supporting: `Start the routine in about ${supportingMinutes} min.`,
+    eyebrow: t('recommendation.nextNapIn'),
+    primary: t('recommendation.range', {
+      min: Math.round(untilMin / MINUTE),
+      max: Math.round(untilMax / MINUTE),
+    }),
+    supporting: t('recommendation.startInAbout', { min: supportingMinutes }),
     context,
     contextTone,
     primaryAction: 'start',

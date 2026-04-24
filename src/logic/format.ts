@@ -1,24 +1,31 @@
+import { t } from '@/i18n';
+
 export function formatDuration(ms: number): string {
   const totalMinutes = Math.max(0, Math.round(ms / 60000));
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  if (hours === 0) return `${minutes}m`;
-  if (minutes === 0) return `${hours}h`;
-  return `${hours}h ${minutes.toString().padStart(2, '0')}m`;
+  if (hours === 0) return t('duration.mOnly', { minutes });
+  if (minutes === 0) return t('duration.hOnly', { hours });
+  return t('duration.hm', {
+    hours,
+    minutes: minutes.toString().padStart(2, '0'),
+  });
 }
 
 export function formatShortDuration(ms: number): string {
   const minutes = Math.max(0, Math.round(ms / 60000));
-  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 60) return t('duration.minutesShort', { minutes });
   const hours = Math.floor(minutes / 60);
   const rem = minutes % 60;
-  return rem === 0 ? `${hours}h` : `${hours}h ${rem}m`;
+  return rem === 0
+    ? t('duration.hOnly', { hours })
+    : t('duration.hm', { hours, minutes: rem });
 }
 
 export function formatRange(minMs: number, maxMs: number): string {
   const minMinutes = Math.max(0, Math.round(minMs / 60000));
   const maxMinutes = Math.max(minMinutes, Math.round(maxMs / 60000));
-  return `${minMinutes} – ${maxMinutes} min`;
+  return t('duration.range', { min: minMinutes, max: maxMinutes });
 }
 
 export function formatClock(date: Date, use24h = true): string {
@@ -38,12 +45,12 @@ export function formatClock(date: Date, use24h = true): string {
 
 export function formatRelativePast(ms: number): string {
   const minutes = Math.round(ms / 60000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return t('relativePast.justNow');
+  if (minutes < 60) return t('relativePast.minAgo', { min: minutes });
   const hours = Math.floor(minutes / 60);
   const rem = minutes % 60;
-  if (rem === 0) return `${hours}h ago`;
-  return `${hours}h ${rem}m ago`;
+  if (rem === 0) return t('relativePast.hAgo', { h: hours });
+  return t('relativePast.hmAgo', { h: hours, m: rem });
 }
 
 export function startOfDay(date: Date): Date {
@@ -66,8 +73,8 @@ export function friendlyDateLabel(date: Date, now = new Date()): string {
   const diffDays = Math.round(
     (today.getTime() - target.getTime()) / (1000 * 60 * 60 * 24),
   );
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
+  if (diffDays === 0) return t('date.today');
+  if (diffDays === 1) return t('date.yesterday');
   if (diffDays < 7) {
     return target.toLocaleDateString(undefined, {
       weekday: 'long',
