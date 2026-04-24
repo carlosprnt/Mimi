@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { Text as RNText, TextProps as RNTextProps, StyleSheet, Platform } from 'react-native';
 import { colors, typography, TypographyVariant } from '@/theme';
 
@@ -20,31 +20,28 @@ const toneColor: Record<Tone, string> = {
   warn: colors.warn.soft,
 };
 
-export const Text: React.FC<TextProps> = ({
-  variant = 'body',
-  tone = 'primary',
-  tabular,
-  align,
-  style,
-  children,
-  ...rest
-}) => {
-  return (
-    <RNText
-      {...rest}
-      allowFontScaling
-      style={[
-        typography[variant],
-        { color: toneColor[tone] },
-        align ? { textAlign: align } : null,
-        tabular ? styles.tabular : null,
-        style,
-      ]}
-    >
-      {children}
-    </RNText>
-  );
-};
+export const Text = forwardRef<RNText, TextProps>(
+  ({ variant = 'body', tone = 'primary', tabular, align, style, children, ...rest }, ref) => {
+    return (
+      <RNText
+        ref={ref}
+        {...rest}
+        allowFontScaling
+        style={[
+          typography[variant],
+          { color: toneColor[tone] },
+          align ? { textAlign: align } : null,
+          tabular ? styles.tabular : null,
+          style,
+        ]}
+      >
+        {children}
+      </RNText>
+    );
+  },
+);
+
+Text.displayName = 'Text';
 
 const styles = StyleSheet.create({
   tabular: {

@@ -24,12 +24,6 @@ const BG_FADE_DISTANCE = 40;
 
 const BTN_EXPANDED = 40;
 const BTN_COLLAPSED = 32;
-const NAME_EXPANDED = 34;
-const NAME_COLLAPSED = 20;
-const PADDING_V_EXPANDED = 16;
-const PADDING_V_COLLAPSED = 10;
-
-const AnimatedText = Animated.createAnimatedComponent(Text);
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   name,
@@ -47,14 +41,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       Extrapolation.CLAMP,
     );
     return {
-      paddingTop: insets.top + interpolate(p, [0, 1], [
-        PADDING_V_EXPANDED,
-        PADDING_V_COLLAPSED,
-      ]),
-      paddingBottom: interpolate(p, [0, 1], [
-        PADDING_V_EXPANDED,
-        PADDING_V_COLLAPSED,
-      ]),
+      paddingTop: insets.top + interpolate(p, [0, 1], [16, 10]),
+      paddingBottom: interpolate(p, [0, 1], [16, 10]),
     };
   });
 
@@ -92,13 +80,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       [0, 1],
       Extrapolation.CLAMP,
     );
+    const scale = interpolate(p, [0, 1], [1, 0.6]);
     return {
-      fontSize: interpolate(p, [0, 1], [NAME_EXPANDED, NAME_COLLAPSED]),
-      lineHeight: interpolate(
-        p,
-        [0, 1],
-        [NAME_EXPANDED + 4, NAME_COLLAPSED + 4],
-      ),
+      transform: [{ scale }],
     };
   });
 
@@ -145,14 +129,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </Pressable>
 
         <View style={styles.nameWrap}>
-          <AnimatedText
-            variant="display"
-            tone="primary"
-            numberOfLines={1}
-            style={[styles.name, nameAnim]}
-          >
-            {name}
-          </AnimatedText>
+          <Animated.View style={[styles.nameInner, nameAnim]}>
+            <Text
+              variant="display"
+              tone="primary"
+              numberOfLines={1}
+              style={styles.name}
+            >
+              {name}
+            </Text>
+          </Animated.View>
         </View>
       </Animated.View>
     </View>
@@ -195,8 +181,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-end',
   },
+  nameInner: {
+    transformOrigin: 'right center',
+  },
   name: {
     fontFamily: fonts.medium,
     textAlign: 'right',
+    fontSize: 34,
+    lineHeight: 38,
   },
 });
