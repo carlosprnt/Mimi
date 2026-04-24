@@ -63,8 +63,10 @@ export const useCareEventStore = create<CareEventState>()(
   ),
 );
 
+const EMPTY_EVENTS: CareEvent[] = [];
+
 export const useCareEventsForBaby = (babyId: string | null): CareEvent[] => {
   return useCareEventStore((s) =>
-    babyId ? s.eventsByBaby[babyId] ?? [] : [],
+    babyId ? s.eventsByBaby[babyId] ?? EMPTY_EVENTS : EMPTY_EVENTS,
   );
 };

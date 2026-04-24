@@ -123,8 +123,10 @@ export const useSleepStore = create<SleepState>()(
   ),
 );
 
+const EMPTY_SESSIONS: SleepSession[] = [];
+
 export const useSessionsForBaby = (babyId: string | null): SleepSession[] => {
   return useSleepStore((s) =>
-    babyId ? (s.sessionsByBaby[babyId] ?? []) : [],
+    babyId ? (s.sessionsByBaby[babyId] ?? EMPTY_SESSIONS) : EMPTY_SESSIONS,
   );
 };
