@@ -18,3 +18,4 @@ export {
   PrematurityEditSheet,
   DeleteChildSheet,
 } from './BabyEditSheets';
+export { Timeline } from './Timeline';

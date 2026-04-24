@@ -7,7 +7,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { colors, radii, spacing } from '@/theme';
+import { colors, fonts, radii, spacing } from '@/theme';
 import { Text } from './Text';
 
 type Variant = 'primary' | 'ghost' | 'subtle';
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    fontWeight: '500',
+    fontFamily: fonts.medium,
   },
   disabled: {
     opacity: 0.4,

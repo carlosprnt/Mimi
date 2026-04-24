@@ -12,7 +12,9 @@ import {
   StickyAction,
   Sheet,
   Button,
+  Timeline,
 } from '@/components';
+import { buildTimeline } from '@/logic/timeline';
 import { spacing, screenGutter } from '@/theme';
 import { useActiveBaby, useBabyStore } from '@/state/babyStore';
 import { useSessionsForBaby, useSleepStore } from '@/state/sleepStore';
@@ -59,6 +61,10 @@ export const HomeScreen: React.FC = () => {
 
   const active = useMemo(() => activeSession(sessions), [sessions]);
   const last = useMemo(() => lastCompletedSession(sessions), [sessions]);
+  const timeline = useMemo(
+    () => (baby ? buildTimeline(baby, sessions, now) : []),
+    [baby, sessions, now],
+  );
 
   if (!baby || !recommendation) return null;
 
@@ -139,6 +145,13 @@ export const HomeScreen: React.FC = () => {
           supporting={recommendation.supporting}
           muted={recommendation.state === 'sleeping'}
         />
+
+        <Card variant="bordered" tone="night" style={styles.planCard}>
+          <Text variant="eyebrow" tone="tertiary" style={styles.planHeading}>
+            {t('home.plan')}
+          </Text>
+          <Timeline events={timeline} use24h={use24h} now={now} />
+        </Card>
 
         <Card variant="bordered" tone="night" style={styles.todayCard}>
           <Text variant="eyebrow" tone="tertiary" style={styles.todayHeading}>
@@ -222,6 +235,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderLeftWidth: 3,
     borderLeftColor: 'rgba(168, 165, 230, 0.7)',
+  },
+  planCard: {
+    marginTop: spacing.xl,
+    paddingVertical: spacing.base,
+  },
+  planHeading: {
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.xxs,
   },
   todayCard: {
     marginTop: spacing.xl,

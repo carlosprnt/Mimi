@@ -11,7 +11,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Sheet } from './Sheet';
 import { Text } from './Text';
 import { Button } from './Button';
-import { colors, radii, spacing, typography } from '@/theme';
+import { colors, fonts, radii, spacing, typography } from '@/theme';
 import { Baby } from '@/logic/age';
 import { t, type TranslationKey } from '@/i18n';
 
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   optionLabelSelected: {
-    fontWeight: '500',
+    fontFamily: fonts.medium,
   },
   pressed: {
     opacity: 0.7,

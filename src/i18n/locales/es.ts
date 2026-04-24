@@ -31,6 +31,14 @@ export const es: Translations = {
     endSleep: 'Terminar sueño',
     endConfirmTitle: '¿Terminar este sueño?',
     endConfirmBody: 'Mimi registrará la duración y actualizará el día de hoy.',
+    plan: 'PLAN DE HOY',
+  },
+  timeline: {
+    wake: 'Despertar',
+    nap: 'Siesta',
+    bedtime: 'A dormir',
+    suggested: 'Sugerido',
+    inProgress: 'En curso',
   },
   history: {
     title: 'Historial',

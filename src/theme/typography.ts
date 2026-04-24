@@ -1,70 +1,57 @@
-import { Platform, TextStyle } from 'react-native';
+import { TextStyle } from 'react-native';
 
-const systemFont = Platform.select({
-  ios: 'System',
-  android: 'sans-serif',
-  default: 'System',
-});
-
-const systemFontLight = Platform.select({
-  ios: 'System',
-  android: 'sans-serif-light',
-  default: 'System',
-});
+export const fonts = {
+  regular: 'DMSans_400Regular',
+  medium: 'DMSans_500Medium',
+  semibold: 'DMSans_600SemiBold',
+  bold: 'DMSans_700Bold',
+} as const;
 
 export const typography = {
   display: {
-    fontFamily: systemFontLight,
+    fontFamily: fonts.medium,
     fontSize: 40,
     lineHeight: 44,
-    fontWeight: '300',
     letterSpacing: -0.8,
   },
   title: {
-    fontFamily: systemFont,
+    fontFamily: fonts.medium,
     fontSize: 28,
     lineHeight: 34,
-    fontWeight: '400',
     letterSpacing: -0.4,
   },
   headline: {
-    fontFamily: systemFont,
+    fontFamily: fonts.medium,
     fontSize: 20,
     lineHeight: 26,
-    fontWeight: '500',
     letterSpacing: -0.2,
   },
   body: {
-    fontFamily: systemFont,
+    fontFamily: fonts.regular,
     fontSize: 16,
     lineHeight: 22,
-    fontWeight: '400',
   },
   callout: {
-    fontFamily: systemFont,
+    fontFamily: fonts.regular,
     fontSize: 15,
     lineHeight: 21,
-    fontWeight: '400',
   },
   footnote: {
-    fontFamily: systemFont,
+    fontFamily: fonts.regular,
     fontSize: 13,
     lineHeight: 18,
-    fontWeight: '400',
   },
   eyebrow: {
-    fontFamily: systemFont,
+    fontFamily: fonts.semibold,
     fontSize: 11,
     lineHeight: 14,
-    fontWeight: '600',
     letterSpacing: 1.4,
     textTransform: 'uppercase',
   },
   wordmark: {
-    fontFamily: systemFont,
+    fontFamily: fonts.medium,
     fontSize: 18,
     lineHeight: 22,
-    fontWeight: '500',
     letterSpacing: 2.4,
   },
 } as const satisfies Record<string, TextStyle>;

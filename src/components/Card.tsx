@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, View, ViewProps } from 'react-native';
+import { Platform, StyleSheet, View, ViewProps } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { colors, gradients, radii, spacing } from '@/theme';
 
 type CardVariant = 'flat' | 'bordered';
@@ -30,6 +31,7 @@ export const Card: React.FC<CardProps> = ({
   const bg = toneToBg[tone];
 
   if (variant === 'bordered') {
+    const isNight = tone === 'night';
     return (
       <View {...rest} style={[styles.borderedWrap, style]}>
         <LinearGradient
@@ -39,14 +41,30 @@ export const Card: React.FC<CardProps> = ({
           end={gradients.cardBorder.end}
           style={StyleSheet.absoluteFill}
         />
-        <View
-          style={[
-            styles.borderedInner,
-            { backgroundColor: bg },
-            padded && styles.padded,
-          ]}
-        >
-          {children}
+        <View style={[styles.borderedInner]}>
+          {isNight ? (
+            <>
+              <BlurView
+                intensity={Platform.OS === 'ios' ? 40 : 24}
+                tint="dark"
+                style={StyleSheet.absoluteFill}
+              />
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: 'rgba(11, 20, 54, 0.55)' },
+                ]}
+              />
+            </>
+          ) : (
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: bg },
+              ]}
+            />
+          )}
+          <View style={padded ? styles.padded : undefined}>{children}</View>
         </View>
       </View>
     );

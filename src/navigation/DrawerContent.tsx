@@ -6,7 +6,7 @@ import {
 } from '@react-navigation/drawer';
 import { Text, Divider, SectionLabel } from '@/components';
 import { useBabyStore } from '@/state/babyStore';
-import { colors, radii, spacing } from '@/theme';
+import { colors, fonts, radii, spacing } from '@/theme';
 import { t } from '@/i18n';
 
 export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   rowLabelActive: {
-    fontWeight: '500',
+    fontFamily: fonts.medium,
   },
   emptyRow: {
     paddingHorizontal: spacing.lg,

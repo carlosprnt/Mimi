@@ -4,7 +4,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OnboardingShell } from './OnboardingShell';
 import { Text } from '@/components';
-import { colors, radii, spacing } from '@/theme';
+import { colors, fonts, radii, spacing } from '@/theme';
 import { useBabyStore } from '@/state/babyStore';
 import { RootStackParamList } from '@/navigation/types';
 import { t, type TranslationKey } from '@/i18n';
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   selectedLabel: {
-    fontWeight: '500',
+    fontFamily: fonts.medium,
   },
   pressed: {
     opacity: 0.7,

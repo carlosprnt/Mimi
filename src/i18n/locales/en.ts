@@ -29,6 +29,14 @@ export const en = {
     endSleep: 'End sleep',
     endConfirmTitle: 'End this sleep?',
     endConfirmBody: 'Mimi will log the duration and update today.',
+    plan: 'TODAY’S PLAN',
+  },
+  timeline: {
+    wake: 'Wake',
+    nap: 'Nap',
+    bedtime: 'Bedtime',
+    suggested: 'Suggested',
+    inProgress: 'In progress',
   },
   history: {
     title: 'History',
