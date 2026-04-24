@@ -39,6 +39,12 @@ export const es: Translations = {
     bedtime: 'A dormir',
     suggested: 'Sugerido',
     inProgress: 'En curso',
+    editWake: 'Editar hora de despertar',
+    editNap: 'Editar siesta',
+    setWake: 'Ajustar hora de despertar',
+    addWake: 'Añadir hora de despertar',
+    startTime: 'Inicio',
+    endTime: 'Fin',
   },
   history: {
     title: 'Historial',

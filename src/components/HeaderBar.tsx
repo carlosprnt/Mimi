@@ -1,10 +1,12 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '@/theme';
 import { Text } from './Text';
 
 interface IconAction {
-  glyph: string;
+  glyph?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
 }
@@ -17,6 +19,24 @@ interface HeaderBarProps {
   showWordmark?: boolean;
 }
 
+const ActionButton: React.FC<{ action: IconAction }> = ({ action }) => (
+  <Pressable
+    onPress={action.onPress}
+    accessibilityRole="button"
+    accessibilityLabel={action.label}
+    hitSlop={8}
+    style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
+  >
+    {action.icon ? (
+      <Ionicons name={action.icon} size={24} color={colors.accent.base} />
+    ) : (
+      <Text variant="headline" tone="accent">
+        {action.glyph}
+      </Text>
+    )}
+  </Pressable>
+);
+
 export const HeaderBar: React.FC<HeaderBarProps> = ({
   title,
   subtitle,
@@ -27,19 +47,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   return (
     <View style={styles.bar}>
       <View style={styles.side}>
-        {leading ? (
-          <Pressable
-            onPress={leading.onPress}
-            accessibilityRole="button"
-            accessibilityLabel={leading.label}
-            hitSlop={10}
-            style={({ pressed }) => [styles.glyphBtn, pressed && styles.pressed]}
-          >
-            <Text variant="headline" tone="secondary">
-              {leading.glyph}
-            </Text>
-          </Pressable>
-        ) : null}
+        {leading ? <ActionButton action={leading} /> : null}
       </View>
 
       <View style={styles.center}>
@@ -61,18 +69,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
       <View style={[styles.side, styles.sideRight]}>
         {(trailing ?? []).map((action) => (
-          <Pressable
-            key={action.label}
-            onPress={action.onPress}
-            accessibilityRole="button"
-            accessibilityLabel={action.label}
-            hitSlop={10}
-            style={({ pressed }) => [styles.glyphBtn, pressed && styles.pressed]}
-          >
-            <Text variant="headline" tone="secondary">
-              {action.glyph}
-            </Text>
-          </Pressable>
+          <ActionButton key={action.label} action={action} />
         ))}
       </View>
     </View>
@@ -81,13 +78,13 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
 const styles = StyleSheet.create({
   bar: {
-    height: 56,
+    height: 64,
     paddingHorizontal: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
   },
   side: {
-    width: 88,
+    width: 80,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
@@ -102,15 +99,15 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: 2,
   },
-  glyphBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  btn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.bg.elevated,
+    backgroundColor: colors.pure.white,
   },
   pressed: {
-    opacity: 0.6,
+    opacity: 0.7,
   },
 });

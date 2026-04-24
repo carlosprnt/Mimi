@@ -19,3 +19,5 @@ export {
   DeleteChildSheet,
 } from './BabyEditSheets';
 export { Timeline } from './Timeline';
+export { TimelineEditSheet } from './TimelineEditSheet';
+export type { TimelineEditKind } from './TimelineEditSheet';

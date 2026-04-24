@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import type { DrawerNavigationProp } from '@react-navigation/drawer';
+import { Ionicons } from '@expo/vector-icons';
 import {
   Screen,
   HeaderBar,
@@ -13,9 +14,12 @@ import {
   Sheet,
   Button,
   Timeline,
+  TimelineEditSheet,
+  type TimelineEditKind,
 } from '@/components';
-import { buildTimeline } from '@/logic/timeline';
-import { spacing, screenGutter } from '@/theme';
+import { buildTimeline, TimelineEvent } from '@/logic/timeline';
+import { makeId } from '@/utils/id';
+import { colors, spacing, screenGutter } from '@/theme';
 import { useActiveBaby, useBabyStore } from '@/state/babyStore';
 import { useSessionsForBaby, useSleepStore } from '@/state/sleepStore';
 import {
@@ -26,7 +30,6 @@ import {
   napsCountToday,
   totalSleepTodayMs,
 } from '@/logic/recommendation';
-import { ageLabel } from '@/logic/age';
 import {
   formatClock,
   formatDuration,
@@ -45,9 +48,17 @@ export const HomeScreen: React.FC = () => {
   const sessions = useSessionsForBaby(baby?.id ?? null);
   const startSleep = useSleepStore((s) => s.startSleep);
   const endSleep = useSleepStore((s) => s.endSleep);
+  const updateSession = useSleepStore((s) => s.updateSession);
+  const addSession = useSleepStore((s) => s.addSession);
 
   const [now, setNow] = useState<Date>(() => new Date());
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [editing, setEditing] = useState<{
+    kind: TimelineEditKind;
+    sessionId: string | null;
+    start?: Date;
+    end?: Date;
+  } | null>(null);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), TICK_MS);
@@ -98,21 +109,59 @@ export const HomeScreen: React.FC = () => {
     softImpact();
   };
 
+  const hasWakeEvent = timeline.some((e) => e.kind === 'wake');
+
+  const onPressTimelineEvent = (event: TimelineEvent) => {
+    if (!event.sessionId) return;
+    if (event.kind === 'wake') {
+      setEditing({
+        kind: 'wake',
+        sessionId: event.sessionId,
+        end: event.at,
+      });
+    } else if (event.kind === 'nap') {
+      setEditing({
+        kind: 'nap',
+        sessionId: event.sessionId,
+        start: event.from,
+        end: event.to,
+      });
+    }
+  };
+
+  const onPressAddWake = () => {
+    const defaultWake = new Date(now);
+    defaultWake.setHours(7, 0, 0, 0);
+    setEditing({ kind: 'wake', sessionId: null, end: defaultWake });
+  };
+
+  const onSaveEdit = (update: { startedAt?: string; endedAt?: string }) => {
+    if (!editing) return;
+    if (editing.sessionId) {
+      updateSession(baby.id, editing.sessionId, update);
+    } else if (editing.kind === 'wake' && update.endedAt) {
+      const endTime = new Date(update.endedAt);
+      const startTime = new Date(endTime);
+      startTime.setDate(startTime.getDate() - 1);
+      startTime.setHours(22, 0, 0, 0);
+      addSession(baby.id, {
+        id: makeId(),
+        startedAt: startTime.toISOString(),
+        endedAt: endTime.toISOString(),
+        kind: 'night',
+      });
+    }
+    setEditing(null);
+  };
+
   return (
     <Screen backdrop="night">
       <HeaderBar
         leading={{
-          glyph: '☰',
+          icon: 'menu',
           label: t('nav.menu'),
           onPress: () => navigation.dispatch(DrawerActions.openDrawer()),
         }}
-        trailing={[
-          {
-            glyph: '◷',
-            label: t('nav.history'),
-            onPress: () => navigation.navigate('History'),
-          },
-        ]}
       />
 
       <ScrollView
@@ -122,9 +171,6 @@ export const HomeScreen: React.FC = () => {
         <View style={styles.nameBlock}>
           <Text variant="display" tone="primary" style={styles.babyName}>
             {baby.name}
-          </Text>
-          <Text variant="callout" tone="secondary" style={styles.babyAge}>
-            {ageLabel(baby, now)}
           </Text>
         </View>
 
@@ -150,7 +196,28 @@ export const HomeScreen: React.FC = () => {
           <Text variant="eyebrow" tone="tertiary" style={styles.planHeading}>
             {t('home.plan')}
           </Text>
-          <Timeline events={timeline} use24h={use24h} now={now} />
+          {!hasWakeEvent ? (
+            <Pressable
+              onPress={onPressAddWake}
+              style={({ pressed }) => [
+                styles.addWakeRow,
+                pressed && styles.addWakePressed,
+              ]}
+            >
+              <View style={styles.addWakeIcon}>
+                <Ionicons name="sunny-outline" size={14} color={colors.accent.base} />
+              </View>
+              <Text variant="body" tone="accent">
+                {t('timeline.addWake')}
+              </Text>
+            </Pressable>
+          ) : null}
+          <Timeline
+            events={timeline}
+            use24h={use24h}
+            now={now}
+            onPressEvent={onPressTimelineEvent}
+          />
         </Card>
 
         <Card variant="bordered" tone="night" style={styles.todayCard}>
@@ -208,6 +275,15 @@ export const HomeScreen: React.FC = () => {
           />
         </View>
       </Sheet>
+
+      <TimelineEditSheet
+        visible={editing !== null}
+        kind={editing?.kind ?? 'wake'}
+        initialStart={editing?.start}
+        initialEnd={editing?.end}
+        onClose={() => setEditing(null)}
+        onSave={onSaveEdit}
+      />
     </Screen>
   );
 };
@@ -224,29 +300,45 @@ const styles = StyleSheet.create({
   babyName: {
     // display variant already large; no extra sizing needed
   },
-  babyAge: {
-    marginTop: spacing.xs,
-  },
   insightBanner: {
     marginTop: spacing.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     backgroundColor: 'rgba(22, 35, 90, 0.35)',
     borderRadius: 12,
-    borderLeftWidth: 3,
-    borderLeftColor: 'rgba(168, 165, 230, 0.7)',
+    borderWidth: 1,
+    borderColor: colors.night.cardEdge,
   },
   planCard: {
     marginTop: spacing.xl,
-    paddingVertical: spacing.base,
   },
   planHeading: {
     marginBottom: spacing.md,
     paddingHorizontal: spacing.xxs,
   },
+  addWakeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    gap: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  addWakePressed: {
+    opacity: 0.6,
+  },
+  addWakeIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.accent.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+  },
   todayCard: {
     marginTop: spacing.xl,
-    paddingVertical: spacing.base,
   },
   todayHeading: {
     marginBottom: spacing.xs,

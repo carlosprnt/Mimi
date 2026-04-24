@@ -48,13 +48,13 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' ? colors.text.onAccent : colors.text.primary}
+          color={variant === 'primary' ? colors.text.onAccent : colors.accent.base}
         />
       ) : (
         <View style={styles.inner}>
           <Text
             variant="headline"
-            tone={variant === 'primary' ? 'onAccent' : 'primary'}
+            tone={variant === 'primary' ? 'onAccent' : 'accent'}
             style={styles.label}
           >
             {title}

@@ -20,6 +20,7 @@ interface SleepState {
     id: string,
     patch: Partial<SleepSession>,
   ) => void;
+  addSession: (babyId: string, session: SleepSession) => void;
   removeSession: (babyId: string, id: string) => void;
   clearAll: (babyId: string) => void;
   dropBaby: (babyId: string) => void;
@@ -76,6 +77,13 @@ export const useSleepStore = create<SleepState>()(
             [babyId]: sessionsFor(state, babyId).map((s) =>
               s.id === id ? { ...s, ...patch } : s,
             ),
+          },
+        })),
+      addSession: (babyId, session) =>
+        set((state) => ({
+          sessionsByBaby: {
+            ...state.sessionsByBaby,
+            [babyId]: [session, ...sessionsFor(state, babyId)],
           },
         })),
       removeSession: (babyId, id) =>

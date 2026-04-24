@@ -14,6 +14,7 @@ export interface TimelineEvent {
   id: string;
   kind: TimelineKind;
   status: TimelineStatus;
+  sessionId?: string;
   at?: Date;
   from?: Date;
   to?: Date;
@@ -60,6 +61,7 @@ export function buildTimeline(
       id: `wake-${lastNightEndedToday.id}`,
       kind: 'wake',
       status: 'real',
+      sessionId: lastNightEndedToday.id,
       at: new Date(lastNightEndedToday.endedAt!),
     });
   }
@@ -77,6 +79,7 @@ export function buildTimeline(
       id: `nap-${nap.id}`,
       kind: 'nap',
       status: 'real',
+      sessionId: nap.id,
       from: start,
       to: end,
       durationMs: end.getTime() - start.getTime(),

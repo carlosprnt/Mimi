@@ -37,6 +37,12 @@ export const en = {
     bedtime: 'Bedtime',
     suggested: 'Suggested',
     inProgress: 'In progress',
+    editWake: 'Edit wake time',
+    editNap: 'Edit nap',
+    setWake: 'Set wake time',
+    addWake: 'Add wake time',
+    startTime: 'Start',
+    endTime: 'End',
   },
   history: {
     title: 'History',

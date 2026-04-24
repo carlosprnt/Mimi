@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '@/theme';
 import { Text } from './Text';
@@ -15,6 +15,7 @@ interface TimelineProps {
   events: TimelineEvent[];
   use24h?: boolean;
   now?: Date;
+  onPressEvent?: (event: TimelineEvent) => void;
 }
 
 const iconFor = (kind: TimelineKind): keyof typeof Ionicons.glyphMap => {
@@ -96,6 +97,7 @@ export const Timeline: React.FC<TimelineProps> = ({
   events,
   use24h = true,
   now = new Date(),
+  onPressEvent,
 }) => {
   return (
     <View style={styles.wrap}>
@@ -105,9 +107,13 @@ export const Timeline: React.FC<TimelineProps> = ({
         const dc = dotColors(event.status);
         const timeText = formatEventTime(event, use24h);
         const caption = formatCaption(event, use24h, now);
+        const editable =
+          onPressEvent !== undefined &&
+          event.status === 'real' &&
+          (event.kind === 'wake' || event.kind === 'nap');
 
-        return (
-          <View key={event.id} style={styles.row}>
+        const row = (
+          <>
             <View style={styles.rail}>
               <View
                 style={[
@@ -163,6 +169,27 @@ export const Timeline: React.FC<TimelineProps> = ({
                 </Text>
               ) : null}
             </View>
+          </>
+        );
+
+        if (editable) {
+          return (
+            <Pressable
+              key={event.id}
+              onPress={() => onPressEvent(event)}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && styles.pressed,
+              ]}
+            >
+              {row}
+            </Pressable>
+          );
+        }
+
+        return (
+          <View key={event.id} style={styles.row}>
+            {row}
           </View>
         );
       })}
@@ -217,5 +244,8 @@ const styles = StyleSheet.create({
   },
   caption: {
     marginTop: 2,
+  },
+  pressed: {
+    opacity: 0.5,
   },
 });

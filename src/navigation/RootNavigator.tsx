@@ -37,14 +37,15 @@ const RootDrawer: React.FC = () => {
       screenOptions={{
         headerShown: false,
         drawerStyle: {
-          backgroundColor: colors.bg.base,
-          width: 280,
+          backgroundColor: colors.night.bottom,
+          width: 300,
+          borderRightWidth: 0,
         },
         sceneStyle: {
           backgroundColor: colors.bg.base,
         },
         drawerType: 'front',
-        overlayColor: 'rgba(0,0,0,0.4)',
+        overlayColor: 'rgba(0,0,0,0.5)',
         swipeEnabled: true,
       }}
     >

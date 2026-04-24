@@ -91,9 +91,9 @@ export const StarField: React.FC<StarFieldProps> = ({
         ),
       );
     };
-    loop(phase0, 2600, 0.55, 0);
-    loop(phase1, 3400, 0.4, 900);
-    loop(phase2, 4200, 0.65, 1800);
+    loop(phase0, 4200, 0.8, 0);
+    loop(phase1, 5400, 0.72, 1400);
+    loop(phase2, 6200, 0.85, 2800);
   }, [twinkle, phase0, phase1, phase2]);
 
   const group0Style = useAnimatedStyle(() => ({ opacity: phase0.value }));

@@ -1,8 +1,7 @@
 import React from 'react';
 import { Platform, StyleSheet, View, ViewProps } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { colors, gradients, radii, spacing } from '@/theme';
+import { colors, radii, spacing } from '@/theme';
 
 type CardVariant = 'flat' | 'bordered';
 
@@ -11,8 +10,6 @@ interface CardProps extends ViewProps {
   tone?: 'elevated' | 'sunken' | 'night';
   variant?: CardVariant;
 }
-
-const BORDER_WIDTH = 1;
 
 const toneToBg = {
   elevated: colors.bg.elevated,
@@ -33,39 +30,27 @@ export const Card: React.FC<CardProps> = ({
   if (variant === 'bordered') {
     const isNight = tone === 'night';
     return (
-      <View {...rest} style={[styles.borderedWrap, style]}>
-        <LinearGradient
-          colors={gradients.cardBorder.colors}
-          locations={gradients.cardBorder.locations}
-          start={gradients.cardBorder.start}
-          end={gradients.cardBorder.end}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={[styles.borderedInner]}>
-          {isNight ? (
-            <>
-              <BlurView
-                intensity={Platform.OS === 'ios' ? 40 : 24}
-                tint="dark"
-                style={StyleSheet.absoluteFill}
-              />
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  { backgroundColor: 'rgba(11, 20, 54, 0.55)' },
-                ]}
-              />
-            </>
-          ) : (
+      <View {...rest} style={[styles.bordered, style]}>
+        {isNight ? (
+          <>
+            <BlurView
+              intensity={Platform.OS === 'ios' ? 40 : 24}
+              tint="dark"
+              style={StyleSheet.absoluteFill}
+            />
             <View
               style={[
                 StyleSheet.absoluteFill,
-                { backgroundColor: bg },
+                { backgroundColor: 'rgba(11, 20, 54, 0.55)' },
               ]}
             />
-          )}
-          <View style={padded ? styles.padded : undefined}>{children}</View>
-        </View>
+          </>
+        ) : (
+          <View
+            style={[StyleSheet.absoluteFill, { backgroundColor: bg }]}
+          />
+        )}
+        <View style={padded ? styles.padded : undefined}>{children}</View>
       </View>
     );
   }
@@ -94,13 +79,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.lg,
   },
-  borderedWrap: {
+  bordered: {
     borderRadius: radii.xl,
     overflow: 'hidden',
-    padding: BORDER_WIDTH,
-  },
-  borderedInner: {
-    borderRadius: radii.xl - BORDER_WIDTH,
-    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.night.cardEdge,
   },
 });
