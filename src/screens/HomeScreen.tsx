@@ -24,6 +24,7 @@ import {
   DayCalendar,
 } from '@/components';
 import { buildTimeline, TimelineEvent } from '@/logic/timeline';
+import { pickInsightTip, resolveInsightTip } from '@/logic/insights';
 import { makeId } from '@/utils/id';
 import { colors, spacing, screenGutter } from '@/theme';
 import { useActiveBaby, useBabyStore } from '@/state/babyStore';
@@ -65,6 +66,7 @@ export const HomeScreen: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
     startOfDay(new Date()),
   );
+  const [insightSeed] = useState<number>(() => Math.floor(Math.random() * 1e6));
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [editing, setEditing] = useState<{
     kind: TimelineEditKind;
@@ -98,6 +100,11 @@ export const HomeScreen: React.FC = () => {
   const timeline = useMemo(
     () => (baby ? buildTimeline(baby, sessions, selectedDate, now) : []),
     [baby, sessions, selectedDate, now],
+  );
+
+  const insightTip = useMemo(
+    () => (baby && isToday ? pickInsightTip(baby, insightSeed, now) : null),
+    [baby, isToday, insightSeed, now],
   );
 
   if (!baby) return null;
@@ -235,14 +242,30 @@ export const HomeScreen: React.FC = () => {
           />
         </View>
 
-        {isToday && recommendation?.context ? (
+        {isToday && (recommendation?.context || insightTip) ? (
           <View style={styles.insightBanner}>
-            <Text
-              variant="callout"
-              tone={recommendation.contextTone === 'warn' ? 'warn' : 'secondary'}
-            >
-              {recommendation.context}
-            </Text>
+            {recommendation?.context ? (
+              <Text
+                variant="callout"
+                tone={recommendation.contextTone === 'warn' ? 'warn' : 'primary'}
+              >
+                {recommendation.context}
+              </Text>
+            ) : null}
+            {insightTip ? (
+              <View
+                style={
+                  recommendation?.context ? styles.insightTipOffset : undefined
+                }
+              >
+                <Text variant="eyebrow" tone="accent" style={styles.insightEyebrow}>
+                  {t('home.tipEyebrow')}
+                </Text>
+                <Text variant="footnote" tone="secondary">
+                  {resolveInsightTip(insightTip)}
+                </Text>
+              </View>
+            ) : null}
           </View>
         ) : null}
 
@@ -376,11 +399,20 @@ const styles = StyleSheet.create({
   insightBanner: {
     marginTop: spacing.sm,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     backgroundColor: 'rgba(22, 35, 90, 0.35)',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.night.cardEdge,
+    gap: spacing.sm,
+  },
+  insightTipOffset: {
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  insightEyebrow: {
+    marginBottom: 4,
   },
   planCard: {
     marginTop: spacing.xl,

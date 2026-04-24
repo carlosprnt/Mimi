@@ -5,8 +5,11 @@ import {
   DrawerContentScrollView,
 } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components';
 import { useBabyStore } from '@/state/babyStore';
+import { ageLabel } from '@/logic/age';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
 
@@ -19,6 +22,7 @@ interface NavItem {
 }
 
 export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
+  const insets = useSafeAreaInsets();
   const babies = useBabyStore((s) => s.babies);
   const activeBabyId = useBabyStore((s) => s.activeBabyId);
   const setActiveBabyId = useBabyStore((s) => s.setActiveBabyId);
@@ -49,11 +53,22 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
 
   return (
     <View style={styles.container}>
+      <LinearGradient
+        colors={[colors.night.top, colors.night.mid, colors.night.bottom]}
+        locations={[0, 0.55, 1]}
+        style={StyleSheet.absoluteFill}
+      />
       <DrawerContentScrollView
         {...props}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + spacing.xl },
+        ]}
       >
         <View style={styles.header}>
+          <View style={styles.logoMark}>
+            <Ionicons name="moon" size={14} color={colors.pure.white} />
+          </View>
           <Text variant="wordmark" tone="primary" style={styles.logo}>
             MIMI
           </Text>
@@ -69,42 +84,58 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
             </Text>
           </View>
         ) : (
-          babies.map((baby) => {
-            const isActive = baby.id === activeBabyId;
-            return (
-              <Pressable
-                key={baby.id}
-                onPress={() => selectBaby(baby.id)}
-                style={({ pressed }) => [
-                  styles.childRow,
-                  isActive && styles.childRowActive,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.avatar,
-                    isActive && styles.avatarActive,
+          <View style={styles.childList}>
+            {babies.map((baby) => {
+              const isActive = baby.id === activeBabyId;
+              return (
+                <Pressable
+                  key={baby.id}
+                  onPress={() => selectBaby(baby.id)}
+                  style={({ pressed }) => [
+                    styles.childChip,
+                    isActive && styles.childChipActive,
+                    pressed && styles.pressed,
                   ]}
                 >
-                  <Text
-                    variant="body"
-                    tone={isActive ? 'onAccent' : 'secondary'}
-                    style={styles.avatarLetter}
+                  <View
+                    style={[
+                      styles.avatar,
+                      isActive && styles.avatarActive,
+                    ]}
                   >
-                    {baby.name.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-                <Text
-                  variant="body"
-                  tone={isActive ? 'primary' : 'secondary'}
-                  style={isActive ? styles.childRowLabelActive : styles.childRowLabel}
-                >
-                  {baby.name}
-                </Text>
-              </Pressable>
-            );
-          })
+                    <Text
+                      variant="body"
+                      tone={isActive ? 'onAccent' : 'secondary'}
+                      style={styles.avatarLetter}
+                    >
+                      {baby.name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={styles.childInfo}>
+                    <Text
+                      variant="body"
+                      tone={isActive ? 'primary' : 'secondary'}
+                      style={isActive ? styles.childNameActive : undefined}
+                      numberOfLines={1}
+                    >
+                      {baby.name}
+                    </Text>
+                    <Text
+                      variant="footnote"
+                      tone="tertiary"
+                      style={styles.childAge}
+                      numberOfLines={1}
+                    >
+                      {ageLabel(baby)}
+                    </Text>
+                  </View>
+                  {isActive ? (
+                    <View style={styles.activeDot} />
+                  ) : null}
+                </Pressable>
+              );
+            })}
+          </View>
         )}
 
         <Pressable
@@ -112,14 +143,18 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
           style={({ pressed }) => [styles.addRow, pressed && styles.pressed]}
         >
           <View style={styles.addIcon}>
-            <Ionicons name="add" size={18} color={colors.accent.base} />
+            <Ionicons name="add" size={20} color={colors.accent.base} />
           </View>
-          <Text variant="body" tone="accent">
+          <Text variant="body" tone="accent" style={styles.addLabel}>
             {t('drawer.addChild')}
           </Text>
         </Pressable>
 
         <View style={styles.divider} />
+
+        <Text variant="eyebrow" tone="tertiary" style={styles.sectionLabel}>
+          {t('nav.menu')}
+        </Text>
 
         {navItems.map((item) => {
           const isActive = currentRoute === item.route;
@@ -133,12 +168,15 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
                 pressed && styles.pressed,
               ]}
             >
-              <Ionicons
-                name={item.icon}
-                size={20}
-                color={isActive ? colors.accent.base : colors.text.secondary}
-                style={styles.navIcon}
-              />
+              <View
+                style={[styles.navIconWrap, isActive && styles.navIconWrapActive]}
+              >
+                <Ionicons
+                  name={item.icon}
+                  size={18}
+                  color={isActive ? colors.accent.base : colors.text.secondary}
+                />
+              </View>
               <Text
                 variant="body"
                 tone={isActive ? 'primary' : 'secondary'}
@@ -146,6 +184,14 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
               >
                 {item.label}
               </Text>
+              {isActive ? (
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.text.tertiary}
+                  style={styles.chevron}
+                />
+              ) : null}
             </Pressable>
           );
         })}
@@ -160,43 +206,55 @@ const styles = StyleSheet.create({
     backgroundColor: colors.night.bottom,
   },
   scrollContent: {
-    paddingTop: spacing.huge,
     paddingBottom: spacing.xl,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,
+    gap: spacing.sm,
+  },
+  logoMark: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(168, 165, 230, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(168, 165, 230, 0.32)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logo: {
-    fontSize: 24,
+    fontSize: 20,
     letterSpacing: 4,
   },
   sectionLabel: {
     paddingHorizontal: spacing.lg,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
-  childRow: {
+  childList: {
+    paddingHorizontal: spacing.md,
+    gap: spacing.xs,
+  },
+  childChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    minHeight: 48,
     gap: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  childRowActive: {
-    backgroundColor: 'rgba(168, 165, 230, 0.08)',
-  },
-  childRowLabel: {
-    flex: 1,
-  },
-  childRowLabelActive: {
-    flex: 1,
-    fontFamily: fonts.medium,
+  childChipActive: {
+    backgroundColor: 'rgba(168, 165, 230, 0.12)',
+    borderColor: 'rgba(168, 165, 230, 0.25)',
   },
   avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -208,7 +266,22 @@ const styles = StyleSheet.create({
     borderColor: colors.accent.base,
   },
   avatarLetter: {
+    fontFamily: fonts.semibold,
+  },
+  childInfo: {
+    flex: 1,
+  },
+  childNameActive: {
     fontFamily: fonts.medium,
+  },
+  childAge: {
+    marginTop: 2,
+  },
+  activeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.accent.base,
   },
   emptyRow: {
     paddingHorizontal: spacing.lg,
@@ -219,42 +292,59 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
     gap: spacing.md,
   },
   addIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: colors.accent.base,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(168, 165, 230, 0.45)',
     backgroundColor: 'rgba(168, 165, 230, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  addLabel: {
+    fontFamily: fonts.medium,
+  },
   divider: {
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.08)',
-    marginVertical: spacing.lg,
+    marginVertical: spacing.xl,
     marginHorizontal: spacing.lg,
   },
   navRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginHorizontal: spacing.sm,
+    borderRadius: 12,
     minHeight: 48,
     gap: spacing.md,
   },
   navRowActive: {
     backgroundColor: 'rgba(168, 165, 230, 0.08)',
   },
-  navIcon: {
-    width: 24,
-    textAlign: 'center',
+  navIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navIconWrapActive: {
+    backgroundColor: 'rgba(168, 165, 230, 0.12)',
   },
   navRowLabelActive: {
     fontFamily: fonts.medium,
+    flex: 1,
+  },
+  chevron: {
+    marginLeft: 'auto',
   },
   pressed: {
     opacity: 0.6,

@@ -31,18 +31,24 @@ const MINUTE = 60 * 1000;
 
 export function wakeWindowForAge(months: number): WakeWindow {
   if (months < 1) return { minMs: 45 * MINUTE, maxMs: 60 * MINUTE };
-  if (months < 2) return { minMs: 60 * MINUTE, maxMs: 75 * MINUTE };
-  if (months < 4) return { minMs: 75 * MINUTE, maxMs: 105 * MINUTE };
-  if (months < 6) return { minMs: 105 * MINUTE, maxMs: 135 * MINUTE };
-  if (months < 9) return { minMs: 135 * MINUTE, maxMs: 165 * MINUTE };
-  if (months < 12) return { minMs: 150 * MINUTE, maxMs: 210 * MINUTE };
-  if (months < 18) return { minMs: 180 * MINUTE, maxMs: 240 * MINUTE };
-  if (months < 36) return { minMs: 240 * MINUTE, maxMs: 330 * MINUTE };
-  return { minMs: 300 * MINUTE, maxMs: 420 * MINUTE };
+  if (months < 2) return { minMs: 60 * MINUTE, maxMs: 90 * MINUTE };
+  if (months < 3) return { minMs: 75 * MINUTE, maxMs: 105 * MINUTE };
+  if (months < 4) return { minMs: 90 * MINUTE, maxMs: 120 * MINUTE };
+  if (months < 5) return { minMs: 105 * MINUTE, maxMs: 135 * MINUTE };
+  if (months < 6) return { minMs: 120 * MINUTE, maxMs: 150 * MINUTE };
+  if (months < 8) return { minMs: 135 * MINUTE, maxMs: 165 * MINUTE };
+  if (months < 10) return { minMs: 150 * MINUTE, maxMs: 180 * MINUTE };
+  if (months < 12) return { minMs: 180 * MINUTE, maxMs: 210 * MINUTE };
+  if (months < 15) return { minMs: 210 * MINUTE, maxMs: 240 * MINUTE };
+  if (months < 18) return { minMs: 240 * MINUTE, maxMs: 300 * MINUTE };
+  if (months < 24) return { minMs: 270 * MINUTE, maxMs: 330 * MINUTE };
+  if (months < 36) return { minMs: 330 * MINUTE, maxMs: 390 * MINUTE };
+  return { minMs: 330 * MINUTE, maxMs: 420 * MINUTE };
 }
 
 export function expectedNapsForAge(months: number): number {
-  if (months < 4) return 4;
+  if (months < 1) return 5;
+  if (months < 3) return 4;
   if (months < 6) return 3;
   if (months < 15) return 2;
   if (months < 36) return 1;
@@ -50,10 +56,82 @@ export function expectedNapsForAge(months: number): number {
 }
 
 export function bedtimeHintForAge(months: number): { earliest: number; latest: number } {
-  if (months < 4) return { earliest: 19, latest: 21 };
-  if (months < 12) return { earliest: 18.5, latest: 20 };
-  if (months < 36) return { earliest: 19, latest: 20.5 };
-  return { earliest: 19.5, latest: 21 };
+  if (months < 3) return { earliest: 19.5, latest: 22 };
+  if (months < 6) return { earliest: 18.5, latest: 20 };
+  if (months < 12) return { earliest: 18.5, latest: 19.75 };
+  if (months < 24) return { earliest: 19, latest: 20.5 };
+  if (months < 48) return { earliest: 19.5, latest: 20.75 };
+  return { earliest: 19.75, latest: 21 };
+}
+
+export interface SleepTargets {
+  totalHoursMin: number;
+  totalHoursMax: number;
+  nightHoursMin: number;
+  nightHoursMax: number;
+  napsMin: number;
+  napsMax: number;
+}
+
+export function sleepTargetsForAge(months: number): SleepTargets {
+  if (months < 3) {
+    return {
+      totalHoursMin: 14,
+      totalHoursMax: 17,
+      nightHoursMin: 8,
+      nightHoursMax: 10,
+      napsMin: 4,
+      napsMax: 5,
+    };
+  }
+  if (months < 6) {
+    return {
+      totalHoursMin: 14,
+      totalHoursMax: 15,
+      nightHoursMin: 10,
+      nightHoursMax: 11,
+      napsMin: 3,
+      napsMax: 4,
+    };
+  }
+  if (months < 12) {
+    return {
+      totalHoursMin: 12,
+      totalHoursMax: 14,
+      nightHoursMin: 11,
+      nightHoursMax: 12,
+      napsMin: 2,
+      napsMax: 3,
+    };
+  }
+  if (months < 18) {
+    return {
+      totalHoursMin: 11,
+      totalHoursMax: 14,
+      nightHoursMin: 11,
+      nightHoursMax: 12,
+      napsMin: 1,
+      napsMax: 2,
+    };
+  }
+  if (months < 36) {
+    return {
+      totalHoursMin: 11,
+      totalHoursMax: 14,
+      nightHoursMin: 11,
+      nightHoursMax: 12,
+      napsMin: 1,
+      napsMax: 1,
+    };
+  }
+  return {
+    totalHoursMin: 10,
+    totalHoursMax: 13,
+    nightHoursMin: 10,
+    nightHoursMax: 12,
+    napsMin: 0,
+    napsMax: 1,
+  };
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
