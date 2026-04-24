@@ -2,6 +2,8 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
 import Animated, {
   interpolate,
   Extrapolation,
@@ -99,18 +101,28 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   return (
     <View style={styles.container} pointerEvents="box-none">
       <Animated.View style={[StyleSheet.absoluteFill, bgAnim]}>
-        <BlurView
-          intensity={32}
-          tint="dark"
+        <MaskedView
           style={StyleSheet.absoluteFill}
-        />
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: 'rgba(11, 20, 54, 0.55)' },
-          ]}
-        />
-        <View style={styles.hairline} />
+          maskElement={
+            <LinearGradient
+              colors={['rgba(0,0,0,1)', 'rgba(0,0,0,0)']}
+              locations={[0, 1]}
+              style={StyleSheet.absoluteFill}
+            />
+          }
+        >
+          <BlurView
+            intensity={36}
+            tint="dark"
+            style={StyleSheet.absoluteFill}
+          />
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: 'rgba(11, 20, 54, 0.6)' },
+            ]}
+          />
+        </MaskedView>
       </Animated.View>
 
       <Animated.View style={[styles.row, containerAnim]}>
@@ -152,14 +164,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
-  },
-  hairline: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
   row: {
     flexDirection: 'row',
