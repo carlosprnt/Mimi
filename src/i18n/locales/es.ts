@@ -12,6 +12,13 @@ export const es: Translations = {
     profile: 'Perfil',
     history: 'Historial',
     settings: 'Ajustes',
+    home: 'Inicio',
+    menu: 'Menú',
+  },
+  drawer: {
+    children: 'Niños',
+    addChild: 'Añadir niño',
+    noChildren: 'Aún no hay niños',
   },
   home: {
     today: 'HOY',

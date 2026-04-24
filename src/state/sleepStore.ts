@@ -5,21 +5,37 @@ import { SleepKind, SleepSession } from '@/logic/recommendation';
 import { classifyByStart } from '@/logic/classify';
 import { makeId } from '@/utils/id';
 
+type SessionsByBaby = Record<string, SleepSession[]>;
+
 interface SleepState {
-  sessions: SleepSession[];
-  startSleep: (at?: Date) => SleepSession;
-  endSleep: (at?: Date, kindOverride?: SleepKind) => SleepSession | undefined;
-  updateSession: (id: string, patch: Partial<SleepSession>) => void;
-  removeSession: (id: string) => void;
-  clearAll: () => void;
+  sessionsByBaby: SessionsByBaby;
+  startSleep: (babyId: string, at?: Date) => SleepSession | undefined;
+  endSleep: (
+    babyId: string,
+    at?: Date,
+    kindOverride?: SleepKind,
+  ) => SleepSession | undefined;
+  updateSession: (
+    babyId: string,
+    id: string,
+    patch: Partial<SleepSession>,
+  ) => void;
+  removeSession: (babyId: string, id: string) => void;
+  clearAll: (babyId: string) => void;
+  dropBaby: (babyId: string) => void;
 }
+
+const sessionsFor = (state: SleepState, babyId: string): SleepSession[] =>
+  state.sessionsByBaby[babyId] ?? [];
 
 export const useSleepStore = create<SleepState>()(
   persist(
     (set, get) => ({
-      sessions: [],
-      startSleep: (at = new Date()) => {
-        const existing = get().sessions.find((s) => !s.endedAt);
+      sessionsByBaby: {},
+      startSleep: (babyId, at = new Date()) => {
+        if (!babyId) return undefined;
+        const current = sessionsFor(get(), babyId);
+        const existing = current.find((s) => !s.endedAt);
         if (existing) return existing;
         const session: SleepSession = {
           id: makeId(),
@@ -27,11 +43,18 @@ export const useSleepStore = create<SleepState>()(
           endedAt: null,
           kind: classifyByStart(at),
         };
-        set((state) => ({ sessions: [session, ...state.sessions] }));
+        set((state) => ({
+          sessionsByBaby: {
+            ...state.sessionsByBaby,
+            [babyId]: [session, ...current],
+          },
+        }));
         return session;
       },
-      endSleep: (at = new Date(), kindOverride) => {
-        const active = get().sessions.find((s) => !s.endedAt);
+      endSleep: (babyId, at = new Date(), kindOverride) => {
+        if (!babyId) return undefined;
+        const current = sessionsFor(get(), babyId);
+        const active = current.find((s) => !s.endedAt);
         if (!active) return undefined;
         const updated: SleepSession = {
           ...active,
@@ -39,22 +62,61 @@ export const useSleepStore = create<SleepState>()(
           kind: kindOverride ?? active.kind,
         };
         set((state) => ({
-          sessions: state.sessions.map((s) => (s.id === active.id ? updated : s)),
+          sessionsByBaby: {
+            ...state.sessionsByBaby,
+            [babyId]: current.map((s) => (s.id === active.id ? updated : s)),
+          },
         }));
         return updated;
       },
-      updateSession: (id, patch) =>
+      updateSession: (babyId, id, patch) =>
         set((state) => ({
-          sessions: state.sessions.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+          sessionsByBaby: {
+            ...state.sessionsByBaby,
+            [babyId]: sessionsFor(state, babyId).map((s) =>
+              s.id === id ? { ...s, ...patch } : s,
+            ),
+          },
         })),
-      removeSession: (id) =>
-        set((state) => ({ sessions: state.sessions.filter((s) => s.id !== id) })),
-      clearAll: () => set({ sessions: [] }),
+      removeSession: (babyId, id) =>
+        set((state) => ({
+          sessionsByBaby: {
+            ...state.sessionsByBaby,
+            [babyId]: sessionsFor(state, babyId).filter((s) => s.id !== id),
+          },
+        })),
+      clearAll: (babyId) =>
+        set((state) => ({
+          sessionsByBaby: { ...state.sessionsByBaby, [babyId]: [] },
+        })),
+      dropBaby: (babyId) =>
+        set((state) => {
+          const next = { ...state.sessionsByBaby };
+          delete next[babyId];
+          return { sessionsByBaby: next };
+        }),
     }),
     {
       name: 'mimi-sleep',
       storage: mimiStorage,
-      partialize: (state) => ({ sessions: state.sessions }),
+      version: 2,
+      partialize: (state) => ({ sessionsByBaby: state.sessionsByBaby }),
+      migrate: (persisted: unknown, version: number) => {
+        if (version < 2) {
+          const legacy = persisted as { sessions?: SleepSession[] };
+          const sessions = legacy?.sessions ?? [];
+          return {
+            sessionsByBaby: sessions.length > 0 ? { legacy: sessions } : {},
+          };
+        }
+        return persisted as { sessionsByBaby: SessionsByBaby };
+      },
     },
   ),
 );
+
+export const useSessionsForBaby = (babyId: string | null): SleepSession[] => {
+  return useSleepStore((s) =>
+    babyId ? (s.sessionsByBaby[babyId] ?? []) : [],
+  );
+};

@@ -4,6 +4,7 @@ const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const DAYS_PER_MONTH = 30.4375;
 
 export interface Baby {
+  id: string;
   name: string;
   dateOfBirth: string;
   prematureWeeks?: number;

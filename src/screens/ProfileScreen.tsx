@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import {
   Screen,
   HeaderBar,
@@ -11,14 +11,14 @@ import {
   Text,
 } from '@/components';
 import { colors, spacing, screenGutter } from '@/theme';
-import { useBabyStore } from '@/state/babyStore';
+import { useActiveBaby, useBabyStore } from '@/state/babyStore';
 import { ageLabel } from '@/logic/age';
-import { RootStackParamList } from '@/navigation/types';
+import { DrawerParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
 export const ProfileScreen: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const baby = useBabyStore((s) => s.baby);
+  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList, 'Profile'>>();
+  const baby = useActiveBaby();
   const preferences = useBabyStore((s) => s.preferences);
   const setPreferences = useBabyStore((s) => s.setPreferences);
 
@@ -31,7 +31,7 @@ export const ProfileScreen: React.FC = () => {
         leading={{
           glyph: '‹',
           label: t('common.back'),
-          onPress: () => navigation.goBack(),
+          onPress: () => navigation.navigate('Home'),
         }}
       />
 

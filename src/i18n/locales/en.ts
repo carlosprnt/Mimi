@@ -10,6 +10,13 @@ export const en = {
     profile: 'Profile',
     history: 'History',
     settings: 'Settings',
+    home: 'Home',
+    menu: 'Menu',
+  },
+  drawer: {
+    children: 'Children',
+    addChild: 'Add child',
+    noChildren: 'No children yet',
   },
   home: {
     today: 'TODAY',

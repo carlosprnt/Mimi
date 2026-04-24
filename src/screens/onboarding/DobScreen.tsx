@@ -37,6 +37,7 @@ export const DobScreen: React.FC = () => {
         navigation.navigate('OnboardingPrematurity', {
           name: route.params.name,
           dob: dob.toISOString(),
+          mode: route.params.mode,
         })
       }
     >

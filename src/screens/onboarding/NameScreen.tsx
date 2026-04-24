@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, TextInput } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OnboardingShell } from './OnboardingShell';
 import { colors, spacing, typography } from '@/theme';
@@ -9,9 +9,14 @@ import { t } from '@/i18n';
 
 export const NameScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'OnboardingName'>>();
+  const mode = route.params?.mode;
   const [name, setName] = useState('');
 
   const trimmed = name.trim();
+
+  const next = () =>
+    navigation.navigate('OnboardingDob', { name: trimmed, mode });
 
   return (
     <OnboardingShell
@@ -20,9 +25,7 @@ export const NameScreen: React.FC = () => {
       title={t('onboarding.name.title')}
       subtitle={t('onboarding.name.subtitle')}
       onBack={() => navigation.goBack()}
-      onCta={() =>
-        navigation.navigate('OnboardingDob', { name: trimmed })
-      }
+      onCta={next}
       ctaDisabled={trimmed.length === 0}
     >
       <TextInput
@@ -36,9 +39,7 @@ export const NameScreen: React.FC = () => {
         selectionColor={colors.accent.base}
         returnKeyType="next"
         onSubmitEditing={() => {
-          if (trimmed.length > 0) {
-            navigation.navigate('OnboardingDob', { name: trimmed });
-          }
+          if (trimmed.length > 0) next();
         }}
         style={styles.input}
       />

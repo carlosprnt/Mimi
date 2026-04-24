@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { SectionList, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import {
   Screen,
   HeaderBar,
@@ -11,8 +11,8 @@ import {
   Eyebrow,
 } from '@/components';
 import { spacing, screenGutter } from '@/theme';
-import { useSleepStore } from '@/state/sleepStore';
-import { useBabyStore } from '@/state/babyStore';
+import { useActiveBaby, useBabyStore } from '@/state/babyStore';
+import { useSessionsForBaby } from '@/state/sleepStore';
 import { SleepSession } from '@/logic/recommendation';
 import {
   formatClock,
@@ -20,7 +20,7 @@ import {
   friendlyDateLabel,
   startOfDay,
 } from '@/logic/format';
-import { RootStackParamList } from '@/navigation/types';
+import { DrawerParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
 interface Section {
@@ -49,8 +49,9 @@ function groupByDay(sessions: SleepSession[]): Section[] {
 }
 
 export const HistoryScreen: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const sessions = useSleepStore((s) => s.sessions);
+  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList, 'History'>>();
+  const baby = useActiveBaby();
+  const sessions = useSessionsForBaby(baby?.id ?? null);
   const use24h = useBabyStore((s) => s.preferences.use24h);
 
   const sections = useMemo(() => groupByDay(sessions), [sessions]);
@@ -62,7 +63,7 @@ export const HistoryScreen: React.FC = () => {
         leading={{
           glyph: '‹',
           label: t('common.back'),
-          onPress: () => navigation.goBack(),
+          onPress: () => navigation.navigate('Home'),
         }}
       />
 

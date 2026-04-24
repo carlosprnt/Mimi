@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation, DrawerActions } from '@react-navigation/native';
+import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import {
   Screen,
   HeaderBar,
@@ -14,8 +14,8 @@ import {
   Button,
 } from '@/components';
 import { spacing, screenGutter } from '@/theme';
-import { useBabyStore } from '@/state/babyStore';
-import { useSleepStore } from '@/state/sleepStore';
+import { useActiveBaby, useBabyStore } from '@/state/babyStore';
+import { useSessionsForBaby, useSleepStore } from '@/state/sleepStore';
 import {
   activeSession,
   computeRecommendation,
@@ -31,16 +31,16 @@ import {
   formatRelativePast,
 } from '@/logic/format';
 import { softImpact, lightImpact } from '@/utils/haptics';
-import { RootStackParamList } from '@/navigation/types';
+import { DrawerParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
 const TICK_MS = 30 * 1000;
 
 export const HomeScreen: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const baby = useBabyStore((s) => s.baby);
+  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList, 'Home'>>();
+  const baby = useActiveBaby();
   const use24h = useBabyStore((s) => s.preferences.use24h);
-  const sessions = useSleepStore((s) => s.sessions);
+  const sessions = useSessionsForBaby(baby?.id ?? null);
   const startSleep = useSleepStore((s) => s.startSleep);
   const endSleep = useSleepStore((s) => s.endSleep);
 
@@ -82,12 +82,12 @@ export const HomeScreen: React.FC = () => {
       setConfirmEnd(true);
     } else {
       softImpact();
-      startSleep();
+      startSleep(baby.id);
     }
   };
 
   const confirmEndSleep = () => {
-    endSleep();
+    endSleep(baby.id);
     setConfirmEnd(false);
     softImpact();
   };
@@ -95,12 +95,10 @@ export const HomeScreen: React.FC = () => {
   return (
     <Screen backdrop="night">
       <HeaderBar
-        showWordmark
-        subtitle={`${baby.name} · ${ageLabel(baby, now)}`}
         leading={{
           glyph: '☰',
-          label: t('nav.profile'),
-          onPress: () => navigation.navigate('Profile'),
+          label: t('nav.menu'),
+          onPress: () => navigation.dispatch(DrawerActions.openDrawer()),
         }}
         trailing={[
           {
@@ -115,6 +113,15 @@ export const HomeScreen: React.FC = () => {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.nameBlock}>
+          <Text variant="display" tone="primary" style={styles.babyName}>
+            {baby.name}
+          </Text>
+          <Text variant="callout" tone="secondary" style={styles.babyAge}>
+            {ageLabel(baby, now)}
+          </Text>
+        </View>
+
         <HeroCard
           eyebrow={recommendation.eyebrow}
           primary={recommendation.primary}
@@ -196,6 +203,16 @@ const styles = StyleSheet.create({
   scroll: {
     paddingHorizontal: screenGutter,
     paddingBottom: 120,
+  },
+  nameBlock: {
+    marginTop: spacing.sm,
+    marginBottom: spacing.base,
+  },
+  babyName: {
+    // display variant already large; no extra sizing needed
+  },
+  babyAge: {
+    marginTop: spacing.xs,
   },
   todayCard: {
     marginTop: spacing.xl,

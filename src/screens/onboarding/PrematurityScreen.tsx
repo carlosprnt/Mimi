@@ -21,17 +21,19 @@ export const PrematurityScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'OnboardingPrematurity'>>();
   const [selected, setSelected] = useState<number>(0);
-  const setBaby = useBabyStore((s) => s.setBaby);
+  const addBaby = useBabyStore((s) => s.addBaby);
+  const setActiveBabyId = useBabyStore((s) => s.setActiveBabyId);
 
   const finish = () => {
-    setBaby({
+    const created = addBaby({
       name: route.params.name,
       dateOfBirth: route.params.dob,
       prematureWeeks: selected > 0 ? selected : undefined,
     });
+    setActiveBabyId(created.id);
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Home' }],
+      routes: [{ name: 'Root' }],
     });
   };
 
