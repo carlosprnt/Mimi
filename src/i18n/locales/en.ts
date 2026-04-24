@@ -51,6 +51,17 @@ export const en = {
     about: 'ABOUT',
     version: 'Version',
     disclaimer: 'Mimi offers gentle guidance — not medical advice.',
+    editName: 'Edit name',
+    editDob: 'Edit date of birth',
+    editPrematurity: 'Edit prematurity',
+    save: 'Save',
+    cancel: 'Cancel',
+    deleteChild: 'Delete child',
+    deleteChildConfirmTitle: 'Delete {name}?',
+    deleteChildConfirmBody:
+      'This removes the child and all their sleep history. This cannot be undone.',
+    delete: 'Delete',
+    danger: 'DANGER ZONE',
   },
   onboarding: {
     stepOf: 'Step {step} of {total}',

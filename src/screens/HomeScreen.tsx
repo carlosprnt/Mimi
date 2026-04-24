@@ -122,6 +122,17 @@ export const HomeScreen: React.FC = () => {
           </Text>
         </View>
 
+        {recommendation.context ? (
+          <View style={styles.insightBanner}>
+            <Text
+              variant="callout"
+              tone={recommendation.contextTone === 'warn' ? 'warn' : 'secondary'}
+            >
+              {recommendation.context}
+            </Text>
+          </View>
+        ) : null}
+
         <HeroCard
           eyebrow={recommendation.eyebrow}
           primary={recommendation.primary}
@@ -149,17 +160,6 @@ export const HomeScreen: React.FC = () => {
             showDivider={false}
           />
         </Card>
-
-        {recommendation.context ? (
-          <Text
-            variant="callout"
-            tone={recommendation.contextTone === 'warn' ? 'warn' : 'secondary'}
-            align="center"
-            style={styles.context}
-          >
-            {recommendation.context}
-          </Text>
-        ) : null}
 
         {active ? (
           <Text variant="footnote" tone="tertiary" align="center" style={styles.activeNote}>
@@ -214,6 +214,15 @@ const styles = StyleSheet.create({
   babyAge: {
     marginTop: spacing.xs,
   },
+  insightBanner: {
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: 'rgba(22, 35, 90, 0.35)',
+    borderRadius: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: 'rgba(168, 165, 230, 0.7)',
+  },
   todayCard: {
     marginTop: spacing.xl,
     paddingVertical: spacing.base,
@@ -221,10 +230,6 @@ const styles = StyleSheet.create({
   todayHeading: {
     marginBottom: spacing.xs,
     paddingHorizontal: spacing.xxs,
-  },
-  context: {
-    marginTop: spacing.xl,
-    paddingHorizontal: spacing.base,
   },
   activeNote: {
     marginTop: spacing.md,

@@ -53,6 +53,17 @@ export const es: Translations = {
     about: 'ACERCA DE',
     version: 'Versión',
     disclaimer: 'Mimi ofrece orientación suave — no consejo médico.',
+    editName: 'Editar nombre',
+    editDob: 'Editar fecha de nacimiento',
+    editPrematurity: 'Editar prematuridad',
+    save: 'Guardar',
+    cancel: 'Cancelar',
+    deleteChild: 'Eliminar niño',
+    deleteChildConfirmTitle: '¿Eliminar a {name}?',
+    deleteChildConfirmBody:
+      'Esto borra al niño y todo su historial de sueño. No se puede deshacer.',
+    delete: 'Eliminar',
+    danger: 'ZONA DE PELIGRO',
   },
   onboarding: {
     stepOf: 'Paso {step} de {total}',

@@ -12,3 +12,9 @@ export { HeroCard } from './HeroCard';
 export { Eyebrow } from './Eyebrow';
 export { SectionLabel } from './SectionLabel';
 export { StarField } from './StarField';
+export {
+  NameEditSheet,
+  DobEditSheet,
+  PrematurityEditSheet,
+  DeleteChildSheet,
+} from './BabyEditSheets';
