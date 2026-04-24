@@ -349,6 +349,15 @@ export const HomeScreen: React.FC = () => {
           />
         </View>
 
+        {isToday && recommendation && recommendation.state === 'sleeping' ? (
+          <HeroCard
+            eyebrow={recommendation.eyebrow}
+            primary={recommendation.primary}
+            supporting={recommendation.supporting}
+            muted
+          />
+        ) : null}
+
         {isToday && (recommendation?.context || insightTip) ? (
           <View style={styles.insightBanner}>
             {recommendation?.context ? (
@@ -376,12 +385,11 @@ export const HomeScreen: React.FC = () => {
           </View>
         ) : null}
 
-        {isToday && recommendation ? (
+        {isToday && recommendation && recommendation.state !== 'sleeping' ? (
           <HeroCard
             eyebrow={recommendation.eyebrow}
             primary={recommendation.primary}
             supporting={recommendation.supporting}
-            muted={recommendation.state === 'sleeping'}
           />
         ) : null}
 
@@ -458,7 +466,7 @@ export const HomeScreen: React.FC = () => {
         <StickyAction
           title={active ? t('home.endSleep') : t('home.startSleep')}
           onPress={onPressAction}
-          variant={active ? 'subtle' : 'outline'}
+          variant={active ? 'destructive' : 'outline'}
           onPressMore={onPressMore}
           moreLabel={t('home.moreActions')}
         />

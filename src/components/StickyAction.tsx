@@ -1,6 +1,7 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radii, spacing } from '@/theme';
 import { Button } from './Button';
@@ -8,7 +9,7 @@ import { Button } from './Button';
 interface StickyActionProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'subtle' | 'outline';
+  variant?: 'primary' | 'subtle' | 'outline' | 'destructive';
   onPressMore?: () => void;
   moreLabel?: string;
 }
@@ -31,7 +32,7 @@ export const StickyAction: React.FC<StickyActionProps> = ({
     >
       <View style={styles.row}>
         <View style={styles.primarySlot}>
-          <Button title={title} onPress={onPress} variant={variant} />
+          <Button title={title} onPress={onPress} variant={variant} blur />
         </View>
         {onPressMore ? (
           <Pressable
@@ -44,6 +45,11 @@ export const StickyAction: React.FC<StickyActionProps> = ({
               pressed && styles.morePressed,
             ]}
           >
+            <BlurView
+              intensity={Platform.OS === 'ios' ? 24 : 14}
+              tint="dark"
+              style={StyleSheet.absoluteFill}
+            />
             <Ionicons
               name="ellipsis-horizontal"
               size={22}
@@ -78,8 +84,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.16)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    overflow: 'hidden',
   },
   morePressed: {
     opacity: 0.6,

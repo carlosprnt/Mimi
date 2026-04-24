@@ -31,6 +31,11 @@ export const colors = {
   warn: {
     soft: '#D9B382',
   },
+  danger: {
+    base: '#E26B62',
+    soft: 'rgba(226, 107, 98, 0.14)',
+    border: 'rgba(226, 107, 98, 0.42)',
+  },
   pure: {
     white: '#FFFFFF',
     black: '#000000',

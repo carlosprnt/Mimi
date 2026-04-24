@@ -2,7 +2,14 @@ import React, { forwardRef } from 'react';
 import { Text as RNText, TextProps as RNTextProps, StyleSheet, Platform } from 'react-native';
 import { colors, typography, TypographyVariant } from '@/theme';
 
-type Tone = 'primary' | 'secondary' | 'tertiary' | 'accent' | 'onAccent' | 'warn';
+type Tone =
+  | 'primary'
+  | 'secondary'
+  | 'tertiary'
+  | 'accent'
+  | 'onAccent'
+  | 'warn'
+  | 'danger';
 
 export interface TextProps extends RNTextProps {
   variant?: TypographyVariant;
@@ -18,6 +25,7 @@ const toneColor: Record<Tone, string> = {
   accent: colors.accent.base,
   onAccent: colors.text.onAccent,
   warn: colors.warn.soft,
+  danger: colors.danger.base,
 };
 
 export const Text = forwardRef<RNText, TextProps>(
