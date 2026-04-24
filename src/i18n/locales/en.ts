@@ -99,6 +99,10 @@ export const en = {
     startTime: 'Start',
     endTime: 'End',
     time: 'Time',
+    editFeeding: 'Edit feeding',
+    editDiaper: 'Edit diaper change',
+    editNightWake: 'Edit night waking',
+    deleteEvent: 'Delete',
   },
   history: {
     title: 'History',

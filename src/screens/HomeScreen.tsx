@@ -70,7 +70,10 @@ export const HomeScreen: React.FC = () => {
   const endSleep = useSleepStore((s) => s.endSleep);
   const updateSession = useSleepStore((s) => s.updateSession);
   const addSession = useSleepStore((s) => s.addSession);
+  const removeSession = useSleepStore((s) => s.removeSession);
   const addCareEvent = useCareEventStore((s) => s.addCareEvent);
+  const updateCareEvent = useCareEventStore((s) => s.updateCareEvent);
+  const removeCareEvent = useCareEventStore((s) => s.removeCareEvent);
 
   const [now, setNow] = useState<Date>(() => new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
@@ -90,6 +93,7 @@ export const HomeScreen: React.FC = () => {
     kind: CareEventKind;
     title: string;
     initial: Date;
+    careEventId: string | null;
   } | null>(null);
 
   const scrollY = useSharedValue(0);
@@ -161,21 +165,33 @@ export const HomeScreen: React.FC = () => {
   const hasWakeEvent = timeline.some((e) => e.kind === 'wake');
 
   const onPressTimelineEvent = (event: TimelineEvent) => {
-    if (!event.sessionId) return;
-    if (event.kind === 'wake') {
+    if (event.sessionId && event.kind === 'wake') {
       setEditing({
         kind: 'wake',
         sessionId: event.sessionId,
         mode: 'edit',
         end: event.at,
       });
-    } else if (event.kind === 'nap') {
+    } else if (event.sessionId && event.kind === 'nap') {
       setEditing({
         kind: 'nap',
         sessionId: event.sessionId,
         mode: 'edit',
         start: event.from,
         end: event.to,
+      });
+    } else if (event.careEventId && event.at) {
+      const titleMap: Record<CareEventKind, string> = {
+        feeding: t('timeline.editFeeding'),
+        diaper: t('timeline.editDiaper'),
+        nightWake: t('timeline.editNightWake'),
+      };
+      const kind = event.kind as CareEventKind;
+      setPointEvent({
+        kind,
+        title: titleMap[kind],
+        initial: event.at,
+        careEventId: event.careEventId,
       });
     }
   };
@@ -209,7 +225,7 @@ export const HomeScreen: React.FC = () => {
 
   const openPointEvent = (kind: CareEventKind, title: string) => {
     setActionMenuOpen(false);
-    setPointEvent({ kind, title, initial: new Date(now) });
+    setPointEvent({ kind, title, initial: new Date(now), careEventId: null });
   };
 
   const actionItems: ActionMenuItem[] = [
@@ -253,12 +269,30 @@ export const HomeScreen: React.FC = () => {
 
   const onSavePointEvent = (time: Date) => {
     if (!pointEvent) return;
-    addCareEvent(baby.id, {
-      id: makeId(),
-      kind: pointEvent.kind,
-      at: time.toISOString(),
-    });
+    if (pointEvent.careEventId) {
+      updateCareEvent(baby.id, pointEvent.careEventId, {
+        at: time.toISOString(),
+      });
+    } else {
+      addCareEvent(baby.id, {
+        id: makeId(),
+        kind: pointEvent.kind,
+        at: time.toISOString(),
+      });
+    }
     setPointEvent(null);
+  };
+
+  const onDeletePointEvent = () => {
+    if (!pointEvent?.careEventId) return;
+    removeCareEvent(baby.id, pointEvent.careEventId);
+    setPointEvent(null);
+  };
+
+  const onDeleteEditing = () => {
+    if (!editing?.sessionId) return;
+    removeSession(baby.id, editing.sessionId);
+    setEditing(null);
   };
 
   const onSaveEdit = (update: { startedAt?: string; endedAt?: string }) => {
@@ -455,6 +489,11 @@ export const HomeScreen: React.FC = () => {
         initialEnd={editing?.end}
         onClose={() => setEditing(null)}
         onSave={onSaveEdit}
+        onDelete={
+          editing?.mode === 'edit' && editing.sessionId
+            ? onDeleteEditing
+            : undefined
+        }
       />
 
       <ActionMenuSheet
@@ -470,6 +509,7 @@ export const HomeScreen: React.FC = () => {
         initial={pointEvent?.initial ?? now}
         onClose={() => setPointEvent(null)}
         onSave={onSavePointEvent}
+        onDelete={pointEvent?.careEventId ? onDeletePointEvent : undefined}
       />
     </Screen>
   );

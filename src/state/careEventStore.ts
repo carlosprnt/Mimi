@@ -8,6 +8,11 @@ type CareEventsByBaby = Record<string, CareEvent[]>;
 interface CareEventState {
   eventsByBaby: CareEventsByBaby;
   addCareEvent: (babyId: string, event: CareEvent) => void;
+  updateCareEvent: (
+    babyId: string,
+    id: string,
+    patch: Partial<CareEvent>,
+  ) => void;
   removeCareEvent: (babyId: string, id: string) => void;
   dropBaby: (babyId: string) => void;
 }
@@ -24,6 +29,15 @@ export const useCareEventStore = create<CareEventState>()(
           eventsByBaby: {
             ...state.eventsByBaby,
             [babyId]: [event, ...eventsFor(state, babyId)],
+          },
+        })),
+      updateCareEvent: (babyId, id, patch) =>
+        set((state) => ({
+          eventsByBaby: {
+            ...state.eventsByBaby,
+            [babyId]: eventsFor(state, babyId).map((e) =>
+              e.id === id ? { ...e, ...patch } : e,
+            ),
           },
         })),
       removeCareEvent: (babyId, id) =>

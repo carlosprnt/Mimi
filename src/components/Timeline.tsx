@@ -122,7 +122,11 @@ export const Timeline: React.FC<TimelineProps> = ({
         const editable =
           onPressEvent !== undefined &&
           event.status === 'real' &&
-          (event.kind === 'wake' || event.kind === 'nap');
+          (event.kind === 'wake' ||
+            event.kind === 'nap' ||
+            event.kind === 'feeding' ||
+            event.kind === 'diaper' ||
+            event.kind === 'nightWake');
 
         const row = (
           <>

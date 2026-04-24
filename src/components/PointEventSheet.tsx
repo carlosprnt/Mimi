@@ -13,6 +13,7 @@ interface PointEventSheetProps {
   initial: Date;
   onClose: () => void;
   onSave: (time: Date) => void;
+  onDelete?: () => void;
 }
 
 export const PointEventSheet: React.FC<PointEventSheetProps> = ({
@@ -21,6 +22,7 @@ export const PointEventSheet: React.FC<PointEventSheetProps> = ({
   initial,
   onClose,
   onSave,
+  onDelete,
 }) => {
   const [value, setValue] = useState<Date>(initial);
 
@@ -50,6 +52,16 @@ export const PointEventSheet: React.FC<PointEventSheetProps> = ({
         <Button title={t('profile.save')} onPress={() => onSave(value)} />
         <View style={{ height: spacing.sm }} />
         <Button title={t('profile.cancel')} variant="ghost" onPress={onClose} />
+        {onDelete ? (
+          <>
+            <View style={{ height: spacing.sm }} />
+            <Button
+              title={t('timeline.deleteEvent')}
+              variant="ghost"
+              onPress={onDelete}
+            />
+          </>
+        ) : null}
       </View>
     </Sheet>
   );

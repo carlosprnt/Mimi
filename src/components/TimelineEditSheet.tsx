@@ -16,6 +16,7 @@ interface TimelineEditSheetProps {
   initialEnd?: Date;
   onClose: () => void;
   onSave: (update: { startedAt?: string; endedAt?: string }) => void;
+  onDelete?: () => void;
 }
 
 export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
@@ -25,6 +26,7 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
   initialEnd,
   onClose,
   onSave,
+  onDelete,
 }) => {
   const [start, setStart] = useState<Date | undefined>(initialStart);
   const [end, setEnd] = useState<Date | undefined>(initialEnd);
@@ -108,6 +110,16 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
         />
         <View style={{ height: spacing.sm }} />
         <Button title={t('profile.cancel')} variant="ghost" onPress={onClose} />
+        {onDelete ? (
+          <>
+            <View style={{ height: spacing.sm }} />
+            <Button
+              title={t('timeline.deleteEvent')}
+              variant="ghost"
+              onPress={onDelete}
+            />
+          </>
+        ) : null}
       </View>
     </Sheet>
   );
