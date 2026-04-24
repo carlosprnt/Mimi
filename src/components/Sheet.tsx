@@ -14,16 +14,27 @@ import Animated, {
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, radii, spacing, motion } from '@/theme';
+
+type SheetVariant = 'surface' | 'frosted';
 
 interface SheetProps {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  variant?: SheetVariant;
+  snap?: 'spring' | 'timing';
 }
 
-export const Sheet: React.FC<SheetProps> = ({ visible, onClose, children }) => {
+export const Sheet: React.FC<SheetProps> = ({
+  visible,
+  onClose,
+  children,
+  variant = 'surface',
+  snap = 'spring',
+}) => {
   const { height } = useWindowDimensions();
   const translate = useSharedValue(height);
   const backdrop = useSharedValue(0);
@@ -32,7 +43,10 @@ export const Sheet: React.FC<SheetProps> = ({ visible, onClose, children }) => {
   useEffect(() => {
     if (visible) {
       setMounted(true);
-      translate.value = withSpring(0, motion.spring.sheet);
+      translate.value =
+        snap === 'spring'
+          ? withSpring(0, motion.spring.sheet)
+          : withTiming(0, { duration: motion.duration.base });
       backdrop.value = withTiming(1, { duration: motion.duration.base });
     } else if (mounted) {
       backdrop.value = withTiming(0, { duration: motion.duration.fast });
@@ -44,7 +58,7 @@ export const Sheet: React.FC<SheetProps> = ({ visible, onClose, children }) => {
         },
       );
     }
-  }, [visible, mounted, height, translate, backdrop]);
+  }, [visible, mounted, height, translate, backdrop, snap]);
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translate.value }],
@@ -53,6 +67,8 @@ export const Sheet: React.FC<SheetProps> = ({ visible, onClose, children }) => {
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: backdrop.value,
   }));
+
+  const isFrosted = variant === 'frosted';
 
   return (
     <Modal
@@ -66,7 +82,28 @@ export const Sheet: React.FC<SheetProps> = ({ visible, onClose, children }) => {
         <Animated.View style={[styles.backdrop, backdropStyle]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         </Animated.View>
-        <Animated.View style={[styles.sheet, sheetStyle]}>
+        <Animated.View
+          style={[
+            styles.sheet,
+            isFrosted ? styles.sheetFrosted : styles.sheetSurface,
+            sheetStyle,
+          ]}
+        >
+          {isFrosted ? (
+            <>
+              <BlurView
+                intensity={Platform.OS === 'ios' ? 60 : 32}
+                tint="dark"
+                style={StyleSheet.absoluteFill}
+              />
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: 'rgba(7, 11, 31, 0.78)' },
+                ]}
+              />
+            </>
+          ) : null}
           <SafeAreaView edges={['bottom']}>
             <View style={styles.grabberWrap}>
               <View style={styles.grabber} />
@@ -89,9 +126,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: colors.bg.elevated,
     borderTopLeftRadius: radii.xxl,
     borderTopRightRadius: radii.xxl,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -102,6 +139,14 @@ const styles = StyleSheet.create({
       android: { elevation: 12 },
     }),
   },
+  sheetSurface: {
+    backgroundColor: colors.bg.elevated,
+  },
+  sheetFrosted: {
+    backgroundColor: 'transparent',
+    borderTopWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
   grabberWrap: {
     alignItems: 'center',
     paddingTop: spacing.md,
@@ -111,7 +156,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.border.strong,
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
   content: {
     paddingHorizontal: spacing.lg,

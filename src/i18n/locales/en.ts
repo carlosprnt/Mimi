@@ -177,6 +177,7 @@ export const en = {
     napInProgress: 'NAP IN PROGRESS',
     restingNight: 'Resting. Mimi will wait.',
     sleepingSince: 'Sleeping since {time}',
+    shouldSleep: '{name} should sleep at least {duration}.',
     shortNapsWarn: 'Short naps today — a slightly earlier bedtime may help.',
     goingSmoothly: 'Today is going smoothly.',
     noSleepYet: 'No sleep logged yet today — trust your instincts.',

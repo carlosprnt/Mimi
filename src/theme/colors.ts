@@ -36,6 +36,11 @@ export const colors = {
     soft: 'rgba(226, 107, 98, 0.14)',
     border: 'rgba(226, 107, 98, 0.42)',
   },
+  success: {
+    base: '#6FCE8C',
+    soft: 'rgba(111, 206, 140, 0.18)',
+    border: 'rgba(111, 206, 140, 0.42)',
+  },
   pure: {
     white: '#FFFFFF',
     black: '#000000',

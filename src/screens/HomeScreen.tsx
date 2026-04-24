@@ -355,6 +355,7 @@ export const HomeScreen: React.FC = () => {
             primary={recommendation.primary}
             supporting={recommendation.supporting}
             muted
+            progress={recommendation.progress}
           />
         ) : null}
 

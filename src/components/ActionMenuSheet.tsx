@@ -1,6 +1,7 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import Animated, {
   FadeInDown,
   FadeOutDown,
@@ -30,7 +31,7 @@ export const ActionMenuSheet: React.FC<ActionMenuSheetProps> = ({
   title,
 }) => {
   return (
-    <Sheet visible={visible} onClose={onClose}>
+    <Sheet visible={visible} onClose={onClose} variant="frosted" snap="timing">
       {title ? (
         <Text variant="eyebrow" tone="tertiary" style={styles.title}>
           {title}
@@ -44,19 +45,22 @@ export const ActionMenuSheet: React.FC<ActionMenuSheetProps> = ({
             exiting={FadeOutDown.duration(140)}
           >
             <Pressable
-              onPress={() => {
-                item.onPress();
-              }}
+              onPress={item.onPress}
               style={({ pressed }) => [
                 styles.row,
                 pressed && styles.pressed,
               ]}
             >
+              <BlurView
+                intensity={Platform.OS === 'ios' ? 20 : 12}
+                tint="light"
+                style={[StyleSheet.absoluteFill, styles.rowBlur]}
+              />
               <View style={styles.iconWell}>
                 <Ionicons
                   name={item.icon}
                   size={20}
-                  color={colors.accent.base}
+                  color={colors.pure.white}
                 />
               </View>
               <Text variant="body" tone="primary" style={styles.label}>
@@ -92,20 +96,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderRadius: radii.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    overflow: 'hidden',
+  },
+  rowBlur: {
+    borderRadius: radii.lg,
   },
   pressed: {
-    opacity: 0.6,
+    opacity: 0.7,
   },
   iconWell: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(168, 165, 230, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
     borderWidth: 1,
-    borderColor: 'rgba(168, 165, 230, 0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.24)',
     alignItems: 'center',
     justifyContent: 'center',
   },

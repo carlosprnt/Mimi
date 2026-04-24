@@ -179,6 +179,7 @@ export const es: Translations = {
     napInProgress: 'SIESTA EN CURSO',
     restingNight: 'Descansando. Mimi espera.',
     sleepingSince: 'Durmiendo desde las {time}',
+    shouldSleep: '{name} debería dormir al menos {duration}.',
     shortNapsWarn:
       'Siestas cortas hoy — una hora de dormir algo antes puede ayudar.',
     goingSmoothly: 'Hoy va sin contratiempos.',

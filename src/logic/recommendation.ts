@@ -25,6 +25,10 @@ export interface Recommendation {
   context?: string;
   contextTone?: 'neutral' | 'warn';
   primaryAction: 'start' | 'end';
+  progress?: {
+    elapsedMs: number;
+    expectedMs: number;
+  };
 }
 
 const MINUTE = 60 * 1000;
@@ -71,6 +75,21 @@ export interface SleepTargets {
   nightHoursMax: number;
   napsMin: number;
   napsMax: number;
+}
+
+export function expectedSleepDurationMs(
+  kind: SleepKind,
+  months: number,
+): number {
+  if (kind === 'night') {
+    if (months < 3) return 8 * 60 * 60 * 1000;
+    if (months < 6) return 10 * 60 * 60 * 1000;
+    return 11 * 60 * 60 * 1000;
+  }
+  if (months < 3) return 45 * 60 * 1000;
+  if (months < 12) return 60 * 60 * 1000;
+  if (months < 24) return 90 * 60 * 1000;
+  return 75 * 60 * 1000;
 }
 
 export function sleepTargetsForAge(months: number): SleepTargets {
@@ -228,6 +247,7 @@ export function computeRecommendation(
 
   if (active) {
     const elapsed = now.getTime() - new Date(active.startedAt).getTime();
+    const expectedMs = expectedSleepDurationMs(active.kind, months);
     return {
       state: 'sleeping',
       eyebrow:
@@ -235,13 +255,12 @@ export function computeRecommendation(
           ? t('recommendation.nightSleepInProgress')
           : t('recommendation.napInProgress'),
       primary: formatElapsed(elapsed),
-      supporting:
-        active.kind === 'night'
-          ? t('recommendation.restingNight')
-          : t('recommendation.sleepingSince', {
-              time: formatClock(new Date(active.startedAt)),
-            }),
+      supporting: t('recommendation.shouldSleep', {
+        name: baby.name,
+        duration: formatShortDuration(expectedMs),
+      }),
       primaryAction: 'end',
+      progress: { elapsedMs: elapsed, expectedMs },
     };
   }
 

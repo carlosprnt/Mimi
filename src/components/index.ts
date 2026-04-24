@@ -26,3 +26,4 @@ export { DayCalendar } from './DayCalendar';
 export { ActionMenuSheet } from './ActionMenuSheet';
 export type { ActionMenuItem } from './ActionMenuSheet';
 export { PointEventSheet } from './PointEventSheet';
+export { ProgressBar } from './ProgressBar';

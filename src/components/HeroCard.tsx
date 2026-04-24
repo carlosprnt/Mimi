@@ -4,12 +4,17 @@ import { spacing } from '@/theme';
 import { Card } from './Card';
 import { Text } from './Text';
 import { Eyebrow } from './Eyebrow';
+import { ProgressBar } from './ProgressBar';
 
 interface HeroCardProps {
   eyebrow: string;
   primary: string;
   supporting?: string;
   muted?: boolean;
+  progress?: {
+    elapsedMs: number;
+    expectedMs: number;
+  };
 }
 
 export const HeroCard: React.FC<HeroCardProps> = ({
@@ -17,6 +22,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
   primary,
   supporting,
   muted,
+  progress,
 }) => {
   return (
     <Card variant="bordered" tone="night" style={styles.wrap}>
@@ -34,6 +40,12 @@ export const HeroCard: React.FC<HeroCardProps> = ({
           {supporting}
         </Text>
       ) : null}
+      {progress && progress.expectedMs > 0 ? (
+        <ProgressBar
+          value={progress.elapsedMs / progress.expectedMs}
+          style={styles.progress}
+        />
+      ) : null}
     </Card>
   );
 };
@@ -47,5 +59,8 @@ const styles = StyleSheet.create({
   },
   supporting: {
     marginTop: spacing.sm,
+  },
+  progress: {
+    marginTop: spacing.md,
   },
 });
