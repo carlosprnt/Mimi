@@ -98,15 +98,27 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     return { opacity: p };
   });
 
+  const backdropHeight = insets.top + 200;
+
   return (
     <View style={styles.container} pointerEvents="box-none">
-      <Animated.View style={[StyleSheet.absoluteFill, bgAnim]}>
+      <Animated.View
+        style={[
+          styles.backdrop,
+          { height: backdropHeight },
+          bgAnim,
+        ]}
+      >
         <MaskedView
           style={StyleSheet.absoluteFill}
           maskElement={
             <LinearGradient
-              colors={['rgba(0,0,0,1)', 'rgba(0,0,0,0)']}
-              locations={[0, 1]}
+              colors={[
+                'rgba(0,0,0,1)',
+                'rgba(0,0,0,0.85)',
+                'rgba(0,0,0,0)',
+              ]}
+              locations={[0, 0.55, 1]}
               style={StyleSheet.absoluteFill}
             />
           }
@@ -164,6 +176,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
   },
   row: {
     flexDirection: 'row',

@@ -223,8 +223,7 @@ export const en = {
   date: {
     today: 'Today',
     yesterday: 'Yesterday',
-  },
-  age: {
+  },  age: {
     newborn: 'Newborn',
     days: '{count} days',
     monthsFractional: '{value} months',

@@ -29,7 +29,7 @@ const toneColor: Record<Tone, string> = {
 };
 
 export const Text = forwardRef<RNText, TextProps>(
-  ({ variant = 'body', tone = 'primary', tabular, align, style, children, ...rest }, ref) => {
+  ({ variant = 'body', tone = 'primary', tabular = true, align, style, children, ...rest }, ref) => {
     return (
       <RNText
         ref={ref}

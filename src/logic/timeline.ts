@@ -27,6 +27,8 @@ export interface TimelineEvent {
   from?: Date;
   to?: Date;
   durationMs?: number;
+  overnightChain?: boolean;
+  captionKey?: 'yesterday';
 }
 
 const TYPICAL_NAP_MS = 60 * 60 * 1000;
@@ -79,6 +81,7 @@ export function buildTimeline(
   if (lastNightEndedThatDay) {
     const nightStartMs = new Date(lastNightEndedThatDay.startedAt).getTime();
     const nightEndMs = new Date(lastNightEndedThatDay.endedAt!).getTime();
+    const startedYesterday = nightStartMs < dayStartMs;
 
     events.push({
       id: `prev-bedtime-${lastNightEndedThatDay.id}`,
@@ -86,6 +89,8 @@ export function buildTimeline(
       status: 'real',
       sessionId: lastNightEndedThatDay.id,
       at: new Date(nightStartMs),
+      overnightChain: true,
+      captionKey: startedYesterday ? 'yesterday' : undefined,
     });
 
     for (const ev of careEvents) {
@@ -97,6 +102,7 @@ export function buildTimeline(
           status: 'real',
           careEventId: ev.id,
           at: new Date(ev.at),
+          overnightChain: true,
         });
         usedCareEventIds.add(ev.id);
       }
@@ -108,6 +114,7 @@ export function buildTimeline(
       status: 'real',
       sessionId: lastNightEndedThatDay.id,
       at: new Date(nightEndMs),
+      overnightChain: true,
     });
   }
 

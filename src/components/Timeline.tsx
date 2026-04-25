@@ -1,6 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { colors, spacing } from '@/theme';
 import { Text } from './Text';
 import {
@@ -66,6 +74,7 @@ const formatCaption = (
   use24h: boolean,
   now: Date,
 ): string | null => {
+  if (event.captionKey === 'yesterday') return t('date.yesterday');
   if (event.status === 'active' && event.from) {
     const elapsed = now.getTime() - event.from.getTime();
     return `${t('timeline.inProgress')} · ${formatDuration(elapsed)}`;
@@ -103,22 +112,66 @@ const dotColors = (status: TimelineStatus) => {
 
 const RAIL_WIDTH = 36;
 const DOT_SIZE = 28;
-const LINE_DOT_COUNT = 3;
+const GLOW_SIZE = 56;
 
-const DottedLine: React.FC<{
+const SolidLine: React.FC<{
   hidden?: boolean;
-  faded?: boolean;
-}> = ({ hidden, faded }) => {
+  variant?: 'normal' | 'overnight' | 'suggested';
+}> = ({ hidden, variant = 'normal' }) => {
   if (hidden) return <View style={styles.lineSpacer} />;
   return (
-    <View style={styles.line}>
-      {Array.from({ length: LINE_DOT_COUNT }).map((_, i) => (
-        <View
-          key={i}
-          style={[styles.lineDot, faded && styles.lineDotFaded]}
-        />
-      ))}
-    </View>
+    <View
+      style={[
+        styles.line,
+        variant === 'overnight' && styles.lineOvernight,
+        variant === 'suggested' && styles.lineSuggested,
+      ]}
+    />
+  );
+};
+
+const PulsingGlow: React.FC<{ color: string }> = ({ color }) => {
+  const opacity = useSharedValue(0.0);
+  const scale = useSharedValue(0.85);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.55, {
+          duration: 900,
+          easing: Easing.inOut(Easing.quad),
+        }),
+        withTiming(0, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1,
+      false,
+    );
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.05, {
+          duration: 900,
+          easing: Easing.inOut(Easing.quad),
+        }),
+        withTiming(0.85, {
+          duration: 900,
+          easing: Easing.inOut(Easing.quad),
+        }),
+      ),
+      -1,
+      false,
+    );
+  }, [opacity, scale]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[styles.glow, { backgroundColor: color }, animStyle]}
+    />
   );
 };
 
@@ -128,6 +181,10 @@ export const Timeline: React.FC<TimelineProps> = ({
   now = new Date(),
   onPressEvent,
 }) => {
+  const nextMilestoneIndex = events.findIndex(
+    (e) => e.status === 'suggested' || e.status === 'active',
+  );
+
   return (
     <View style={styles.wrap}>
       {events.map((event, index) => {
@@ -146,31 +203,61 @@ export const Timeline: React.FC<TimelineProps> = ({
               event.kind === 'nightWake')) ||
             (event.status === 'active' && !!event.sessionId));
 
+        const prev = events[index - 1];
+        const next = events[index + 1];
+        const aboveOvernight =
+          !!prev && !!event.overnightChain && !!prev.overnightChain;
+        const belowOvernight =
+          !!next && !!event.overnightChain && !!next.overnightChain;
+        const aboveSuggested =
+          !!prev &&
+          (event.status === 'suggested' || prev.status === 'suggested');
+        const belowSuggested =
+          !!next &&
+          (event.status === 'suggested' || next.status === 'suggested');
+
+        const isNext = index === nextMilestoneIndex;
+
         const row = (
           <>
             <View style={styles.rail}>
-              <DottedLine
+              <SolidLine
                 hidden={isFirst}
-                faded={event.status === 'suggested'}
+                variant={
+                  aboveSuggested
+                    ? 'suggested'
+                    : aboveOvernight
+                      ? 'overnight'
+                      : 'normal'
+                }
               />
-              <View
-                style={[
-                  styles.dot,
-                  {
-                    backgroundColor: dc.background,
-                    borderColor: dc.border,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={iconFor(event.kind)}
-                  size={14}
-                  color={dc.icon}
-                />
+              <View style={styles.dotWrap}>
+                {isNext ? <PulsingGlow color={dc.border} /> : null}
+                <View
+                  style={[
+                    styles.dot,
+                    {
+                      backgroundColor: dc.background,
+                      borderColor: dc.border,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={iconFor(event.kind)}
+                    size={14}
+                    color={dc.icon}
+                  />
+                </View>
               </View>
-              <DottedLine
+              <SolidLine
                 hidden={isLast}
-                faded={event.status === 'suggested'}
+                variant={
+                  belowSuggested
+                    ? 'suggested'
+                    : belowOvernight
+                      ? 'overnight'
+                      : 'normal'
+                }
               />
             </View>
 
@@ -239,21 +326,29 @@ const styles = StyleSheet.create({
   },
   line: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-evenly',
-    paddingVertical: 2,
+    width: 2,
+    backgroundColor: 'rgba(168, 165, 230, 0.5)',
+  },
+  lineOvernight: {
+    backgroundColor: 'rgba(168, 165, 230, 0.2)',
+  },
+  lineSuggested: {
+    backgroundColor: 'rgba(168, 165, 230, 0.18)',
   },
   lineSpacer: {
     flex: 1,
   },
-  lineDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: 'rgba(255, 255, 255, 0.32)',
+  dotWrap: {
+    width: GLOW_SIZE,
+    height: GLOW_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  lineDotFaded: {
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+  glow: {
+    position: 'absolute',
+    width: GLOW_SIZE,
+    height: GLOW_SIZE,
+    borderRadius: GLOW_SIZE / 2,
   },
   dot: {
     width: DOT_SIZE,

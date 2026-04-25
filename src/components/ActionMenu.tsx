@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -33,7 +27,7 @@ interface ActionMenuProps {
   items: ActionMenuItem[];
 }
 
-const EXIT_TOTAL_MS = 140;
+const EXIT_TOTAL_MS = 160;
 
 export const ActionMenu: React.FC<ActionMenuProps> = ({
   visible,
@@ -53,95 +47,94 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
     }
   }, [visible, mounted]);
 
+  if (!mounted) return null;
+
   return (
-    <Modal
-      visible={mounted}
-      transparent
-      animationType="none"
-      onRequestClose={onClose}
-      statusBarTranslucent
-    >
-      <View style={StyleSheet.absoluteFill}>
-        {visible ? (
-          <Animated.View
-            entering={FadeIn.duration(140)}
-            exiting={FadeOut.duration(120)}
-            style={StyleSheet.absoluteFill}
-          >
-            <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
-              <MaskedView
-                style={StyleSheet.absoluteFill}
-                maskElement={
-                  <LinearGradient
-                    colors={['rgba(0,0,0,0)', 'rgba(0,0,0,1)']}
-                    locations={[0, 1]}
-                    style={StyleSheet.absoluteFill}
-                  />
-                }
-              >
-                <BlurView
-                  intensity={Platform.OS === 'ios' ? 50 : 28}
-                  tint="dark"
+    <View style={styles.root} pointerEvents="box-none">
+      {visible ? (
+        <Animated.View
+          entering={FadeIn.duration(140)}
+          exiting={FadeOut.duration(120)}
+          style={StyleSheet.absoluteFill}
+        >
+          <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
+            <MaskedView
+              style={StyleSheet.absoluteFill}
+              maskElement={
+                <LinearGradient
+                  colors={['rgba(0,0,0,0)', 'rgba(0,0,0,1)']}
+                  locations={[0, 1]}
                   style={StyleSheet.absoluteFill}
                 />
-                <View
-                  style={[
-                    StyleSheet.absoluteFill,
-                    { backgroundColor: 'rgba(7, 11, 31, 0.55)' },
-                  ]}
-                />
-              </MaskedView>
-            </Pressable>
-          </Animated.View>
-        ) : null}
+              }
+            >
+              <BlurView
+                intensity={Platform.OS === 'ios' ? 50 : 28}
+                tint="dark"
+                style={StyleSheet.absoluteFill}
+              />
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: 'rgba(7, 11, 31, 0.55)' },
+                ]}
+              />
+            </MaskedView>
+          </Pressable>
+        </Animated.View>
+      ) : null}
 
-        {visible ? (
-          <SafeAreaView
-            style={styles.bottom}
-            edges={['bottom']}
-            pointerEvents="box-none"
-          >
-            <View style={styles.list} pointerEvents="box-none">
-              {items.map((item, i) => (
-                <Animated.View
-                  key={item.id}
-                  entering={FadeInDown.delay(i * 25).duration(160)}
-                  exiting={FadeOutDown.duration(120)}
+      {visible ? (
+        <SafeAreaView
+          style={styles.bottom}
+          edges={['bottom']}
+          pointerEvents="box-none"
+        >
+          <View style={styles.list} pointerEvents="box-none">
+            {items.map((item, i) => (
+              <Animated.View
+                key={item.id}
+                entering={FadeInDown.delay(i * 25).duration(160)}
+                exiting={FadeOutDown.duration(120)}
+              >
+                <Pressable
+                  onPress={item.onPress}
+                  style={({ pressed }) => [
+                    styles.row,
+                    pressed && styles.pressed,
+                  ]}
                 >
-                  <Pressable
-                    onPress={item.onPress}
-                    style={({ pressed }) => [
-                      styles.row,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <View style={styles.iconWell}>
-                      <Ionicons
-                        name={item.icon}
-                        size={20}
-                        color={colors.night.bottom}
-                      />
-                    </View>
-                    <Text variant="body" style={styles.label}>
-                      {item.label}
-                    </Text>
+                  <View style={styles.iconWell}>
                     <Ionicons
-                      name="chevron-forward"
-                      size={16}
-                      color="rgba(14, 15, 18, 0.45)"
+                      name={item.icon}
+                      size={20}
+                      color={colors.night.bottom}
                     />
-                  </Pressable>
-                </Animated.View>
-              ))}
-            </View>
-          </SafeAreaView>
-        ) : null}
-      </View>
-    </Modal>
+                  </View>
+                  <Text variant="body" style={styles.label}>
+                    {item.label}
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color="rgba(14, 15, 18, 0.45)"
+                  />
+                </Pressable>
+              </Animated.View>
+            ))}
+          </View>
+        </SafeAreaView>
+      ) : null}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  root: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 50,
+    elevation: 50,
+  },
   bottom: {
     position: 'absolute',
     left: 0,
