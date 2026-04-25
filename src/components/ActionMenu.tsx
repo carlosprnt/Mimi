@@ -31,7 +31,7 @@ interface ActionMenuProps {
   items: ActionMenuItem[];
 }
 
-const EXIT_TOTAL_MS = 240;
+const EXIT_TOTAL_MS = 140;
 
 export const ActionMenu: React.FC<ActionMenuProps> = ({
   visible,
@@ -62,8 +62,8 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
       <View style={StyleSheet.absoluteFill}>
         {visible ? (
           <Animated.View
-            entering={FadeIn.duration(180)}
-            exiting={FadeOut.duration(160)}
+            entering={FadeIn.duration(140)}
+            exiting={FadeOut.duration(120)}
             style={StyleSheet.absoluteFill}
           >
             <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
@@ -92,11 +92,8 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
               {items.map((item, i) => (
                 <Animated.View
                   key={item.id}
-                  entering={FadeInDown.delay(i * 45)
-                    .duration(220)
-                    .springify()
-                    .damping(18)}
-                  exiting={FadeOutDown.duration(140)}
+                  entering={FadeInDown.delay(i * 25).duration(160)}
+                  exiting={FadeOutDown.duration(120)}
                 >
                   <Pressable
                     onPress={item.onPress}

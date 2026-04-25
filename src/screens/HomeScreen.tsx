@@ -227,7 +227,7 @@ export const HomeScreen: React.FC = () => {
     setActionMenuOpen(false);
     setTimeout(() => {
       setPointEvent({ kind, title, initial: new Date(now), careEventId: null });
-    }, 220);
+    }, 140);
   };
 
   const actionItems: ActionMenuItem[] = [
@@ -237,7 +237,7 @@ export const HomeScreen: React.FC = () => {
       icon: 'bed-outline',
       onPress: () => {
         setActionMenuOpen(false);
-        setTimeout(onPressAddNap, 220);
+        setTimeout(onPressAddNap, 140);
       },
     },
     {
@@ -246,7 +246,7 @@ export const HomeScreen: React.FC = () => {
       icon: 'sunny-outline',
       onPress: () => {
         setActionMenuOpen(false);
-        setTimeout(onPressAddWake, 220);
+        setTimeout(onPressAddWake, 140);
       },
     },
     {

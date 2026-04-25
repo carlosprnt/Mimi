@@ -33,7 +33,7 @@ export const Sheet: React.FC<SheetProps> = ({
   onClose,
   children,
   variant = 'surface',
-  snap = 'spring',
+  snap = 'timing',
 }) => {
   const { height } = useWindowDimensions();
   const translate = useSharedValue(height);
