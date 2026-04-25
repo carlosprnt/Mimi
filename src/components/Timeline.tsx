@@ -103,7 +103,24 @@ const dotColors = (status: TimelineStatus) => {
 
 const RAIL_WIDTH = 36;
 const DOT_SIZE = 28;
-const LINE_WIDTH = 2;
+const LINE_DOT_COUNT = 3;
+
+const DottedLine: React.FC<{
+  hidden?: boolean;
+  faded?: boolean;
+}> = ({ hidden, faded }) => {
+  if (hidden) return <View style={styles.lineSpacer} />;
+  return (
+    <View style={styles.line}>
+      {Array.from({ length: LINE_DOT_COUNT }).map((_, i) => (
+        <View
+          key={i}
+          style={[styles.lineDot, faded && styles.lineDotFaded]}
+        />
+      ))}
+    </View>
+  );
+};
 
 export const Timeline: React.FC<TimelineProps> = ({
   events,
@@ -131,12 +148,9 @@ export const Timeline: React.FC<TimelineProps> = ({
         const row = (
           <>
             <View style={styles.rail}>
-              <View
-                style={[
-                  styles.line,
-                  isFirst && styles.lineHidden,
-                  event.status === 'suggested' && styles.lineDashed,
-                ]}
+              <DottedLine
+                hidden={isFirst}
+                faded={event.status === 'suggested'}
               />
               <View
                 style={[
@@ -153,12 +167,9 @@ export const Timeline: React.FC<TimelineProps> = ({
                   color={dc.icon}
                 />
               </View>
-              <View
-                style={[
-                  styles.line,
-                  isLast && styles.lineHidden,
-                  event.status === 'suggested' && styles.lineDashed,
-                ]}
+              <DottedLine
+                hidden={isLast}
+                faded={event.status === 'suggested'}
               />
             </View>
 
@@ -227,14 +238,21 @@ const styles = StyleSheet.create({
   },
   line: {
     flex: 1,
-    width: LINE_WIDTH,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    paddingVertical: 2,
   },
-  lineHidden: {
-    backgroundColor: 'transparent',
+  lineSpacer: {
+    flex: 1,
   },
-  lineDashed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+  lineDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.32)',
+  },
+  lineDotFaded: {
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
   },
   dot: {
     width: DOT_SIZE,
