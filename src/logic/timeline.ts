@@ -40,7 +40,7 @@ const floatToDate = (day: Date, hoursFloat: number): Date => {
   return d;
 };
 
-const careEventPosition = (event: TimelineEvent): number => {
+const eventPosition = (event: TimelineEvent): number => {
   if (event.at) return event.at.getTime();
   if (event.from) return event.from.getTime();
   return 0;
@@ -74,13 +74,40 @@ export function buildTimeline(
       return endMs >= dayStartMs && endMs < dayEndMs;
     });
 
+  const usedCareEventIds = new Set<string>();
+
   if (lastNightEndedThatDay) {
+    const nightStartMs = new Date(lastNightEndedThatDay.startedAt).getTime();
+    const nightEndMs = new Date(lastNightEndedThatDay.endedAt!).getTime();
+
+    events.push({
+      id: `prev-bedtime-${lastNightEndedThatDay.id}`,
+      kind: 'bedtime',
+      status: 'real',
+      sessionId: lastNightEndedThatDay.id,
+      at: new Date(nightStartMs),
+    });
+
+    for (const ev of careEvents) {
+      const t = new Date(ev.at).getTime();
+      if (t > nightStartMs && t < nightEndMs) {
+        events.push({
+          id: `care-${ev.id}`,
+          kind: ev.kind,
+          status: 'real',
+          careEventId: ev.id,
+          at: new Date(ev.at),
+        });
+        usedCareEventIds.add(ev.id);
+      }
+    }
+
     events.push({
       id: `wake-${lastNightEndedThatDay.id}`,
       kind: 'wake',
       status: 'real',
       sessionId: lastNightEndedThatDay.id,
-      at: new Date(lastNightEndedThatDay.endedAt!),
+      at: new Date(nightEndMs),
     });
   }
 
@@ -158,8 +185,7 @@ export function buildTimeline(
       kind: 'bedtime',
       status: 'real',
       sessionId: nightStartedThatDay.id,
-      from: new Date(nightStartedThatDay.startedAt),
-      to: new Date(nightStartedThatDay.endedAt!),
+      at: new Date(nightStartedThatDay.startedAt),
     });
   } else if (isToday) {
     events.push({
@@ -171,21 +197,21 @@ export function buildTimeline(
     });
   }
 
-  const careEventsForDay = careEvents.filter((e) => {
-    const t = new Date(e.at).getTime();
-    return t >= dayStartMs && t < dayEndMs;
-  });
-  for (const ev of careEventsForDay) {
-    events.push({
-      id: `care-${ev.id}`,
-      kind: ev.kind,
-      status: 'real',
-      careEventId: ev.id,
-      at: new Date(ev.at),
-    });
+  for (const ev of careEvents) {
+    if (usedCareEventIds.has(ev.id)) continue;
+    const t = new Date(ev.at).getTime();
+    if (t >= dayStartMs && t < dayEndMs) {
+      events.push({
+        id: `care-${ev.id}`,
+        kind: ev.kind,
+        status: 'real',
+        careEventId: ev.id,
+        at: new Date(ev.at),
+      });
+    }
   }
 
-  events.sort((a, b) => careEventPosition(a) - careEventPosition(b));
+  events.sort((a, b) => eventPosition(a) - eventPosition(b));
 
   return events;
 }
