@@ -7,7 +7,7 @@ import { Button } from './Button';
 import { colors, spacing } from '@/theme';
 import { t } from '@/i18n';
 
-export type TimelineEditKind = 'wake' | 'nap';
+export type TimelineEditKind = 'wake' | 'nap' | 'activeStart';
 
 interface TimelineEditSheetProps {
   visible: boolean;
@@ -17,6 +17,7 @@ interface TimelineEditSheetProps {
   onClose: () => void;
   onSave: (update: { startedAt?: string; endedAt?: string }) => void;
   onDelete?: () => void;
+  title?: string;
 }
 
 export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
@@ -27,6 +28,7 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
   onClose,
   onSave,
   onDelete,
+  title,
 }) => {
   const [start, setStart] = useState<Date | undefined>(initialStart);
   const [end, setEnd] = useState<Date | undefined>(initialEnd);
@@ -38,12 +40,20 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
     }
   }, [visible, initialStart, initialEnd]);
 
-  const title =
-    kind === 'wake' ? t('timeline.editWake') : t('timeline.editNap');
+  const resolvedTitle =
+    title ??
+    (kind === 'wake'
+      ? t('timeline.editWake')
+      : kind === 'activeStart'
+        ? t('timeline.editStartTime')
+        : t('timeline.editNap'));
 
   const canSave = () => {
     if (kind === 'wake') {
       return end !== undefined && end.getTime() !== initialEnd?.getTime();
+    }
+    if (kind === 'activeStart') {
+      return start !== undefined && start.getTime() !== initialStart?.getTime();
     }
     if (!start || !end) return false;
     if (end.getTime() <= start.getTime()) return false;
@@ -54,21 +64,22 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
   };
 
   const handleSave = () => {
-    if (kind === 'wake') {
-      if (end) onSave({ endedAt: end.toISOString() });
-    } else {
-      if (start && end)
-        onSave({ startedAt: start.toISOString(), endedAt: end.toISOString() });
+    if (kind === 'wake' && end) {
+      onSave({ endedAt: end.toISOString() });
+    } else if (kind === 'activeStart' && start) {
+      onSave({ startedAt: start.toISOString() });
+    } else if (kind === 'nap' && start && end) {
+      onSave({ startedAt: start.toISOString(), endedAt: end.toISOString() });
     }
   };
 
   return (
     <Sheet visible={visible} onClose={onClose}>
       <Text variant="title" style={styles.title}>
-        {title}
+        {resolvedTitle}
       </Text>
 
-      {kind === 'nap' ? (
+      {kind === 'nap' || kind === 'activeStart' ? (
         <View style={styles.pickerBlock}>
           <Text variant="eyebrow" tone="tertiary" style={styles.pickerLabel}>
             {t('timeline.startTime')}
@@ -86,21 +97,23 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
         </View>
       ) : null}
 
-      <View style={styles.pickerBlock}>
-        <Text variant="eyebrow" tone="tertiary" style={styles.pickerLabel}>
-          {kind === 'wake' ? t('timeline.wake') : t('timeline.endTime')}
-        </Text>
-        <View style={styles.pickerWrap}>
-          <DateTimePicker
-            value={end ?? new Date()}
-            mode="time"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            textColor={colors.text.primary}
-            themeVariant="dark"
-            onChange={(_, d) => d && setEnd(d)}
-          />
+      {kind !== 'activeStart' ? (
+        <View style={styles.pickerBlock}>
+          <Text variant="eyebrow" tone="tertiary" style={styles.pickerLabel}>
+            {kind === 'wake' ? t('timeline.wake') : t('timeline.endTime')}
+          </Text>
+          <View style={styles.pickerWrap}>
+            <DateTimePicker
+              value={end ?? new Date()}
+              mode="time"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              textColor={colors.text.primary}
+              themeVariant="dark"
+              onChange={(_, d) => d && setEnd(d)}
+            />
+          </View>
         </View>
-      </View>
+      ) : null}
 
       <View style={styles.actions}>
         <Button

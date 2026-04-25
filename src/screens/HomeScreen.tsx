@@ -165,7 +165,14 @@ export const HomeScreen: React.FC = () => {
   const hasWakeEvent = timeline.some((e) => e.kind === 'wake');
 
   const onPressTimelineEvent = (event: TimelineEvent) => {
-    if (event.sessionId && event.kind === 'wake') {
+    if (event.status === 'active' && event.sessionId) {
+      setEditing({
+        kind: 'activeStart',
+        sessionId: event.sessionId,
+        mode: 'edit',
+        start: event.from,
+      });
+    } else if (event.sessionId && event.kind === 'wake') {
       setEditing({
         kind: 'wake',
         sessionId: event.sessionId,
@@ -357,6 +364,7 @@ export const HomeScreen: React.FC = () => {
             primary={recommendation.primary}
             supporting={recommendation.supporting}
             muted
+            frosted
             progress={recommendation.progress}
           />
         ) : null}

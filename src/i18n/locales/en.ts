@@ -102,6 +102,7 @@ export const en = {
     editFeeding: 'Edit feeding',
     editDiaper: 'Edit diaper change',
     editNightWake: 'Edit night waking',
+    editStartTime: 'Edit start time',
     deleteEvent: 'Delete',
   },
   history: {

@@ -138,12 +138,13 @@ export const Timeline: React.FC<TimelineProps> = ({
         const caption = formatCaption(event, use24h, now);
         const editable =
           onPressEvent !== undefined &&
-          event.status === 'real' &&
-          (event.kind === 'wake' ||
-            event.kind === 'nap' ||
-            event.kind === 'feeding' ||
-            event.kind === 'diaper' ||
-            event.kind === 'nightWake');
+          ((event.status === 'real' &&
+            (event.kind === 'wake' ||
+              event.kind === 'nap' ||
+              event.kind === 'feeding' ||
+              event.kind === 'diaper' ||
+              event.kind === 'nightWake')) ||
+            (event.status === 'active' && !!event.sessionId));
 
         const row = (
           <>

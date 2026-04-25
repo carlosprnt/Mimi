@@ -15,6 +15,7 @@ interface HeroCardProps {
     elapsedMs: number;
     expectedMs: number;
   };
+  frosted?: boolean;
 }
 
 export const HeroCard: React.FC<HeroCardProps> = ({
@@ -23,9 +24,15 @@ export const HeroCard: React.FC<HeroCardProps> = ({
   supporting,
   muted,
   progress,
+  frosted,
 }) => {
   return (
-    <Card variant="bordered" tone="night" style={styles.wrap}>
+    <Card
+      variant="bordered"
+      tone="night"
+      emphasis={frosted ? 'frosted' : 'default'}
+      style={styles.wrap}
+    >
       <Eyebrow tone="tertiary">{eyebrow}</Eyebrow>
       <Text
         variant="display"

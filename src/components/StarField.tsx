@@ -42,8 +42,8 @@ const buildStars = (count: number, seed: number, heightFraction: number): Star[]
   const stars: Star[] = [];
   for (let i = 0; i < count; i++) {
     const sizeRoll = rand();
-    const size = sizeRoll < 0.82 ? 1 : sizeRoll < 0.96 ? 1.8 : 2.6;
-    const baseOpacity = 0.35 + rand() * 0.45;
+    const size = sizeRoll < 0.78 ? 1.2 : sizeRoll < 0.94 ? 2 : 2.8;
+    const baseOpacity = 0.5 + rand() * 0.45;
     stars.push({
       x: rand(),
       y: rand() * heightFraction,
@@ -56,11 +56,11 @@ const buildStars = (count: number, seed: number, heightFraction: number): Star[]
 };
 
 export const StarField: React.FC<StarFieldProps> = ({
-  density = 80,
+  density = 110,
   seed = 7,
   twinkle = true,
   style,
-  heightFraction = 0.6,
+  heightFraction = 0.65,
 }) => {
   const stars = useMemo(
     () => buildStars(density, seed, heightFraction),

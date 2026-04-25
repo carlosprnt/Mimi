@@ -104,6 +104,7 @@ export const es: Translations = {
     editFeeding: 'Editar toma',
     editDiaper: 'Editar cambio de pañal',
     editNightWake: 'Editar despertar nocturno',
+    editStartTime: 'Editar hora de inicio',
     deleteEvent: 'Eliminar',
   },
   history: {

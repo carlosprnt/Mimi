@@ -4,11 +4,13 @@ import { BlurView } from 'expo-blur';
 import { colors, radii, spacing } from '@/theme';
 
 type CardVariant = 'flat' | 'bordered';
+type CardEmphasis = 'default' | 'frosted';
 
 interface CardProps extends ViewProps {
   padded?: boolean;
   tone?: 'elevated' | 'sunken' | 'night';
   variant?: CardVariant;
+  emphasis?: CardEmphasis;
 }
 
 const toneToBg = {
@@ -21,6 +23,7 @@ export const Card: React.FC<CardProps> = ({
   padded = true,
   tone = 'elevated',
   variant = 'flat',
+  emphasis = 'default',
   style,
   children,
   ...rest
@@ -29,19 +32,30 @@ export const Card: React.FC<CardProps> = ({
 
   if (variant === 'bordered') {
     const isNight = tone === 'night';
+    const isFrosted = isNight && emphasis === 'frosted';
+    const blurIntensity = isFrosted
+      ? Platform.OS === 'ios'
+        ? 70
+        : 36
+      : Platform.OS === 'ios'
+        ? 40
+        : 24;
+    const overlayColor = isFrosted
+      ? 'rgba(11, 20, 54, 0.28)'
+      : 'rgba(11, 20, 54, 0.55)';
     return (
       <View {...rest} style={[styles.bordered, style]}>
         {isNight ? (
           <>
             <BlurView
-              intensity={Platform.OS === 'ios' ? 40 : 24}
+              intensity={blurIntensity}
               tint="dark"
               style={StyleSheet.absoluteFill}
             />
             <View
               style={[
                 StyleSheet.absoluteFill,
-                { backgroundColor: 'rgba(11, 20, 54, 0.55)' },
+                { backgroundColor: overlayColor },
               ]}
             />
           </>

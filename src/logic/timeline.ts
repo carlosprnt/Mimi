@@ -143,6 +143,7 @@ export function buildTimeline(
       id: `active-${active.id}`,
       kind: active.kind === 'night' ? 'bedtime' : 'nap',
       status: 'active',
+      sessionId: active.id,
       from: new Date(active.startedAt),
     });
   }
