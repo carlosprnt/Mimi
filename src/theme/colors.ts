@@ -17,9 +17,9 @@ export const colors = {
     strong: '#2A2D35',
   },
   text: {
-    primary: '#ECECEE',
-    secondary: '#9A9BA3',
-    tertiary: '#62646B',
+    primary: '#F1EFFA',
+    secondary: '#B8B5DC',
+    tertiary: '#8C8AB8',
     onAccent: '#0E0F12',
   },
   accent: {

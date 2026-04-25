@@ -384,31 +384,26 @@ export const HomeScreen: React.FC = () => {
           />
         ) : null}
 
-        {isToday && (recommendation?.context || insightTip) ? (
-          <View style={styles.insightBanner}>
-            {recommendation?.context ? (
-              <Text
-                variant="callout"
-                tone={recommendation.contextTone === 'warn' ? 'warn' : 'primary'}
-              >
-                {recommendation.context}
-              </Text>
-            ) : null}
-            {insightTip ? (
-              <View
-                style={
-                  recommendation?.context ? styles.insightTipOffset : undefined
-                }
-              >
-                <Text variant="eyebrow" tone="accent" style={styles.insightEyebrow}>
-                  {t('home.tipEyebrow')}
-                </Text>
-                <Text variant="callout" tone="secondary">
-                  {resolveInsightTip(insightTip)}
-                </Text>
-              </View>
-            ) : null}
-          </View>
+        {isToday && recommendation?.context ? (
+          <Card variant="bordered" tone="night" style={styles.stateCard}>
+            <Text
+              variant="callout"
+              tone={recommendation.contextTone === 'warn' ? 'warn' : 'primary'}
+            >
+              {recommendation.context}
+            </Text>
+          </Card>
+        ) : null}
+
+        {isToday && insightTip ? (
+          <Card variant="bordered" tone="night" style={styles.tipCard}>
+            <Text variant="eyebrow" tone="accent" style={styles.tipEyebrow}>
+              {t('home.tipEyebrow')}
+            </Text>
+            <Text variant="callout" tone="secondary">
+              {resolveInsightTip(insightTip)}
+            </Text>
+          </Card>
         ) : null}
 
         {isToday && recommendation && recommendation.state !== 'sleeping' ? (
@@ -563,23 +558,14 @@ const styles = StyleSheet.create({
     marginHorizontal: -screenGutter,
     marginBottom: spacing.lg,
   },
-  insightBanner: {
+  stateCard: {
     marginTop: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    backgroundColor: 'rgba(22, 35, 90, 0.35)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.night.cardEdge,
-    gap: spacing.sm,
   },
-  insightTipOffset: {
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+  tipCard: {
+    marginTop: spacing.md,
   },
-  insightEyebrow: {
-    marginBottom: 4,
+  tipEyebrow: {
+    marginBottom: spacing.xs,
   },
   planCard: {
     marginTop: spacing.xl,
