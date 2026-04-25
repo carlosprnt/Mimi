@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -44,12 +45,22 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
       ]}
     >
       <Animated.View
-        style={[
-          styles.fill,
-          { borderRadius: radius },
-          fillStyle,
-        ]}
-      />
+        style={[styles.fillWrap, { borderRadius: radius }, fillStyle]}
+      >
+        <LinearGradient
+          colors={['#D7D2FF', colors.accent.base, colors.accent.pressed]}
+          locations={[0, 0.55, 1]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[StyleSheet.absoluteFill, { borderRadius: radius }]}
+        />
+        <View
+          style={[
+            styles.shine,
+            { borderRadius: radius },
+          ]}
+        />
+      </Animated.View>
     </View>
   );
 };
@@ -57,13 +68,21 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 const styles = StyleSheet.create({
   track: {
     width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     overflow: 'hidden',
   },
-  fill: {
+  fillWrap: {
     height: '100%',
-    backgroundColor: colors.success.base,
+    overflow: 'hidden',
+  },
+  shine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: '40%',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
   },
 });

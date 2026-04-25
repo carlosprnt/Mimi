@@ -25,6 +25,8 @@ import {
   ActionMenu,
   type ActionMenuItem,
   EmptyDay,
+  StatCard,
+  ProgressBar,
   dayKey,
   PointEventSheet,
 } from '@/components';
@@ -373,15 +375,74 @@ export const HomeScreen: React.FC = () => {
           />
         </View>
 
-        {isToday && recommendation && recommendation.state === 'sleeping' ? (
-          <HeroCard
-            eyebrow={recommendation.eyebrow}
-            primary={recommendation.primary}
-            supporting={recommendation.supporting}
-            muted
-            frosted
-            progress={recommendation.progress}
-          />
+        {isToday &&
+        recommendation &&
+        recommendation.state === 'sleeping' &&
+        active ? (
+          <View style={styles.sleepingBlock}>
+            <Text
+              variant="eyebrow"
+              tone="tertiary"
+              style={styles.sleepingEyebrow}
+            >
+              {recommendation.eyebrow}
+            </Text>
+            <View style={styles.statRow}>
+              <StatCard
+                eyebrow={t('home.sleeping')}
+                value={recommendation.primary}
+                caption={t('home.sinceTime', {
+                  time: formatClock(new Date(active.startedAt), use24h),
+                })}
+                icon={active.kind === 'night' ? 'moon' : 'bed'}
+                iconTone="accent"
+              />
+              <StatCard
+                eyebrow={t('home.target')}
+                value={
+                  recommendation.progress
+                    ? formatDuration(recommendation.progress.expectedMs)
+                    : '—'
+                }
+                caption={t('home.minRecommended')}
+              />
+            </View>
+            {recommendation.progress &&
+            recommendation.progress.expectedMs > 0 ? (
+              <Card
+                variant="bordered"
+                tone="night"
+                emphasis="frosted"
+                style={styles.progressCard}
+              >
+                <Text variant="callout" tone="primary">
+                  {recommendation.supporting}
+                </Text>
+                <ProgressBar
+                  value={
+                    recommendation.progress.elapsedMs /
+                    recommendation.progress.expectedMs
+                  }
+                  style={styles.progressBar}
+                />
+                <Text
+                  variant="footnote"
+                  tone="secondary"
+                  style={styles.progressCaption}
+                >
+                  {recommendation.progress.elapsedMs >=
+                  recommendation.progress.expectedMs
+                    ? t('home.onTarget')
+                    : t('home.remainingDuration', {
+                        duration: formatDuration(
+                          recommendation.progress.expectedMs -
+                            recommendation.progress.elapsedMs,
+                        ),
+                      })}
+                </Text>
+              </Card>
+            ) : null}
+          </View>
         ) : null}
 
         {isToday && recommendation?.context ? (
@@ -557,6 +618,26 @@ const styles = StyleSheet.create({
   calendarWrap: {
     marginHorizontal: -screenGutter,
     marginBottom: spacing.lg,
+  },
+  sleepingBlock: {
+    marginTop: spacing.base,
+  },
+  sleepingEyebrow: {
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.xxs,
+  },
+  statRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  progressCard: {
+    marginTop: spacing.md,
+  },
+  progressBar: {
+    marginTop: spacing.md,
+  },
+  progressCaption: {
+    marginTop: spacing.sm,
   },
   stateCard: {
     marginTop: spacing.sm,

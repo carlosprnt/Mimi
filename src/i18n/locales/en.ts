@@ -34,6 +34,12 @@ export const en = {
     moreActions: 'More actions',
     addNap: 'Add nap',
     tipEyebrow: 'SUGGESTIONS',
+    sleeping: 'SLEEPING',
+    target: 'TARGET',
+    sinceTime: 'since {time}',
+    minRecommended: 'min. recommended',
+    remainingDuration: '{duration} left',
+    onTarget: 'Target reached',
   },
   insights: {
     newborn: {

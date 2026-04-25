@@ -36,6 +36,12 @@ export const es: Translations = {
     moreActions: 'Más acciones',
     addNap: 'Añadir siesta',
     tipEyebrow: 'SUGERENCIAS',
+    sleeping: 'DURMIENDO',
+    target: 'OBJETIVO',
+    sinceTime: 'desde {time}',
+    minRecommended: 'mínimo recomend.',
+    remainingDuration: 'Quedan {duration}',
+    onTarget: 'Objetivo alcanzado',
   },
   insights: {
     newborn: {
