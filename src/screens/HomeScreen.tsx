@@ -22,7 +22,7 @@ import {
   type TimelineEditKind,
   DashboardHeader,
   DayCalendar,
-  ActionMenuSheet,
+  ActionMenu,
   type ActionMenuItem,
   PointEventSheet,
 } from '@/components';
@@ -225,7 +225,9 @@ export const HomeScreen: React.FC = () => {
 
   const openPointEvent = (kind: CareEventKind, title: string) => {
     setActionMenuOpen(false);
-    setPointEvent({ kind, title, initial: new Date(now), careEventId: null });
+    setTimeout(() => {
+      setPointEvent({ kind, title, initial: new Date(now), careEventId: null });
+    }, 220);
   };
 
   const actionItems: ActionMenuItem[] = [
@@ -235,7 +237,7 @@ export const HomeScreen: React.FC = () => {
       icon: 'bed-outline',
       onPress: () => {
         setActionMenuOpen(false);
-        onPressAddNap();
+        setTimeout(onPressAddNap, 220);
       },
     },
     {
@@ -244,7 +246,7 @@ export const HomeScreen: React.FC = () => {
       icon: 'sunny-outline',
       onPress: () => {
         setActionMenuOpen(false);
-        onPressAddWake();
+        setTimeout(onPressAddWake, 220);
       },
     },
     {
@@ -505,11 +507,10 @@ export const HomeScreen: React.FC = () => {
         }
       />
 
-      <ActionMenuSheet
+      <ActionMenu
         visible={actionMenuOpen}
         onClose={() => setActionMenuOpen(false)}
         items={actionItems}
-        title={t('home.moreActions')}
       />
 
       <PointEventSheet
