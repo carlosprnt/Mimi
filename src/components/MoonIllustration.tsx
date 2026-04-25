@@ -3,6 +3,7 @@ import Svg, {
   Circle,
   Defs,
   G,
+  Path,
   RadialGradient,
   Stop,
 } from 'react-native-svg';
@@ -12,77 +13,110 @@ interface MoonIllustrationProps {
 }
 
 export const MoonIllustration: React.FC<MoonIllustrationProps> = ({
-  size = 140,
+  size = 160,
 }) => {
   return (
-    <Svg width={size} height={size} viewBox="0 0 140 140">
+    <Svg width={size} height={size} viewBox="0 0 160 160">
       <Defs>
         <RadialGradient
           id="moon-halo"
-          cx="70"
-          cy="70"
-          rx="70"
-          ry="70"
-          fx="70"
-          fy="70"
+          cx="80"
+          cy="80"
+          rx="80"
+          ry="80"
+          fx="80"
+          fy="80"
           gradientUnits="userSpaceOnUse"
         >
-          <Stop offset="0" stopColor="#A8A5E6" stopOpacity="0.28" />
-          <Stop offset="0.55" stopColor="#A8A5E6" stopOpacity="0.1" />
+          <Stop offset="0" stopColor="#A8A5E6" stopOpacity="0.32" />
+          <Stop offset="0.5" stopColor="#A8A5E6" stopOpacity="0.12" />
           <Stop offset="1" stopColor="#A8A5E6" stopOpacity="0" />
         </RadialGradient>
 
         <RadialGradient
           id="moon-body"
-          cx="55"
-          cy="55"
-          rx="55"
-          ry="55"
-          fx="55"
-          fy="55"
+          cx="60"
+          cy="60"
+          rx="78"
+          ry="78"
+          fx="60"
+          fy="60"
           gradientUnits="userSpaceOnUse"
         >
-          <Stop offset="0" stopColor="#F4F1FF" />
-          <Stop offset="0.55" stopColor="#C5C0F2" />
-          <Stop offset="1" stopColor="#7E78C9" />
+          <Stop offset="0" stopColor="#FFFFFF" />
+          <Stop offset="0.25" stopColor="#EDE9FF" />
+          <Stop offset="0.55" stopColor="#B6B0EE" />
+          <Stop offset="0.85" stopColor="#5C549E" />
+          <Stop offset="1" stopColor="#2F2A66" />
         </RadialGradient>
 
         <RadialGradient
           id="moon-shadow"
-          cx="92"
-          cy="78"
-          rx="55"
-          ry="55"
-          fx="92"
-          fy="78"
+          cx="118"
+          cy="92"
+          rx="78"
+          ry="78"
+          fx="118"
+          fy="92"
           gradientUnits="userSpaceOnUse"
         >
-          <Stop offset="0" stopColor="#1A1F4A" stopOpacity="0.45" />
-          <Stop offset="0.7" stopColor="#1A1F4A" stopOpacity="0" />
+          <Stop offset="0" stopColor="#0B1436" stopOpacity="0.55" />
+          <Stop offset="0.55" stopColor="#0B1436" stopOpacity="0.18" />
+          <Stop offset="1" stopColor="#0B1436" stopOpacity="0" />
+        </RadialGradient>
+
+        <RadialGradient
+          id="crater-1"
+          cx="0"
+          cy="0"
+          rx="1"
+          ry="1"
+          fx="0.3"
+          fy="0.3"
+          gradientUnits="objectBoundingBox"
+        >
+          <Stop offset="0" stopColor="#1A1F4A" stopOpacity="0.32" />
+          <Stop offset="0.6" stopColor="#1A1F4A" stopOpacity="0.16" />
+          <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.18" />
         </RadialGradient>
       </Defs>
 
-      <Circle cx="70" cy="70" r="65" fill="url(#moon-halo)" />
+      <Circle cx="80" cy="80" r="76" fill="url(#moon-halo)" />
 
       <G>
-        <Circle cx="70" cy="70" r="44" fill="url(#moon-body)" />
-        <Circle cx="70" cy="70" r="44" fill="url(#moon-shadow)" />
+        <Circle cx="80" cy="80" r="50" fill="url(#moon-body)" />
+        <Circle cx="80" cy="80" r="50" fill="url(#moon-shadow)" />
 
-        <Circle cx="56" cy="58" r="6.5" fill="#1A1F4A" fillOpacity="0.18" />
-        <Circle cx="56" cy="58" r="3.4" fill="#1A1F4A" fillOpacity="0.1" />
+        <Path
+          d="M 80 30 A 50 50 0 0 0 35 75 Q 41 51 56 41 Q 70 32 80 30 Z"
+          fill="#FFFFFF"
+          fillOpacity="0.18"
+        />
 
-        <Circle cx="80" cy="74" r="4.8" fill="#1A1F4A" fillOpacity="0.15" />
-        <Circle cx="64" cy="84" r="3.6" fill="#1A1F4A" fillOpacity="0.13" />
-        <Circle cx="86" cy="56" r="2.6" fill="#1A1F4A" fillOpacity="0.12" />
-        <Circle cx="48" cy="76" r="2.2" fill="#1A1F4A" fillOpacity="0.12" />
+        <Circle cx="62" cy="64" r="7.5" fill="url(#crater-1)" />
+        <Circle cx="62" cy="64" r="3.6" fill="#1A1F4A" fillOpacity="0.18" />
 
-        <Circle cx="58" cy="50" r="2.4" fill="#FFFFFF" fillOpacity="0.25" />
+        <Circle cx="92" cy="84" r="5.5" fill="url(#crater-1)" />
+        <Circle cx="92" cy="84" r="2.6" fill="#1A1F4A" fillOpacity="0.18" />
+
+        <Circle cx="73" cy="98" r="4.2" fill="url(#crater-1)" />
+        <Circle cx="73" cy="98" r="2" fill="#1A1F4A" fillOpacity="0.18" />
+
+        <Circle cx="100" cy="62" r="3.2" fill="url(#crater-1)" />
+        <Circle cx="100" cy="62" r="1.4" fill="#1A1F4A" fillOpacity="0.18" />
+
+        <Circle cx="54" cy="86" r="2.6" fill="url(#crater-1)" />
+        <Circle cx="54" cy="86" r="1.2" fill="#1A1F4A" fillOpacity="0.18" />
+
+        <Circle cx="68" cy="50" r="2.2" fill="#FFFFFF" fillOpacity="0.35" />
       </G>
 
-      <Circle cx="22" cy="32" r="1.4" fill="#FFFFFF" fillOpacity="0.7" />
-      <Circle cx="116" cy="42" r="1.2" fill="#FFFFFF" fillOpacity="0.55" />
-      <Circle cx="108" cy="106" r="1" fill="#FFFFFF" fillOpacity="0.45" />
-      <Circle cx="28" cy="108" r="1.6" fill="#FFFFFF" fillOpacity="0.6" />
+      <Circle cx="22" cy="32" r="1.6" fill="#FFFFFF" fillOpacity="0.7" />
+      <Circle cx="138" cy="44" r="1.3" fill="#FFFFFF" fillOpacity="0.55" />
+      <Circle cx="128" cy="124" r="1.1" fill="#FFFFFF" fillOpacity="0.45" />
+      <Circle cx="28" cy="128" r="1.7" fill="#FFFFFF" fillOpacity="0.6" />
+      <Circle cx="146" cy="80" r="1" fill="#FFFFFF" fillOpacity="0.45" />
+      <Circle cx="14" cy="86" r="1.2" fill="#FFFFFF" fillOpacity="0.5" />
     </Svg>
   );
 };
