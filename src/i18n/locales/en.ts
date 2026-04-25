@@ -112,6 +112,10 @@ export const en = {
     nightSleep: 'Night sleep',
     nap: 'Nap',
   },
+  emptyDay: {
+    title: 'No data for this day',
+    body: 'Nothing was logged on this date.',
+  },
   profile: {
     title: 'Settings',
     baby: 'BABY',

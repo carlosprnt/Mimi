@@ -24,6 +24,8 @@ import {
   DayCalendar,
   ActionMenu,
   type ActionMenuItem,
+  EmptyDay,
+  dayKey,
   PointEventSheet,
 } from '@/components';
 import { buildTimeline, TimelineEvent } from '@/logic/timeline';
@@ -127,6 +129,18 @@ export const HomeScreen: React.FC = () => {
     () => (baby && isToday ? pickInsightTip(baby, insightSeed, now) : null),
     [baby, isToday, insightSeed, now],
   );
+
+  const daysWithData = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of sessions) {
+      set.add(dayKey(new Date(s.startedAt)));
+      if (s.endedAt) set.add(dayKey(new Date(s.endedAt)));
+    }
+    for (const e of careEvents) {
+      set.add(dayKey(new Date(e.at)));
+    }
+    return set;
+  }, [sessions, careEvents]);
 
   if (!baby) return null;
 
@@ -355,6 +369,7 @@ export const HomeScreen: React.FC = () => {
             selectedDate={selectedDate}
             onSelect={setSelectedDate}
             now={now}
+            daysWithData={daysWithData}
           />
         </View>
 
@@ -404,58 +419,64 @@ export const HomeScreen: React.FC = () => {
           />
         ) : null}
 
-        <Card variant="bordered" tone="night" style={styles.planCard}>
-          <Text variant="eyebrow" tone="tertiary" style={styles.planHeading}>
-            {t('home.plan')}
-          </Text>
-          {isToday && !hasWakeEvent ? (
-            <Pressable
-              onPress={onPressAddWake}
-              style={({ pressed }) => [
-                styles.addWakeRow,
-                pressed && styles.addWakePressed,
-              ]}
-            >
-              <View style={styles.addWakeIcon}>
-                <Ionicons name="sunny-outline" size={14} color={colors.accent.base} />
-              </View>
-              <Text variant="body" tone="accent">
-                {t('timeline.addWake')}
+        {!isToday && timeline.length === 0 ? (
+          <EmptyDay />
+        ) : (
+          <>
+            <Card variant="bordered" tone="night" style={styles.planCard}>
+              <Text variant="eyebrow" tone="tertiary" style={styles.planHeading}>
+                {t('home.plan')}
               </Text>
-            </Pressable>
-          ) : null}
-          <Timeline
-            events={timeline}
-            use24h={use24h}
-            now={now}
-            onPressEvent={onPressTimelineEvent}
-          />
-        </Card>
+              {isToday && !hasWakeEvent ? (
+                <Pressable
+                  onPress={onPressAddWake}
+                  style={({ pressed }) => [
+                    styles.addWakeRow,
+                    pressed && styles.addWakePressed,
+                  ]}
+                >
+                  <View style={styles.addWakeIcon}>
+                    <Ionicons name="sunny-outline" size={14} color={colors.accent.base} />
+                  </View>
+                  <Text variant="body" tone="accent">
+                    {t('timeline.addWake')}
+                  </Text>
+                </Pressable>
+              ) : null}
+              <Timeline
+                events={timeline}
+                use24h={use24h}
+                now={now}
+                onPressEvent={onPressTimelineEvent}
+              />
+            </Card>
 
-        <Card variant="bordered" tone="night" style={styles.todayCard}>
-          <Text variant="eyebrow" tone="tertiary" style={styles.todayHeading}>
-            {isToday ? t('home.today') : t('home.daySummary')}
-          </Text>
-          <ListRow
-            label={t('home.totalSleep')}
-            value={totalMs > 0 ? formatDuration(totalMs) : '—'}
-          />
-          <ListRow label={t('home.naps')} value={naps.toString()} />
-          {isToday ? (
-            <>
+            <Card variant="bordered" tone="night" style={styles.todayCard}>
+              <Text variant="eyebrow" tone="tertiary" style={styles.todayHeading}>
+                {isToday ? t('home.today') : t('home.daySummary')}
+              </Text>
               <ListRow
-                label={t('home.lastSleep')}
-                value={lastValue}
-                caption={lastCaption}
+                label={t('home.totalSleep')}
+                value={totalMs > 0 ? formatDuration(totalMs) : '—'}
               />
-              <ListRow
-                label={t('home.lastWakeWindow')}
-                value={wakeMs !== null ? formatDuration(wakeMs) : '—'}
-                showDivider={false}
-              />
-            </>
-          ) : null}
-        </Card>
+              <ListRow label={t('home.naps')} value={naps.toString()} />
+              {isToday ? (
+                <>
+                  <ListRow
+                    label={t('home.lastSleep')}
+                    value={lastValue}
+                    caption={lastCaption}
+                  />
+                  <ListRow
+                    label={t('home.lastWakeWindow')}
+                    value={wakeMs !== null ? formatDuration(wakeMs) : '—'}
+                    showDivider={false}
+                  />
+                </>
+              ) : null}
+            </Card>
+          </>
+        )}
 
         {isToday && active ? (
           <Text

@@ -15,6 +15,7 @@ interface DayCalendarProps {
   onSelect: (date: Date) => void;
   daysBack?: number;
   now?: Date;
+  daysWithData?: ReadonlySet<string>;
 }
 
 const DAY_CELL_WIDTH = 56;
@@ -31,11 +32,15 @@ const formatDayNumber = (d: Date) => dayNumberFormatter.format(d);
 const formatWeekday = (d: Date) =>
   weekdayFormatter.format(d).replace('.', '').toUpperCase();
 
+export const dayKey = (d: Date): string =>
+  startOfDay(d).toISOString();
+
 export const DayCalendar: React.FC<DayCalendarProps> = ({
   selectedDate,
   onSelect,
   daysBack = 30,
   now = new Date(),
+  daysWithData,
 }) => {
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
@@ -79,7 +84,13 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
     >
       {days.map((d) => {
         const isSelected = isSameDay(d, selectedDate);
-        const isToday = isSameDay(d, now);
+        const hasData = daysWithData ? daysWithData.has(dayKey(d)) : true;
+
+        let textOpacity = 1;
+        if (!isSelected) {
+          textOpacity = hasData ? 0.7 : 0.3;
+        }
+
         return (
           <Pressable
             key={d.toISOString()}
@@ -93,20 +104,20 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
             <Text
               variant="title"
               tone="primary"
-              style={[
-                styles.dayNumber,
-                !isSelected && styles.dayNumberInactive,
-              ]}
+              style={[styles.dayNumber, { opacity: textOpacity }]}
             >
               {formatDayNumber(d)}
             </Text>
             <Text
               variant="eyebrow"
               tone={isSelected ? 'accent' : 'primary'}
-              style={[styles.weekday, !isSelected && styles.weekdayInactive]}
+              style={[styles.weekday, { opacity: textOpacity }]}
             >
               {formatWeekday(d)}
             </Text>
+            {hasData && !isSelected ? (
+              <View style={styles.dot} />
+            ) : null}
           </Pressable>
         );
       })}
@@ -140,13 +151,16 @@ const styles = StyleSheet.create({
     fontSize: 22,
     lineHeight: 26,
   },
-  dayNumberInactive: {
-    opacity: 0.4,
-  },
   weekday: {
     marginTop: 4,
   },
-  weekdayInactive: {
-    opacity: 0.4,
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.accent.base,
+    marginTop: 4,
+    position: 'absolute',
+    bottom: 4,
   },
 });

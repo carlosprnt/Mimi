@@ -114,6 +114,10 @@ export const es: Translations = {
     nightSleep: 'Sueño nocturno',
     nap: 'Siesta',
   },
+  emptyDay: {
+    title: 'Día sin datos añadidos',
+    body: 'No se registró nada en este día.',
+  },
   profile: {
     title: 'Ajustes',
     baby: 'BEBÉ',
