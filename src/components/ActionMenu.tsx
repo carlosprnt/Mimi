@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   FadeIn,
@@ -67,17 +69,28 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
             style={StyleSheet.absoluteFill}
           >
             <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
-              <BlurView
-                intensity={Platform.OS === 'ios' ? 50 : 28}
-                tint="dark"
+              <MaskedView
                 style={StyleSheet.absoluteFill}
-              />
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  { backgroundColor: 'rgba(7, 11, 31, 0.45)' },
-                ]}
-              />
+                maskElement={
+                  <LinearGradient
+                    colors={['rgba(0,0,0,0)', 'rgba(0,0,0,1)']}
+                    locations={[0, 1]}
+                    style={StyleSheet.absoluteFill}
+                  />
+                }
+              >
+                <BlurView
+                  intensity={Platform.OS === 'ios' ? 50 : 28}
+                  tint="dark"
+                  style={StyleSheet.absoluteFill}
+                />
+                <View
+                  style={[
+                    StyleSheet.absoluteFill,
+                    { backgroundColor: 'rgba(7, 11, 31, 0.55)' },
+                  ]}
+                />
+              </MaskedView>
             </Pressable>
           </Animated.View>
         ) : null}
