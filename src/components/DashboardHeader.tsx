@@ -19,6 +19,7 @@ interface DashboardHeaderProps {
   scrollY: SharedValue<number>;
   onPressMenu: () => void;
   menuLabel: string;
+  status?: string;
 }
 
 const COLLAPSE_DISTANCE = 80;
@@ -32,6 +33,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   scrollY,
   onPressMenu,
   menuLabel,
+  status,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -152,6 +154,17 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </Animated.View>
         </Pressable>
 
+        {status ? (
+          <Text
+            variant="eyebrow"
+            tone="accent"
+            numberOfLines={1}
+            style={styles.status}
+          >
+            {status}
+          </Text>
+        ) : null}
+
         <View style={styles.nameWrap}>
           <Animated.View style={[styles.nameInner, nameAnim]}>
             <Text
@@ -192,12 +205,14 @@ const styles = StyleSheet.create({
   btn: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.22)',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   pressed: {
     opacity: 0.7,
+  },
+  status: {
+    flexShrink: 1,
+    marginLeft: spacing.xs,
   },
   nameWrap: {
     flex: 1,

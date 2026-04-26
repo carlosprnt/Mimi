@@ -355,6 +355,11 @@ export const HomeScreen: React.FC = () => {
         scrollY={scrollY}
         onPressMenu={() => navigation.dispatch(DrawerActions.openDrawer())}
         menuLabel={t('nav.menu')}
+        status={
+          isToday && recommendation && recommendation.state === 'sleeping'
+            ? recommendation.eyebrow
+            : undefined
+        }
       />
 
       <Animated.ScrollView
@@ -375,18 +380,32 @@ export const HomeScreen: React.FC = () => {
           />
         </View>
 
+        {!isToday ? (
+          <View style={styles.backTodayRow}>
+            <Pressable
+              onPress={() => setSelectedDate(startOfDay(now))}
+              style={({ pressed }) => [
+                styles.backTodayBtn,
+                pressed && styles.backTodayPressed,
+              ]}
+            >
+              <Ionicons
+                name="arrow-back"
+                size={14}
+                color={colors.accent.base}
+              />
+              <Text variant="footnote" tone="accent" style={styles.backTodayLabel}>
+                {t('home.backToToday')}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         {isToday &&
         recommendation &&
         recommendation.state === 'sleeping' &&
         active ? (
           <View style={styles.sleepingBlock}>
-            <Text
-              variant="eyebrow"
-              tone="tertiary"
-              style={styles.sleepingEyebrow}
-            >
-              {recommendation.eyebrow}
-            </Text>
             <View style={styles.statRow}>
               <StatCard
                 eyebrow={t('home.sleeping')}
@@ -396,6 +415,7 @@ export const HomeScreen: React.FC = () => {
                 })}
                 icon={active.kind === 'night' ? 'moon' : 'bed'}
                 iconTone="accent"
+                glowPulse
               />
               <StatCard
                 eyebrow={t('home.target')}
@@ -617,14 +637,31 @@ const styles = StyleSheet.create({
   },
   calendarWrap: {
     marginHorizontal: -screenGutter,
+    marginBottom: spacing.sm,
+  },
+  backTodayRow: {
+    alignItems: 'center',
     marginBottom: spacing.lg,
+  },
+  backTodayBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 999,
+    backgroundColor: 'rgba(168, 165, 230, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(168, 165, 230, 0.25)',
+  },
+  backTodayPressed: {
+    opacity: 0.6,
+  },
+  backTodayLabel: {
+    marginLeft: 2,
   },
   sleepingBlock: {
     marginTop: spacing.base,
-  },
-  sleepingEyebrow: {
-    marginBottom: spacing.sm,
-    paddingHorizontal: spacing.xxs,
   },
   statRow: {
     flexDirection: 'row',

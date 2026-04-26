@@ -42,6 +42,7 @@ export const es: Translations = {
     minRecommended: 'mínimo recomend.',
     remainingDuration: 'Quedan {duration}',
     onTarget: 'Objetivo alcanzado',
+    backToToday: 'Volver a hoy',
   },
   insights: {
     newborn: {

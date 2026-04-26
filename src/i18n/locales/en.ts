@@ -40,6 +40,7 @@ export const en = {
     minRecommended: 'min. recommended',
     remainingDuration: '{duration} left',
     onTarget: 'Target reached',
+    backToToday: 'Back to today',
   },
   insights: {
     newborn: {
