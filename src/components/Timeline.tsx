@@ -68,6 +68,11 @@ const labelFor = (kind: TimelineKind): string => {
 };
 
 const formatEventTime = (event: TimelineEvent, use24h: boolean): string => {
+  if (event.status === 'active' && event.from) {
+    return t('timeline.activeFromTime', {
+      time: formatClock(event.from, use24h),
+    });
+  }
   if (event.at) return formatClock(event.at, use24h);
   if (event.from && event.to) {
     return `${formatClock(event.from, use24h)} – ${formatClock(event.to, use24h)}`;
@@ -95,7 +100,9 @@ const formatCaption = (
   }
   if (event.status === 'active' && event.from) {
     const elapsed = now.getTime() - event.from.getTime();
-    return `${t('timeline.inProgress')} · ${formatDuration(elapsed)}`;
+    return t('timeline.activeSleeping', {
+      duration: formatDuration(elapsed),
+    });
   }
   if (event.status === 'real' && event.durationMs != null) {
     return formatDuration(event.durationMs);
