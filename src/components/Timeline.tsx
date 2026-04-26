@@ -1,6 +1,12 @@
 import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, {
+  Circle,
+  Defs,
+  RadialGradient,
+  Stop,
+} from 'react-native-svg';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -112,9 +118,10 @@ const dotColors = (status: TimelineStatus) => {
 
 const RAIL_WIDTH = 36;
 const DOT_SIZE = 28;
-const GLOW_SIZE = 56;
+const GLOW_SIZE = 64;
 const DASH_HEIGHT = 4;
 const DASH_COUNT = 5;
+const OVERNIGHT_OPACITY = 0.5;
 
 const SolidLine: React.FC<{
   hidden?: boolean;
@@ -140,30 +147,33 @@ const SolidLine: React.FC<{
   );
 };
 
-const PulsingGlow: React.FC<{ color: string }> = ({ color }) => {
-  const opacity = useSharedValue(0.0);
-  const scale = useSharedValue(0.85);
+const PulsingGlow: React.FC = () => {
+  const opacity = useSharedValue(0.45);
+  const scale = useSharedValue(0.92);
 
   useEffect(() => {
     opacity.value = withRepeat(
       withSequence(
-        withTiming(0.55, {
-          duration: 900,
+        withTiming(0.95, {
+          duration: 1400,
           easing: Easing.inOut(Easing.quad),
         }),
-        withTiming(0, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0.45, {
+          duration: 1400,
+          easing: Easing.inOut(Easing.quad),
+        }),
       ),
       -1,
       false,
     );
     scale.value = withRepeat(
       withSequence(
-        withTiming(1.05, {
-          duration: 900,
+        withTiming(1.06, {
+          duration: 1400,
           easing: Easing.inOut(Easing.quad),
         }),
-        withTiming(0.85, {
-          duration: 900,
+        withTiming(0.92, {
+          duration: 1400,
           easing: Easing.inOut(Easing.quad),
         }),
       ),
@@ -178,10 +188,33 @@ const PulsingGlow: React.FC<{ color: string }> = ({ color }) => {
   }));
 
   return (
-    <Animated.View
-      pointerEvents="none"
-      style={[styles.glow, { backgroundColor: color }, animStyle]}
-    />
+    <Animated.View pointerEvents="none" style={[styles.glow, animStyle]}>
+      <Svg width={GLOW_SIZE} height={GLOW_SIZE}>
+        <Defs>
+          <RadialGradient
+            id="dot-glow"
+            cx={GLOW_SIZE / 2}
+            cy={GLOW_SIZE / 2}
+            rx={GLOW_SIZE / 2}
+            ry={GLOW_SIZE / 2}
+            fx={GLOW_SIZE / 2}
+            fy={GLOW_SIZE / 2}
+            gradientUnits="userSpaceOnUse"
+          >
+            <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.8" />
+            <Stop offset="0.45" stopColor="#FFFFFF" stopOpacity="0.28" />
+            <Stop offset="0.8" stopColor="#FFFFFF" stopOpacity="0.06" />
+            <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Circle
+          cx={GLOW_SIZE / 2}
+          cy={GLOW_SIZE / 2}
+          r={GLOW_SIZE / 2}
+          fill="url(#dot-glow)"
+        />
+      </Svg>
+    </Animated.View>
   );
 };
 
@@ -227,6 +260,8 @@ export const Timeline: React.FC<TimelineProps> = ({
           (event.status === 'suggested' || next.status === 'suggested');
 
         const isNext = index === nextMilestoneIndex;
+        const dimRow = !!event.overnightChain && event.kind !== 'wake';
+        const rowOpacity = dimRow ? OVERNIGHT_OPACITY : 1;
 
         const row = (
           <>
@@ -242,13 +277,14 @@ export const Timeline: React.FC<TimelineProps> = ({
                 }
               />
               <View style={styles.dotContainer}>
-                {isNext ? <PulsingGlow color={dc.border} /> : null}
+                {isNext ? <PulsingGlow /> : null}
                 <View
                   style={[
                     styles.dot,
                     {
                       backgroundColor: dc.background,
                       borderColor: dc.border,
+                      opacity: rowOpacity,
                     },
                   ]}
                 >
@@ -271,7 +307,7 @@ export const Timeline: React.FC<TimelineProps> = ({
               />
             </View>
 
-            <View style={styles.content}>
+            <View style={[styles.content, { opacity: rowOpacity }]}>
               <View style={styles.titleRow}>
                 <Text
                   variant="body"
@@ -367,7 +403,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: GLOW_SIZE,
     height: GLOW_SIZE,
-    borderRadius: GLOW_SIZE / 2,
     top: -(GLOW_SIZE - DOT_SIZE) / 2,
     left: -(GLOW_SIZE - DOT_SIZE) / 2,
   },

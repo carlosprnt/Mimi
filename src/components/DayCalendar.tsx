@@ -6,6 +6,12 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { colors, fonts, spacing } from '@/theme';
 import { Text } from './Text';
 import { isSameDay, startOfDay } from '@/logic/format';
@@ -44,6 +50,7 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
 }) => {
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
+  const cellScale = useSharedValue(1);
 
   const days = useMemo(() => {
     const result: Date[] = [];
@@ -75,12 +82,33 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
     return () => clearTimeout(id);
   }, [selectedIndex, width]);
 
+  const handleScrollStart = () => {
+    cellScale.value = withTiming(0.95, {
+      duration: 180,
+      easing: Easing.out(Easing.quad),
+    });
+  };
+  const handleScrollEnd = () => {
+    cellScale.value = withTiming(1, {
+      duration: 240,
+      easing: Easing.out(Easing.quad),
+    });
+  };
+
+  const cellAnim = useAnimatedStyle(() => ({
+    transform: [{ scale: cellScale.value }],
+  }));
+
   return (
     <ScrollView
       ref={scrollRef}
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.content}
+      onScrollBeginDrag={handleScrollStart}
+      onMomentumScrollBegin={handleScrollStart}
+      onScrollEndDrag={handleScrollEnd}
+      onMomentumScrollEnd={handleScrollEnd}
     >
       {days.map((d) => {
         const isSelected = isSameDay(d, selectedDate);
@@ -92,33 +120,34 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
         }
 
         return (
-          <Pressable
-            key={d.toISOString()}
-            onPress={() => onSelect(d)}
-            style={({ pressed }) => [
-              styles.cell,
-              isSelected && styles.cellSelected,
-              pressed && !isSelected && styles.cellPressed,
-            ]}
-          >
-            <Text
-              variant="title"
-              tone="primary"
-              style={[styles.dayNumber, { opacity: textOpacity }]}
+          <Animated.View key={d.toISOString()} style={cellAnim}>
+            <Pressable
+              onPress={() => onSelect(d)}
+              style={({ pressed }) => [
+                styles.cell,
+                isSelected && styles.cellSelected,
+                pressed && !isSelected && styles.cellPressed,
+              ]}
             >
-              {formatDayNumber(d)}
-            </Text>
-            <Text
-              variant="eyebrow"
-              tone={isSelected ? 'accent' : 'primary'}
-              style={[styles.weekday, { opacity: textOpacity }]}
-            >
-              {formatWeekday(d)}
-            </Text>
-            {hasData && !isSelected ? (
-              <View style={styles.dot} />
-            ) : null}
-          </Pressable>
+              <Text
+                variant="title"
+                tone="primary"
+                style={[styles.dayNumber, { opacity: textOpacity }]}
+              >
+                {formatDayNumber(d)}
+              </Text>
+              <Text
+                variant="eyebrow"
+                tone={isSelected ? 'accent' : 'primary'}
+                style={[styles.weekday, { opacity: textOpacity }]}
+              >
+                {formatWeekday(d)}
+              </Text>
+              {hasData && !isSelected ? (
+                <View style={styles.dot} />
+              ) : null}
+            </Pressable>
+          </Animated.View>
         );
       })}
     </ScrollView>

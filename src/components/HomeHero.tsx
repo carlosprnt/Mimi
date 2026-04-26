@@ -155,9 +155,9 @@ const styles = StyleSheet.create({
   },
   primary: {
     fontFamily: fonts.medium,
-    fontSize: 34,
-    lineHeight: 38,
-    letterSpacing: -0.6,
+    fontSize: 26,
+    lineHeight: 30,
+    letterSpacing: -0.4,
     color: '#F4F1FF',
   },
   supporting: {
