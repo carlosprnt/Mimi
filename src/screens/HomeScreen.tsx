@@ -41,15 +41,14 @@ import {
 import {
   activeSession,
   computeRecommendation,
-  lastCompletedSession,
+  lastNightDurationForDay,
   lastWakeWindowMs,
   napsCountForDay,
-  totalSleepForDayMs,
+  napsDurationForDay,
 } from '@/logic/recommendation';
 import {
   formatClock,
   formatDuration,
-  formatRelativePast,
   isSameDay,
   startOfDay,
 } from '@/logic/format';
@@ -129,7 +128,6 @@ export const HomeScreen: React.FC = () => {
   );
 
   const active = useMemo(() => activeSession(sessions), [sessions]);
-  const last = useMemo(() => lastCompletedSession(sessions), [sessions]);
   const timeline = useMemo(
     () =>
       baby ? buildTimeline(baby, sessions, selectedDate, now, careEvents) : [],
@@ -162,21 +160,10 @@ export const HomeScreen: React.FC = () => {
           })
       : undefined;
 
-  const totalMs = totalSleepForDayMs(sessions, selectedDate, now);
+  const lastNightMs = lastNightDurationForDay(sessions, selectedDate, now);
+  const napMs = napsDurationForDay(sessions, selectedDate, now);
   const naps = napsCountForDay(sessions, selectedDate, now);
   const wakeMs = isToday ? lastWakeWindowMs(sessions, now) : null;
-
-  const lastCaption =
-    isToday && last
-      ? `ended ${formatRelativePast(now.getTime() - new Date(last.endedAt!).getTime())}`
-      : undefined;
-
-  const lastValue =
-    isToday && last
-      ? formatDuration(
-          new Date(last.endedAt!).getTime() - new Date(last.startedAt).getTime(),
-        )
-      : '—';
 
   const onPressAction = () => {
     if (active) {
@@ -451,23 +438,21 @@ export const HomeScreen: React.FC = () => {
                 {isToday ? t('home.today') : t('home.daySummary')}
               </Text>
               <ListRow
-                label={t('home.totalSleep')}
-                value={totalMs > 0 ? formatDuration(totalMs) : '—'}
+                label={t('home.lastNight')}
+                value={lastNightMs !== null ? formatDuration(lastNightMs) : '—'}
               />
               <ListRow label={t('home.naps')} value={naps.toString()} />
+              <ListRow
+                label={t('home.napTime')}
+                value={napMs > 0 ? formatDuration(napMs) : '—'}
+                showDivider={isToday}
+              />
               {isToday ? (
-                <>
-                  <ListRow
-                    label={t('home.lastSleep')}
-                    value={lastValue}
-                    caption={lastCaption}
-                  />
-                  <ListRow
-                    label={t('home.lastWakeWindow')}
-                    value={wakeMs !== null ? formatDuration(wakeMs) : '—'}
-                    showDivider={false}
-                  />
-                </>
+                <ListRow
+                  label={t('home.lastWakeWindow')}
+                  value={wakeMs !== null ? formatDuration(wakeMs) : '—'}
+                  showDivider={false}
+                />
               ) : null}
             </Card>
           </>

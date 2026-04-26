@@ -21,6 +21,8 @@ export const en = {
   home: {
     today: 'TODAY’S SUMMARY',
     totalSleep: 'Total sleep',
+    lastNight: 'Last night',
+    napTime: 'Nap time',
     naps: 'Naps',
     lastSleep: 'Last sleep',
     lastWakeWindow: 'Last wake window',

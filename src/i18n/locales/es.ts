@@ -23,6 +23,8 @@ export const es: Translations = {
   home: {
     today: 'RESUMEN DE HOY',
     totalSleep: 'Sueño total',
+    lastNight: 'Anoche',
+    napTime: 'Tiempo de siestas',
     naps: 'Siestas',
     lastSleep: 'Último sueño',
     lastWakeWindow: 'Última ventana de vigilia',

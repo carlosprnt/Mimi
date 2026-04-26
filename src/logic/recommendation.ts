@@ -260,6 +260,53 @@ export function totalSleepForDayMs(
   }, 0);
 }
 
+/** Duration of the last completed night session that ended on the given
+ *  day. Returns null when no night session ended that day — Mimi shows
+ *  "—" instead of inventing a number. */
+export function lastNightDurationForDay(
+  sessions: SleepSession[],
+  day: Date = new Date(),
+  _now: Date = new Date(),
+): number | null {
+  const dayStart = startOfDay(day).getTime();
+  const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+  const candidates = sessions
+    .filter((s) => {
+      if (s.kind !== 'night' || !s.endedAt) return false;
+      const endMs = new Date(s.endedAt).getTime();
+      return endMs >= dayStart && endMs < dayEnd;
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.endedAt!).getTime() - new Date(a.endedAt!).getTime(),
+    );
+  const lastNight = candidates[0];
+  if (!lastNight) return null;
+  return (
+    new Date(lastNight.endedAt!).getTime() -
+    new Date(lastNight.startedAt).getTime()
+  );
+}
+
+/** Sum of nap durations for the given day. Includes micro-naps in the
+ *  minute total (they're still real sleep), and counts an in-progress nap
+ *  up to `now`. */
+export function napsDurationForDay(
+  sessions: SleepSession[],
+  day: Date = new Date(),
+  now: Date = new Date(),
+): number {
+  const [dayStart, upper] = dayBounds(day, now);
+  return sessions.reduce((sum, s) => {
+    if (s.kind !== 'nap') return sum;
+    const start = new Date(s.startedAt).getTime();
+    const end = s.endedAt ? new Date(s.endedAt).getTime() : now.getTime();
+    const overlapStart = Math.max(start, dayStart);
+    const overlapEnd = Math.min(end, upper);
+    return sum + Math.max(0, overlapEnd - overlapStart);
+  }, 0);
+}
+
 export function napsCountForDay(
   sessions: SleepSession[],
   day: Date = new Date(),
