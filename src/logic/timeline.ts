@@ -197,11 +197,11 @@ export function buildTimeline(
       sessionId: nightStartedThatDay.id,
       at: new Date(nightStartedThatDay.startedAt),
     });
-  } else if (isToday) {
+  } else if (isToday && active?.kind !== 'night') {
     events.push({
       id: 'bedtime',
       kind: 'bedtime',
-      status: active?.kind === 'night' ? 'active' : 'suggested',
+      status: 'suggested',
       from: bedtimeStart,
       to: bedtimeEnd,
     });
