@@ -419,15 +419,12 @@ export const HomeScreen: React.FC = () => {
         ) : (
           <>
             <Card variant="bordered" tone="night" style={styles.planCard}>
-              <Text variant="eyebrow" tone="tertiary">
-                {t('home.plan')}
-              </Text>
               <Text
-                variant="footnote"
-                tone="secondary"
-                style={styles.planSubtitle}
+                variant="eyebrow"
+                tone="tertiary"
+                style={styles.planEyebrow}
               >
-                {t('home.planSubtitle')}
+                {t('home.plan')}
               </Text>
               {isToday && !hasWakeEvent ? (
                 <Pressable
@@ -585,8 +582,7 @@ const styles = StyleSheet.create({
   planCard: {
     marginTop: spacing.lg,
   },
-  planSubtitle: {
-    marginTop: spacing.xs,
+  planEyebrow: {
     marginBottom: spacing.md,
   },
   addWakeRow: {
