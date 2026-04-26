@@ -133,10 +133,10 @@ const styles = StyleSheet.create({
   },
   cell: {
     width: DAY_CELL_WIDTH,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
+    borderRadius: 14,
   },
   cellSelected: {
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
@@ -148,13 +148,13 @@ const styles = StyleSheet.create({
   },
   dayNumber: {
     fontFamily: fonts.medium,
-    fontSize: 17,
-    lineHeight: 21,
+    fontSize: 18,
+    lineHeight: 22,
   },
   weekday: {
-    marginTop: 2,
-    fontSize: 9,
-    letterSpacing: 1.2,
+    marginTop: 4,
+    fontSize: 11,
+    letterSpacing: 1.4,
   },
   dot: {
     width: 3,

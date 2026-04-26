@@ -395,12 +395,7 @@ export const HomeScreen: React.FC = () => {
                 pressed && styles.backTodayPressed,
               ]}
             >
-              <Ionicons
-                name="arrow-back"
-                size={14}
-                color={colors.accent.base}
-              />
-              <Text variant="footnote" tone="accent" style={styles.backTodayLabel}>
+              <Text variant="footnote" tone="accent">
                 {t('home.backToToday')}
               </Text>
             </Pressable>
@@ -565,9 +560,6 @@ const styles = StyleSheet.create({
   },
   backTodayPressed: {
     opacity: 0.6,
-  },
-  backTodayLabel: {
-    marginLeft: 2,
   },
   heroWrap: {
     marginTop: spacing.base,

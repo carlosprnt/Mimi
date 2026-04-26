@@ -28,7 +28,7 @@ interface HomeHeroProps {
   remainingLabel?: string;
 }
 
-const GLOW_SIZE = 220;
+const GLOW_SIZE = 280;
 
 const HeroGlow: React.FC = () => {
   const opacity = useSharedValue(0.55);
@@ -139,13 +139,11 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
 };
 
 const styles = StyleSheet.create({
-  card: {
-    minHeight: 220,
-  },
+  card: {},
   glow: {
     position: 'absolute',
-    top: -90,
-    right: -90,
+    top: -130,
+    right: -130,
   },
   iconWrap: {
     position: 'absolute',

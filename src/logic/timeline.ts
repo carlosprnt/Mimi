@@ -5,6 +5,7 @@ import {
   wakeWindowForAge,
   expectedNapsForAge,
   bedtimeHintForAge,
+  adjustedWakeWindow,
 } from './recommendation';
 import { CareEvent } from './careEvents';
 
@@ -157,7 +158,7 @@ export function buildTimeline(
   }
 
   const months = ageInMonths(baby, now);
-  const wakeWin = wakeWindowForAge(months);
+  const wakeWin = adjustedWakeWindow(wakeWindowForAge(months), dayNaps);
   const expectedNaps = expectedNapsForAge(months);
   const bedtime = bedtimeHintForAge(months);
   const bedtimeStart = floatToDate(dayStart, bedtime.earliest);

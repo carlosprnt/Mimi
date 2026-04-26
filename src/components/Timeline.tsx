@@ -113,7 +113,6 @@ const dotColors = (status: TimelineStatus) => {
 const RAIL_WIDTH = 36;
 const DOT_SIZE = 28;
 const GLOW_SIZE = 56;
-
 const DASH_HEIGHT = 4;
 const DASH_COUNT = 5;
 
@@ -242,7 +241,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                       : 'normal'
                 }
               />
-              <View style={styles.dotWrap}>
+              <View style={styles.dotContainer}>
                 {isNext ? <PulsingGlow color={dc.border} /> : null}
                 <View
                   style={[
@@ -351,7 +350,6 @@ const styles = StyleSheet.create({
     width: 2,
     alignItems: 'center',
     justifyContent: 'space-evenly',
-    paddingVertical: 2,
   },
   dash: {
     width: 2,
@@ -359,9 +357,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(168, 165, 230, 0.5)',
     borderRadius: 1,
   },
-  dotWrap: {
-    width: GLOW_SIZE,
-    height: GLOW_SIZE,
+  dotContainer: {
+    width: DOT_SIZE,
+    height: DOT_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -370,6 +368,8 @@ const styles = StyleSheet.create({
     width: GLOW_SIZE,
     height: GLOW_SIZE,
     borderRadius: GLOW_SIZE / 2,
+    top: -(GLOW_SIZE - DOT_SIZE) / 2,
+    left: -(GLOW_SIZE - DOT_SIZE) / 2,
   },
   dot: {
     width: DOT_SIZE,

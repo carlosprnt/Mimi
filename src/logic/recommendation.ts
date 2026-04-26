@@ -233,6 +233,20 @@ function isShortNap(session: SleepSession): boolean {
   return duration < 35 * MINUTE;
 }
 
+const SHORT_NAP_REDUCTION_MS = 10 * MINUTE;
+
+export function adjustedWakeWindow(
+  base: WakeWindow,
+  todayNaps: SleepSession[],
+): WakeWindow {
+  const shortCount = todayNaps.filter(isShortNap).length;
+  if (shortCount === 0) return base;
+  const reduction = Math.min(shortCount, 3) * SHORT_NAP_REDUCTION_MS;
+  const minMs = Math.max(base.minMs - reduction, Math.round(base.minMs * 0.7));
+  const maxMs = Math.max(base.maxMs - reduction, Math.round(base.maxMs * 0.75));
+  return { minMs, maxMs };
+}
+
 function hoursFraction(date: Date): number {
   return date.getHours() + date.getMinutes() / 60;
 }
@@ -264,14 +278,14 @@ export function computeRecommendation(
   }
 
   const last = lastCompletedSession(sessions);
-  const wakeWin = wakeWindowForAge(months);
+  const todaySessions = sessionsToday(sessions, now);
+  const wakeWin = adjustedWakeWindow(wakeWindowForAge(months), todaySessions);
   const bedtime = bedtimeHintForAge(months);
   const hoursNow = hoursFraction(now);
 
   const isEvening = hoursNow >= bedtime.earliest - 0.5;
   const pastLatestBedtime = hoursNow >= bedtime.latest;
 
-  const todaySessions = sessionsToday(sessions, now);
   const shortNaps = todaySessions.filter(isShortNap).length;
   const napsDone = napsCountToday(sessions, now);
   const expectedNaps = expectedNapsForAge(months);
@@ -284,12 +298,9 @@ export function computeRecommendation(
   if (shortNaps >= 2) {
     context = t('recommendation.shortNapsWarn');
     contextTone = 'warn';
-  } else if (napsDone >= expectedNaps && expectedNaps > 0 && !isEvening) {
-    context = t('recommendation.goingSmoothly');
   } else if (totalSleep === 0 && hoursNow > 10) {
     context = t('recommendation.noSleepYet');
-  } else {
-    context = t('recommendation.goingSmoothly');
+    contextTone = 'warn';
   }
 
   if (!last) {
