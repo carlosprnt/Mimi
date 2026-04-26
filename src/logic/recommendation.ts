@@ -255,9 +255,8 @@ export function computeRecommendation(
           ? t('recommendation.nightSleepInProgress')
           : t('recommendation.napInProgress'),
       primary: formatElapsed(elapsed),
-      supporting: t('recommendation.shouldSleep', {
-        name: baby.name,
-        duration: formatShortDuration(expectedMs),
+      supporting: t('home.startedAt', {
+        time: formatClock(new Date(active.startedAt)),
       }),
       primaryAction: 'end',
       progress: { elapsedMs: elapsed, expectedMs },

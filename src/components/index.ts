@@ -28,5 +28,6 @@ export type { ActionMenuItem } from './ActionMenu';
 export { PointEventSheet } from './PointEventSheet';
 export { ProgressBar } from './ProgressBar';
 export { StatCard } from './StatCard';
+export { HomeHero } from './HomeHero';
 export { EmptyDay } from './EmptyDay';
 export { MoonIllustration } from './MoonIllustration';

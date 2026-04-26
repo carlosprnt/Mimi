@@ -88,7 +88,7 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    height: 52,
+    height: 48,
     borderRadius: radii.pill,
     alignItems: 'center',
     justifyContent: 'center',

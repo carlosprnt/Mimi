@@ -18,8 +18,8 @@ interface DayCalendarProps {
   daysWithData?: ReadonlySet<string>;
 }
 
-const DAY_CELL_WIDTH = 56;
-const DAY_CELL_GAP = 8;
+const DAY_CELL_WIDTH = 44;
+const DAY_CELL_GAP = 6;
 
 const dayNumberFormatter = new Intl.DateTimeFormat(undefined, {
   day: '2-digit',
@@ -133,10 +133,10 @@ const styles = StyleSheet.create({
   },
   cell: {
     width: DAY_CELL_WIDTH,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 16,
+    borderRadius: 12,
   },
   cellSelected: {
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
@@ -148,19 +148,20 @@ const styles = StyleSheet.create({
   },
   dayNumber: {
     fontFamily: fonts.medium,
-    fontSize: 22,
-    lineHeight: 26,
+    fontSize: 17,
+    lineHeight: 21,
   },
   weekday: {
-    marginTop: 4,
+    marginTop: 2,
+    fontSize: 9,
+    letterSpacing: 1.2,
   },
   dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
     backgroundColor: colors.accent.base,
-    marginTop: 4,
     position: 'absolute',
-    bottom: 4,
+    bottom: 3,
   },
 });

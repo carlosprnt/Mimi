@@ -10,7 +10,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Screen,
-  HeroCard,
   Card,
   ListRow,
   Text,
@@ -25,13 +24,11 @@ import {
   ActionMenu,
   type ActionMenuItem,
   EmptyDay,
-  StatCard,
-  ProgressBar,
+  HomeHero,
   dayKey,
   PointEventSheet,
 } from '@/components';
 import { buildTimeline, TimelineEvent } from '@/logic/timeline';
-import { pickInsightTip, resolveInsightTip } from '@/logic/insights';
 import { CareEventKind } from '@/logic/careEvents';
 import { makeId } from '@/utils/id';
 import { colors, spacing, screenGutter } from '@/theme';
@@ -59,6 +56,21 @@ import {
 import { softImpact, lightImpact } from '@/utils/haptics';
 import { DrawerParamList } from '@/navigation/types';
 import { t } from '@/i18n';
+import type { Recommendation, SleepSession } from '@/logic/recommendation';
+
+type IoniconName = keyof typeof Ionicons.glyphMap;
+
+function heroIcon(
+  rec: Recommendation,
+  active: SleepSession | undefined,
+): IoniconName {
+  if (rec.state === 'sleeping') {
+    return active?.kind === 'night' ? 'moon' : 'bed';
+  }
+  if (rec.state === 'bedtime') return 'moon-outline';
+  if (rec.state === 'overdue') return 'bed';
+  return 'bed-outline';
+}
 
 const TICK_MS = 30 * 1000;
 const HEADER_EXPANDED = 72;
@@ -83,7 +95,6 @@ export const HomeScreen: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
     startOfDay(new Date()),
   );
-  const [insightSeed] = useState<number>(() => Math.floor(Math.random() * 1e6));
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [editing, setEditing] = useState<{
@@ -127,11 +138,6 @@ export const HomeScreen: React.FC = () => {
     [baby, sessions, selectedDate, now, careEvents],
   );
 
-  const insightTip = useMemo(
-    () => (baby && isToday ? pickInsightTip(baby, insightSeed, now) : null),
-    [baby, isToday, insightSeed, now],
-  );
-
   const daysWithData = useMemo(() => {
     const set = new Set<string>();
     for (const s of sessions) {
@@ -145,6 +151,18 @@ export const HomeScreen: React.FC = () => {
   }, [sessions, careEvents]);
 
   if (!baby) return null;
+
+  const remainingLabel =
+    recommendation?.progress && recommendation.progress.expectedMs > 0
+      ? recommendation.progress.elapsedMs >= recommendation.progress.expectedMs
+        ? t('home.onTarget')
+        : t('home.remainingDuration', {
+            duration: formatDuration(
+              recommendation.progress.expectedMs -
+                recommendation.progress.elapsedMs,
+            ),
+          })
+      : undefined;
 
   const totalMs = totalSleepForDayMs(sessions, selectedDate, now);
   const naps = napsCountForDay(sessions, selectedDate, now);
@@ -273,18 +291,6 @@ export const HomeScreen: React.FC = () => {
       },
     },
     {
-      id: 'feeding',
-      label: t('timeline.addFeeding'),
-      icon: 'water-outline',
-      onPress: () => openPointEvent('feeding', t('timeline.addFeeding')),
-    },
-    {
-      id: 'diaper',
-      label: t('timeline.addDiaper'),
-      icon: 'reload-outline',
-      onPress: () => openPointEvent('diaper', t('timeline.addDiaper')),
-    },
-    {
       id: 'nightWake',
       label: t('timeline.addNightWake'),
       icon: 'flash-outline',
@@ -401,98 +407,14 @@ export const HomeScreen: React.FC = () => {
           </View>
         ) : null}
 
-        {isToday &&
-        recommendation &&
-        recommendation.state === 'sleeping' &&
-        active ? (
-          <View style={styles.sleepingBlock}>
-            <View style={styles.statRow}>
-              <StatCard
-                eyebrow={t('home.sleeping')}
-                value={recommendation.primary}
-                caption={t('home.sinceTime', {
-                  time: formatClock(new Date(active.startedAt), use24h),
-                })}
-                icon={active.kind === 'night' ? 'moon' : 'bed'}
-                iconTone="accent"
-                glowPulse
-              />
-              <StatCard
-                eyebrow={t('home.target')}
-                value={
-                  recommendation.progress
-                    ? formatDuration(recommendation.progress.expectedMs)
-                    : '—'
-                }
-                caption={t('home.minRecommended')}
-              />
-            </View>
-            {recommendation.progress &&
-            recommendation.progress.expectedMs > 0 ? (
-              <Card
-                variant="bordered"
-                tone="night"
-                emphasis="frosted"
-                style={styles.progressCard}
-              >
-                <Text variant="callout" tone="primary">
-                  {recommendation.supporting}
-                </Text>
-                <ProgressBar
-                  value={
-                    recommendation.progress.elapsedMs /
-                    recommendation.progress.expectedMs
-                  }
-                  style={styles.progressBar}
-                />
-                <Text
-                  variant="footnote"
-                  tone="secondary"
-                  style={styles.progressCaption}
-                >
-                  {recommendation.progress.elapsedMs >=
-                  recommendation.progress.expectedMs
-                    ? t('home.onTarget')
-                    : t('home.remainingDuration', {
-                        duration: formatDuration(
-                          recommendation.progress.expectedMs -
-                            recommendation.progress.elapsedMs,
-                        ),
-                      })}
-                </Text>
-              </Card>
-            ) : null}
+        {isToday && recommendation ? (
+          <View style={styles.heroWrap}>
+            <HomeHero
+              recommendation={recommendation}
+              iconName={heroIcon(recommendation, active)}
+              remainingLabel={remainingLabel}
+            />
           </View>
-        ) : null}
-
-        {isToday && recommendation?.context ? (
-          <Card variant="bordered" tone="night" style={styles.stateCard}>
-            <Text
-              variant="callout"
-              tone={recommendation.contextTone === 'warn' ? 'warn' : 'primary'}
-            >
-              {recommendation.context}
-            </Text>
-          </Card>
-        ) : null}
-
-        {isToday && insightTip ? (
-          <Card variant="bordered" tone="night" style={styles.tipCard}>
-            <Text variant="eyebrow" tone="accent" style={styles.tipEyebrow}>
-              {t('home.tipEyebrow')}
-            </Text>
-            <Text variant="callout" tone="secondary">
-              {resolveInsightTip(insightTip)}
-            </Text>
-          </Card>
-        ) : null}
-
-        {isToday && recommendation && recommendation.state !== 'sleeping' ? (
-          <HeroCard
-            eyebrow={recommendation.eyebrow}
-            primary={recommendation.primary}
-            supporting={recommendation.supporting}
-          />
         ) : null}
 
         {!isToday && timeline.length === 0 ? (
@@ -553,19 +475,6 @@ export const HomeScreen: React.FC = () => {
             </Card>
           </>
         )}
-
-        {isToday && active ? (
-          <Text
-            variant="footnote"
-            tone="tertiary"
-            align="center"
-            style={styles.activeNote}
-          >
-            {t('home.startedAt', {
-              time: formatClock(new Date(active.startedAt), use24h),
-            })}
-          </Text>
-        ) : null}
 
         <View style={styles.bottomSpacer} />
       </Animated.ScrollView>
@@ -660,33 +569,11 @@ const styles = StyleSheet.create({
   backTodayLabel: {
     marginLeft: 2,
   },
-  sleepingBlock: {
+  heroWrap: {
     marginTop: spacing.base,
   },
-  statRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  progressCard: {
-    marginTop: spacing.md,
-  },
-  progressBar: {
-    marginTop: spacing.md,
-  },
-  progressCaption: {
-    marginTop: spacing.sm,
-  },
-  stateCard: {
-    marginTop: spacing.sm,
-  },
-  tipCard: {
-    marginTop: spacing.md,
-  },
-  tipEyebrow: {
-    marginBottom: spacing.xs,
-  },
   planCard: {
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
   },
   planHeading: {
     marginBottom: spacing.md,
@@ -714,14 +601,11 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   todayCard: {
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
   },
   todayHeading: {
     marginBottom: spacing.xs,
     paddingHorizontal: spacing.xxs,
-  },
-  activeNote: {
-    marginTop: spacing.md,
   },
   bottomSpacer: {
     height: spacing.huge,

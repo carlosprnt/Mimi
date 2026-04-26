@@ -114,17 +114,28 @@ const RAIL_WIDTH = 36;
 const DOT_SIZE = 28;
 const GLOW_SIZE = 56;
 
+const DASH_HEIGHT = 4;
+const DASH_COUNT = 5;
+
 const SolidLine: React.FC<{
   hidden?: boolean;
   variant?: 'normal' | 'overnight' | 'suggested';
 }> = ({ hidden, variant = 'normal' }) => {
   if (hidden) return <View style={styles.lineSpacer} />;
+  if (variant === 'suggested') {
+    return (
+      <View style={styles.dashWrap}>
+        {Array.from({ length: DASH_COUNT }).map((_, i) => (
+          <View key={i} style={styles.dash} />
+        ))}
+      </View>
+    );
+  }
   return (
     <View
       style={[
         styles.line,
         variant === 'overnight' && styles.lineOvernight,
-        variant === 'suggested' && styles.lineSuggested,
       ]}
     />
   );
@@ -330,13 +341,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(168, 165, 230, 0.5)',
   },
   lineOvernight: {
-    backgroundColor: 'rgba(168, 165, 230, 0.2)',
-  },
-  lineSuggested: {
-    backgroundColor: 'rgba(168, 165, 230, 0.18)',
+    backgroundColor: 'rgba(168, 165, 230, 0.22)',
   },
   lineSpacer: {
     flex: 1,
+  },
+  dashWrap: {
+    flex: 1,
+    width: 2,
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    paddingVertical: 2,
+  },
+  dash: {
+    width: 2,
+    height: DASH_HEIGHT,
+    backgroundColor: 'rgba(168, 165, 230, 0.5)',
+    borderRadius: 1,
   },
   dotWrap: {
     width: GLOW_SIZE,

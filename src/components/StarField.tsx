@@ -42,8 +42,8 @@ const buildStars = (count: number, seed: number, heightFraction: number): Star[]
   const stars: Star[] = [];
   for (let i = 0; i < count; i++) {
     const sizeRoll = rand();
-    const size = sizeRoll < 0.78 ? 1.2 : sizeRoll < 0.94 ? 2 : 2.8;
-    const baseOpacity = 0.5 + rand() * 0.45;
+    const size = sizeRoll < 0.85 ? 1 : sizeRoll < 0.97 ? 1.6 : 2.2;
+    const baseOpacity = 0.3 + rand() * 0.35;
     stars.push({
       x: rand(),
       y: rand() * heightFraction,
@@ -56,11 +56,11 @@ const buildStars = (count: number, seed: number, heightFraction: number): Star[]
 };
 
 export const StarField: React.FC<StarFieldProps> = ({
-  density = 110,
+  density = 60,
   seed = 7,
   twinkle = true,
   style,
-  heightFraction = 0.65,
+  heightFraction = 0.55,
 }) => {
   const stars = useMemo(
     () => buildStars(density, seed, heightFraction),
@@ -91,9 +91,9 @@ export const StarField: React.FC<StarFieldProps> = ({
         ),
       );
     };
-    loop(phase0, 2600, 0.35, 0);
-    loop(phase1, 3400, 0.25, 900);
-    loop(phase2, 4000, 0.45, 1800);
+    loop(phase0, 4200, 0.55, 0);
+    loop(phase1, 5400, 0.5, 1400);
+    loop(phase2, 6200, 0.65, 2800);
   }, [twinkle, phase0, phase1, phase2]);
 
   const group0Style = useAnimatedStyle(() => ({ opacity: phase0.value }));

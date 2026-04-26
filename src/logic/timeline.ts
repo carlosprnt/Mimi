@@ -94,6 +94,7 @@ export function buildTimeline(
     });
 
     for (const ev of careEvents) {
+      if (ev.kind !== 'nightWake') continue;
       const t = new Date(ev.at).getTime();
       if (t > nightStartMs && t < nightEndMs) {
         events.push({
@@ -206,6 +207,7 @@ export function buildTimeline(
   }
 
   for (const ev of careEvents) {
+    if (ev.kind !== 'nightWake') continue;
     if (usedCareEventIds.has(ev.id)) continue;
     const t = new Date(ev.at).getTime();
     if (t >= dayStartMs && t < dayEndMs) {
