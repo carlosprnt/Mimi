@@ -83,7 +83,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
   iconName,
   remainingLabel,
 }) => {
-  const isSleeping = recommendation.state === 'sleeping';
+  const isSleeping = recommendation.root === 'SLEEPING';
   const progress = recommendation.progress;
   const showProgress =
     !!progress && progress.expectedMs > 0 && isSleeping;
@@ -120,6 +120,12 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
       {recommendation.supporting ? (
         <Text variant="callout" tone="secondary" style={styles.supporting}>
           {recommendation.supporting}
+        </Text>
+      ) : null}
+
+      {recommendation.reasoning ? (
+        <Text variant="footnote" tone="tertiary" style={styles.reasoning}>
+          {recommendation.reasoning}
         </Text>
       ) : null}
 
@@ -171,6 +177,9 @@ const styles = StyleSheet.create({
   },
   supporting: {
     marginTop: spacing.sm,
+  },
+  reasoning: {
+    marginTop: spacing.xs,
   },
   progressWrap: {
     marginTop: spacing.lg,

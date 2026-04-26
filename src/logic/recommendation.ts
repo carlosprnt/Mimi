@@ -17,13 +17,20 @@ export interface WakeWindow {
   maxMs: number;
 }
 
+export type RecommendationRoot = 'SLEEPING' | 'UPCOMING' | 'NOW' | 'STAND_BY';
+
 export interface Recommendation {
+  root: RecommendationRoot;
+  kind: SleepKind;
+  confidence: 'high' | 'low';
+  /** @deprecated kept for backward compatibility with consumers; prefer `root`. */
   state: 'sleeping' | 'countdown' | 'due' | 'overdue' | 'bedtime';
   eyebrow: string;
   primary: string;
   supporting?: string;
   context?: string;
   contextTone?: 'neutral' | 'warn';
+  reasoning?: string;
   primaryAction: 'start' | 'end';
   progress?: {
     elapsedMs: number;
@@ -259,10 +266,14 @@ export function computeRecommendation(
   const months = ageInMonths(baby, now);
   const active = activeSession(sessions);
 
+  // 1. SLEEPING — sesión activa
   if (active) {
     const elapsed = now.getTime() - new Date(active.startedAt).getTime();
     const expectedMs = expectedSleepDurationMs(active.kind, months);
     return {
+      root: 'SLEEPING',
+      kind: active.kind,
+      confidence: 'high',
       state: 'sleeping',
       eyebrow:
         active.kind === 'night'
@@ -279,7 +290,9 @@ export function computeRecommendation(
 
   const last = lastCompletedSession(sessions);
   const todaySessions = sessionsToday(sessions, now);
-  const wakeWin = adjustedWakeWindow(wakeWindowForAge(months), todaySessions);
+  const baseWakeWin = wakeWindowForAge(months);
+  const wakeWin = adjustedWakeWindow(baseWakeWin, todaySessions);
+  const wakeWindowShortened = wakeWin.minMs < baseWakeWin.minMs;
   const bedtime = bedtimeHintForAge(months);
   const hoursNow = hoursFraction(now);
 
@@ -287,52 +300,71 @@ export function computeRecommendation(
   const pastLatestBedtime = hoursNow >= bedtime.latest;
 
   const shortNaps = todaySessions.filter(isShortNap).length;
-  const napsDone = napsCountToday(sessions, now);
   const expectedNaps = expectedNapsForAge(months);
-
   const totalSleep = totalSleepTodayMs(sessions, now);
 
+  // Context layer (warn-only de momento; ampliada en commit posterior)
   let context: string | undefined;
   let contextTone: 'neutral' | 'warn' = 'neutral';
-
-  if (shortNaps >= 2) {
-    context = t('recommendation.shortNapsWarn');
-    contextTone = 'warn';
-  } else if (totalSleep === 0 && hoursNow > 10) {
+  if (totalSleep === 0 && hoursNow > 10) {
     context = t('recommendation.noSleepYet');
     contextTone = 'warn';
+  } else if (shortNaps >= 2) {
+    context = t('recommendation.shortNapsWarn');
+    contextTone = 'neutral';
   }
 
+  // Reasoning (lo que tiene mayor relación con la sugerencia mostrada)
+  const reasoningShortNaps = wakeWindowShortened
+    ? t('recommendation.reasoningShortNaps')
+    : undefined;
+
+  // 2. STAND_BY — no hay último despertar conocido
   if (!last) {
     if (isEvening) {
       return {
+        root: 'STAND_BY',
+        kind: 'night',
+        confidence: 'low',
         state: 'bedtime',
         eyebrow: t('recommendation.tonight'),
-        primary: formatBedtimeRange(bedtime),
-        supporting: t('recommendation.windDown'),
+        primary: t('recommendation.standByNightPrimary', {
+          time: formatHour(bedtime.earliest),
+        }),
+        supporting: t('recommendation.standByNightSupporting'),
+        reasoning: t('recommendation.reasoningHabitForAge'),
         context,
         contextTone,
         primaryAction: 'start',
       };
     }
     return {
+      root: 'STAND_BY',
+      kind: 'nap',
+      confidence: 'low',
       state: 'due',
       eyebrow: t('recommendation.readyWhenYouAre'),
       primary: t('recommendation.anytime'),
       supporting: t('recommendation.firstSleep'),
+      reasoning: t('recommendation.reasoningNoDataYet'),
       context,
       contextTone,
       primaryAction: 'start',
     };
   }
 
-  const sinceWake = now.getTime() - new Date(last.endedAt!).getTime();
+  const lastEnd = new Date(last.endedAt!);
+  const sinceWake = now.getTime() - lastEnd.getTime();
   const untilMin = wakeWin.minMs - sinceWake;
   const untilMax = wakeWin.maxMs - sinceWake;
 
+  // 3. NOW + night (overdue / imminent) — entrando en bedtime
   if (isEvening || pastLatestBedtime || (expectedNaps === 0 && hoursNow > 17)) {
     if (pastLatestBedtime) {
       return {
+        root: 'NOW',
+        kind: 'night',
+        confidence: 'high',
         state: 'bedtime',
         eyebrow: t('recommendation.bedtimeWindow'),
         primary: t('recommendation.now'),
@@ -343,63 +375,106 @@ export function computeRecommendation(
       };
     }
     const minsToLatest = Math.max(0, (bedtime.latest - hoursNow) * 60);
+    if (minsToLatest < 30) {
+      return {
+        root: 'NOW',
+        kind: 'night',
+        confidence: 'high',
+        state: 'bedtime',
+        eyebrow: t('recommendation.bedtimeRoutine'),
+        primary: t('recommendation.inFewMin'),
+        supporting: t('recommendation.inMin', {
+          min: formatShortDuration(minsToLatest * MINUTE),
+        }),
+        context,
+        contextTone,
+        primaryAction: 'start',
+      };
+    }
+    // 4. UPCOMING + night
+    const bedtimeStart = floatToTime(now, bedtime.earliest);
+    const bedtimeEnd = floatToTime(now, bedtime.latest);
     return {
+      root: 'UPCOMING',
+      kind: 'night',
+      confidence: 'high',
       state: 'bedtime',
       eyebrow: t('recommendation.bedtimeRoutine'),
-      primary:
-        minsToLatest < 20
-          ? t('recommendation.inFewMin')
-          : t('recommendation.inMin', {
-              min: formatShortDuration(minsToLatest * MINUTE),
-            }),
-      supporting: t('recommendation.calmWindDown'),
+      primary: `${formatClock(bedtimeStart)} – ${formatClock(bedtimeEnd)}`,
+      supporting: t('recommendation.nextNapClockSupporting', {
+        duration: formatShortDuration(minsToLatest * MINUTE),
+      }),
       context,
       contextTone,
       primaryAction: 'start',
     };
   }
 
+  // 5. NOW + nap (overdue) — pasada la ventana max
   if (untilMax <= 0) {
     return {
+      root: 'NOW',
+      kind: 'nap',
+      confidence: 'high',
       state: 'overdue',
       eyebrow: t('recommendation.napWindow'),
       primary: t('recommendation.now'),
-      supporting: t('recommendation.settleSoon'),
-      context: context ?? t('recommendation.napWindowOpen'),
+      supporting: t('recommendation.settleSoon', {
+        duration: formatShortDuration(-untilMax),
+      }),
+      reasoning: reasoningShortNaps,
+      context,
       contextTone: 'warn',
       primaryAction: 'start',
     };
   }
 
+  // 6. NOW + nap (within window)
   if (untilMin <= 0) {
+    const windowEnd = new Date(now.getTime() + untilMax);
     return {
+      root: 'NOW',
+      kind: 'nap',
+      confidence: 'high',
       state: 'due',
       eyebrow: t('recommendation.napWindow'),
-      primary: t('recommendation.withinMin', {
-        max: formatShortDuration(untilMax),
+      primary: t('recommendation.withinMin'),
+      supporting: t('recommendation.napInRangeSupporting', {
+        time: formatClock(windowEnd),
       }),
-      supporting: t('recommendation.goodTime'),
+      reasoning: reasoningShortNaps,
       context,
       contextTone,
       primaryAction: 'start',
     };
   }
 
-  const supportingMinutes = Math.max(1, Math.round(untilMin / MINUTE) - 10);
+  // 7. UPCOMING + nap
+  const napFrom = new Date(lastEnd.getTime() + wakeWin.minMs);
+  const napTo = new Date(lastEnd.getTime() + wakeWin.maxMs);
   return {
+    root: 'UPCOMING',
+    kind: 'nap',
+    confidence: 'high',
     state: 'countdown',
     eyebrow: t('recommendation.nextNapIn'),
-    primary: t('recommendation.range', {
-      min: formatShortDuration(untilMin),
-      max: formatShortDuration(untilMax),
+    primary: `${formatClock(napFrom)} – ${formatClock(napTo)}`,
+    supporting: t('recommendation.nextNapClockSupporting', {
+      duration: `${formatShortDuration(untilMin)} – ${formatShortDuration(untilMax)}`,
     }),
-    supporting: t('recommendation.startInAbout', {
-      min: formatShortDuration(supportingMinutes * MINUTE),
-    }),
+    reasoning: reasoningShortNaps,
     context,
     contextTone,
     primaryAction: 'start',
   };
+}
+
+function floatToTime(day: Date, hoursFloat: number): Date {
+  const d = new Date(day);
+  const h = Math.floor(hoursFloat);
+  const m = Math.round((hoursFloat - h) * 60);
+  d.setHours(h, m, 0, 0);
+  return d;
 }
 
 function formatElapsed(ms: number): string {

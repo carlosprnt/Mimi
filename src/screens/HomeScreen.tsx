@@ -56,20 +56,14 @@ import {
 import { softImpact, lightImpact } from '@/utils/haptics';
 import { DrawerParamList } from '@/navigation/types';
 import { t } from '@/i18n';
-import type { Recommendation, SleepSession } from '@/logic/recommendation';
+import type { Recommendation } from '@/logic/recommendation';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
-function heroIcon(
-  rec: Recommendation,
-  active: SleepSession | undefined,
-): IoniconName {
-  if (rec.state === 'sleeping') {
-    return active?.kind === 'night' ? 'moon' : 'bed';
-  }
-  if (rec.state === 'bedtime') return 'moon-outline';
-  if (rec.state === 'overdue') return 'bed';
-  return 'bed-outline';
+function heroIcon(rec: Recommendation): IoniconName {
+  if (rec.root === 'SLEEPING') return rec.kind === 'night' ? 'moon' : 'bed';
+  if (rec.root === 'NOW') return rec.kind === 'night' ? 'moon' : 'bed';
+  return rec.kind === 'night' ? 'moon-outline' : 'bed-outline';
 }
 
 const TICK_MS = 30 * 1000;
@@ -362,7 +356,7 @@ export const HomeScreen: React.FC = () => {
         onPressMenu={() => navigation.dispatch(DrawerActions.openDrawer())}
         menuLabel={t('nav.menu')}
         status={
-          isToday && recommendation && recommendation.state === 'sleeping'
+          isToday && recommendation && recommendation.root === 'SLEEPING'
             ? recommendation.eyebrow
             : undefined
         }
@@ -406,7 +400,7 @@ export const HomeScreen: React.FC = () => {
           <View style={styles.heroWrap}>
             <HomeHero
               recommendation={recommendation}
-              iconName={heroIcon(recommendation, active)}
+              iconName={heroIcon(recommendation)}
               remainingLabel={remainingLabel}
             />
           </View>
