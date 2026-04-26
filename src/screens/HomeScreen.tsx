@@ -165,6 +165,26 @@ export const HomeScreen: React.FC = () => {
   const naps = napsCountForDay(sessions, selectedDate, now);
   const wakeMs = isToday ? lastWakeWindowMs(sessions, now) : null;
 
+  const lastSleepForDay = useMemo(() => {
+    const eligible = sessions.filter(
+      (s) => s.endedAt && isSameDay(new Date(s.endedAt), selectedDate),
+    );
+    if (eligible.length === 0) return undefined;
+    return eligible.reduce((a, b) =>
+      new Date(a.endedAt!).getTime() > new Date(b.endedAt!).getTime() ? a : b,
+    );
+  }, [sessions, selectedDate]);
+
+  const lastSleepDurationMs = lastSleepForDay
+    ? new Date(lastSleepForDay.endedAt!).getTime() -
+      new Date(lastSleepForDay.startedAt).getTime()
+    : null;
+  const lastSleepCaption = lastSleepForDay
+    ? t('home.startedAt', {
+        time: formatClock(new Date(lastSleepForDay.startedAt), use24h),
+      })
+    : undefined;
+
   const onPressAction = () => {
     if (active) {
       lightImpact();
@@ -445,6 +465,15 @@ export const HomeScreen: React.FC = () => {
               <ListRow
                 label={t('home.napTime')}
                 value={napMs > 0 ? formatDuration(napMs) : '—'}
+              />
+              <ListRow
+                label={t('home.lastSleep')}
+                value={
+                  lastSleepDurationMs !== null
+                    ? formatDuration(lastSleepDurationMs)
+                    : '—'
+                }
+                caption={lastSleepCaption}
                 showDivider={isToday}
               />
               {isToday ? (
