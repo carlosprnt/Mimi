@@ -72,7 +72,7 @@ export const PointEventSheet: React.FC<PointEventSheetProps> = ({
 
   return (
     <>
-      <Sheet visible={visible} onClose={onClose}>
+      <Sheet visible={visible && picker === null} onClose={onClose}>
         <Text variant="title" style={styles.title}>
           {title}
         </Text>
@@ -108,7 +108,7 @@ export const PointEventSheet: React.FC<PointEventSheetProps> = ({
       </Sheet>
 
       <TimeWheelSheet
-        visible={picker !== null}
+        visible={visible && picker !== null}
         initial={pickerInitial}
         use24h={use24h}
         onClose={() => setPicker(null)}

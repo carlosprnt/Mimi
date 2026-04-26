@@ -106,7 +106,7 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
 
   return (
     <>
-      <Sheet visible={visible} onClose={onClose}>
+      <Sheet visible={visible && picker === null} onClose={onClose}>
         <Text variant="title" style={styles.title}>
           {resolvedTitle}
         </Text>
@@ -146,7 +146,7 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
       </Sheet>
 
       <TimeWheelSheet
-        visible={picker !== null}
+        visible={visible && picker !== null}
         initial={pickerInitial}
         use24h={use24h}
         onClose={() => setPicker(null)}
