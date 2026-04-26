@@ -187,8 +187,8 @@ export const en = {
     },
   },
   recommendation: {
-    nightSleepInProgress: 'NIGHT SLEEP',
-    napInProgress: 'NAP IN PROGRESS',
+    nightSleepInProgress: 'SLEEPING',
+    napInProgress: 'SLEEPING',
     restingNight: 'Sleeping.',
     sleepingSince: 'Started at {time}',
     shouldSleep: 'Target around {duration}',

@@ -29,5 +29,6 @@ export { PointEventSheet } from './PointEventSheet';
 export { ProgressBar } from './ProgressBar';
 export { StatCard } from './StatCard';
 export { HomeHero } from './HomeHero';
+export { ShimmerText } from './ShimmerText';
 export { EmptyDay } from './EmptyDay';
 export { MoonIllustration } from './MoonIllustration';

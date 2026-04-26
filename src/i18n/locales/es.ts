@@ -189,8 +189,8 @@ export const es: Translations = {
     },
   },
   recommendation: {
-    nightSleepInProgress: 'SUEÑO NOCTURNO',
-    napInProgress: 'SIESTA EN CURSO',
+    nightSleepInProgress: 'DURMIENDO',
+    napInProgress: 'DURMIENDO',
     restingNight: 'Durmiendo.',
     sleepingSince: 'Empezó a las {time}',
     shouldSleep: 'Objetivo en torno a {duration}',

@@ -20,6 +20,7 @@ import { colors, fonts, spacing } from '@/theme';
 import { Card } from './Card';
 import { Text } from './Text';
 import { ProgressBar } from './ProgressBar';
+import { ShimmerText } from './ShimmerText';
 import { Recommendation } from '@/logic/recommendation';
 
 interface HomeHeroProps {
@@ -102,9 +103,17 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
         <Ionicons name={iconName} size={26} color="#F4F1FF" />
       </View>
 
-      <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
-        {recommendation.eyebrow}
-      </Text>
+      {isSleeping ? (
+        <View style={styles.eyebrow}>
+          <ShimmerText variant="eyebrow" tone="tertiary">
+            {recommendation.eyebrow}
+          </ShimmerText>
+        </View>
+      ) : (
+        <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
+          {recommendation.eyebrow}
+        </Text>
+      )}
       <Text style={styles.primary} numberOfLines={1} adjustsFontSizeToFit>
         {recommendation.primary}
       </Text>

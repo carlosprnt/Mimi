@@ -13,6 +13,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, spacing } from '@/theme';
 import { Text } from './Text';
+import { ShimmerText } from './ShimmerText';
 
 interface DashboardHeaderProps {
   name: string;
@@ -155,14 +156,15 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </Pressable>
 
         {status ? (
-          <Text
-            variant="eyebrow"
-            tone="accent"
-            numberOfLines={1}
-            style={styles.status}
-          >
-            {status}
-          </Text>
+          <View style={styles.status}>
+            <ShimmerText
+              variant="eyebrow"
+              tone="accent"
+              numberOfLines={1}
+            >
+              {status}
+            </ShimmerText>
+          </View>
         ) : null}
 
         <View style={styles.nameWrap}>

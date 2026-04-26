@@ -307,7 +307,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                   <Ionicons
                     name={iconFor(event.kind)}
                     size={14}
-                    color={dc.icon}
+                    color={isNext ? colors.pure.white : dc.icon}
                   />
                 </View>
               </View>
