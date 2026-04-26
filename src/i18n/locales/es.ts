@@ -235,6 +235,14 @@ export const es: Translations = {
     reasoningCappedBedtime:
       'Por la siesta tardía, hoy puede ser más tarde de lo habitual',
     reasoningTodayPattern: 'Según los datos de hoy',
+    contextRestlessNight:
+      'Anoche con varios despertares. Hoy puede notar más cansancio.',
+    contextLongLastNap:
+      'Última siesta más larga de lo habitual. Bedtime puede caer un poco más tarde.',
+    contextNapTransitionNear:
+      'Cerca de la transición de etapa. El patrón puede variar estos días.',
+    contextPartialData:
+      'Hoy con datos parciales. Las sugerencias son orientativas.',
   },
   duration: {
     hm: '{hours}h {minutes}m',

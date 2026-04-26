@@ -259,6 +259,66 @@ function hoursFraction(date: Date): number {
   return date.getHours() + date.getMinutes() / 60;
 }
 
+const NIGHT_WAKE_RESTLESS_COUNT = 3;
+const NIGHT_WAKE_RESTLESS_TOTAL_MS = 40 * MINUTE;
+const NAP_TRANSITION_WEEKS = 3;
+// Edges of stage transitions (in months). Around these, suggest gently.
+const TRANSITION_POINTS_M = [6, 15, 36];
+
+function withinTransitionWindow(months: number): boolean {
+  const range = NAP_TRANSITION_WEEKS / 4.345;
+  return TRANSITION_POINTS_M.some((p) => Math.abs(months - p) < range);
+}
+
+function recentRestlessNight(
+  careEvents: CareEvent[],
+  now: Date,
+): boolean {
+  // Considera despertares en la noche que ha terminado en las últimas
+  // 24h: desde ayer 18:00 hasta ahora.
+  const start = new Date(now);
+  start.setDate(start.getDate() - 1);
+  start.setHours(18, 0, 0, 0);
+  const end = now.getTime();
+  let count = 0;
+  let totalMs = 0;
+  for (const ev of careEvents) {
+    if (ev.kind !== 'nightWake') continue;
+    const at = new Date(ev.at).getTime();
+    if (at < start.getTime() || at > end) continue;
+    count += 1;
+    if (ev.endedAt) {
+      totalMs += new Date(ev.endedAt).getTime() - at;
+    }
+  }
+  return count >= NIGHT_WAKE_RESTLESS_COUNT || totalMs > NIGHT_WAKE_RESTLESS_TOTAL_MS;
+}
+
+function lastNapWasLong(
+  sessions: SleepSession[],
+  months: number,
+  now: Date,
+): boolean {
+  const today = startOfDay(now).getTime();
+  const todayCompletedNaps = sessions
+    .filter(
+      (s) =>
+        s.kind === 'nap' &&
+        s.endedAt &&
+        new Date(s.endedAt).getTime() >= today,
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.endedAt!).getTime() - new Date(b.endedAt!).getTime(),
+    );
+  const lastNap = todayCompletedNaps[todayCompletedNaps.length - 1];
+  if (!lastNap) return false;
+  const duration =
+    new Date(lastNap.endedAt!).getTime() - new Date(lastNap.startedAt).getTime();
+  const expected = expectedSleepDurationMs('nap', months);
+  return duration > expected * 1.5;
+}
+
 export function computeRecommendation(
   baby: Baby,
   sessions: SleepSession[],
@@ -323,14 +383,30 @@ export function computeRecommendation(
   const expectedNaps = expectedNapsForAge(months);
   const totalSleep = totalSleepTodayMs(sessions, now);
 
-  // Context layer (warn-only de momento; ampliada en commit posterior)
+  // Context layer — prioridad descendente. Solo se muestra una.
   let context: string | undefined;
   let contextTone: 'neutral' | 'warn' = 'neutral';
+
+  const restless = recentRestlessNight(careEvents, now);
+  const longLast = lastNapWasLong(sessions, months, now);
+  const transitionNear = withinTransitionWindow(months);
+
   if (totalSleep === 0 && hoursNow > 10) {
     context = t('recommendation.noSleepYet');
     contextTone = 'warn';
-  } else if (shortNaps >= 2) {
+  } else if (restless) {
+    context = t('recommendation.contextRestlessNight');
+    contextTone = 'neutral';
+  } else if (transitionNear) {
+    context = t('recommendation.contextNapTransitionNear');
+    contextTone = 'neutral';
+  } else if (shortNaps >= 2 && !wakeWindowShortened) {
+    // Si la ventana ya se acortó, la información vive en `reasoning` del
+    // hero y no la repetimos aquí.
     context = t('recommendation.shortNapsWarn');
+    contextTone = 'neutral';
+  } else if (longLast) {
+    context = t('recommendation.contextLongLastNap');
     contextTone = 'neutral';
   }
 

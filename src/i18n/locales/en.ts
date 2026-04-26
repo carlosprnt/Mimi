@@ -232,6 +232,14 @@ export const en = {
     reasoningCappedBedtime:
       'Due to a late nap, today may be a bit later than usual',
     reasoningTodayPattern: "Based on today's data",
+    contextRestlessNight:
+      'Last night had several wakings. Baby may feel more tired today.',
+    contextLongLastNap:
+      'Last nap was longer than usual. Bedtime may land a bit later.',
+    contextNapTransitionNear:
+      'Near a stage transition. The pattern may vary these days.',
+    contextPartialData:
+      'Partial data today. Suggestions are orientative.',
   },
   duration: {
     hm: '{hours}h {minutes}m',
