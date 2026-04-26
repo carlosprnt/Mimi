@@ -33,16 +33,20 @@ interface TimelineProps {
   onPressEvent?: (event: TimelineEvent) => void;
 }
 
-const iconFor = (kind: TimelineKind): keyof typeof Ionicons.glyphMap => {
+const iconFor = (
+  kind: TimelineKind,
+  status: TimelineStatus,
+): keyof typeof Ionicons.glyphMap => {
+  const isOutline = status === 'suggested';
   switch (kind) {
     case 'wake':
-      return 'sunny';
+      return isOutline ? 'sunny-outline' : 'sunny';
     case 'bedtime':
-      return 'moon';
+      return isOutline ? 'moon-outline' : 'moon';
     case 'nap':
-      return 'bed';
+      return isOutline ? 'bed-outline' : 'bed';
     case 'feeding':
-      return 'water';
+      return isOutline ? 'water-outline' : 'water';
     case 'diaper':
       return 'reload';
     case 'nightWake':
@@ -107,9 +111,8 @@ const formatCaption = (
   if (event.status === 'real' && event.durationMs != null) {
     return formatDuration(event.durationMs);
   }
-  if (event.status === 'suggested') {
-    return t('timeline.suggested');
-  }
+  // Suggested rows carry the SUGERIDO eyebrow above the title row;
+  // no caption — keeps predictions airy.
   return null;
 };
 
@@ -371,7 +374,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                     <View style={styles.nightWakeBar} />
                   ) : (
                     <Ionicons
-                      name={iconFor(event.kind)}
+                      name={iconFor(event.kind, event.status)}
                       size={14}
                       color={isNext ? colors.pure.white : dc.icon}
                     />
@@ -389,6 +392,15 @@ export const Timeline: React.FC<TimelineProps> = ({
             </View>
 
             <View style={[styles.content, { opacity: rowOpacity }]}>
+              {event.status === 'suggested' ? (
+                <Text
+                  variant="eyebrow"
+                  tone="tertiary"
+                  style={styles.suggestedEyebrow}
+                >
+                  {t('timeline.suggestedEyebrow')}
+                </Text>
+              ) : null}
               <View style={styles.titleRow}>
                 <Text
                   variant="body"
@@ -538,6 +550,9 @@ const styles = StyleSheet.create({
   },
   caption: {
     marginTop: 2,
+  },
+  suggestedEyebrow: {
+    marginBottom: 2,
   },
   pressed: {
     opacity: 0.5,
