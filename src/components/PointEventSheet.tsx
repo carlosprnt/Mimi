@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { StyleSheet, View } from 'react-native';
 import { Sheet } from './Sheet';
 import { Text } from './Text';
 import { Button } from './Button';
-import { colors, spacing } from '@/theme';
+import { TimeHero } from './TimeHero';
+import { TimeWheelSheet } from './TimeWheelSheet';
+import { spacing } from '@/theme';
+import { useBabyStore } from '@/state/babyStore';
 import { t } from '@/i18n';
 
 interface PointEventSheetProps {
@@ -18,6 +20,8 @@ interface PointEventSheetProps {
   onDelete?: () => void;
 }
 
+type PickerSide = 'start' | 'end' | null;
+
 export const PointEventSheet: React.FC<PointEventSheetProps> = ({
   visible,
   title,
@@ -28,20 +32,21 @@ export const PointEventSheet: React.FC<PointEventSheetProps> = ({
   onSave,
   onDelete,
 }) => {
+  const use24h = useBabyStore((s) => s.preferences.use24h);
   const [value, setValue] = useState<Date>(initial);
   const [endValue, setEndValue] = useState<Date | undefined>(initialEnd);
+  const [picker, setPicker] = useState<PickerSide>(null);
 
   useEffect(() => {
     if (visible) {
       setValue(initial);
       setEndValue(initialEnd);
+      setPicker(null);
     }
   }, [visible, initial, initialEnd]);
 
   const handleSave = () => {
     if (withEnd) {
-      // If user picked an end time earlier than start, assume it crossed
-      // midnight and add 24h.
       let end = endValue;
       if (end && end.getTime() <= value.getTime()) {
         end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
@@ -52,78 +57,72 @@ export const PointEventSheet: React.FC<PointEventSheetProps> = ({
     }
   };
 
+  const pickerInitial =
+    picker === 'start'
+      ? value
+      : picker === 'end'
+        ? (endValue ?? value)
+        : value;
+
+  const onPickerConfirm = (next: Date) => {
+    if (picker === 'start') setValue(next);
+    else if (picker === 'end') setEndValue(next);
+    setPicker(null);
+  };
+
   return (
-    <Sheet visible={visible} onClose={onClose}>
-      <Text variant="title" style={styles.title}>
-        {title}
-      </Text>
-
-      <View style={styles.pickerBlock}>
-        <Text variant="eyebrow" tone="tertiary" style={styles.label}>
-          {withEnd ? t('timeline.startTime') : t('timeline.time')}
+    <>
+      <Sheet visible={visible} onClose={onClose}>
+        <Text variant="title" style={styles.title}>
+          {title}
         </Text>
-        <View style={styles.pickerWrap}>
-          <DateTimePicker
-            value={value}
-            mode="time"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            textColor={colors.text.primary}
-            themeVariant="dark"
-            onChange={(_, d) => d && setValue(d)}
+
+        <TimeHero
+          primary={value}
+          secondary={withEnd ? endValue : undefined}
+          isRange={withEnd}
+          use24h={use24h}
+          onPressPrimary={() => setPicker('start')}
+          onPressSecondary={withEnd ? () => setPicker('end') : undefined}
+        />
+
+        <View style={styles.actions}>
+          <Button title={t('profile.save')} onPress={handleSave} />
+          <View style={{ height: spacing.sm }} />
+          <Button
+            title={t('profile.cancel')}
+            variant="ghost"
+            onPress={onClose}
           />
+          {onDelete ? (
+            <>
+              <View style={{ height: spacing.sm }} />
+              <Button
+                title={t('timeline.deleteEvent')}
+                variant="dangerGhost"
+                onPress={onDelete}
+              />
+            </>
+          ) : null}
         </View>
-      </View>
+      </Sheet>
 
-      {withEnd ? (
-        <View style={styles.pickerBlock}>
-          <Text variant="eyebrow" tone="tertiary" style={styles.label}>
-            {t('timeline.endTime')}
-          </Text>
-          <View style={styles.pickerWrap}>
-            <DateTimePicker
-              value={endValue ?? value}
-              mode="time"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              textColor={colors.text.primary}
-              themeVariant="dark"
-              onChange={(_, d) => d && setEndValue(d)}
-            />
-          </View>
-        </View>
-      ) : null}
-
-      <View style={styles.actions}>
-        <Button title={t('profile.save')} onPress={handleSave} />
-        <View style={{ height: spacing.sm }} />
-        <Button title={t('profile.cancel')} variant="ghost" onPress={onClose} />
-        {onDelete ? (
-          <>
-            <View style={{ height: spacing.sm }} />
-            <Button
-              title={t('timeline.deleteEvent')}
-              variant="dangerGhost"
-              onPress={onDelete}
-            />
-          </>
-        ) : null}
-      </View>
-    </Sheet>
+      <TimeWheelSheet
+        visible={picker !== null}
+        initial={pickerInitial}
+        use24h={use24h}
+        onClose={() => setPicker(null)}
+        onConfirm={onPickerConfirm}
+      />
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   title: {
     marginTop: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  pickerBlock: {
     marginBottom: spacing.md,
-  },
-  label: {
-    marginBottom: spacing.xs,
-  },
-  pickerWrap: {
-    alignItems: 'center',
+    textAlign: 'center',
   },
   actions: {
     marginTop: spacing.lg,

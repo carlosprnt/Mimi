@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { StyleSheet, View } from 'react-native';
 import { Sheet } from './Sheet';
 import { Text } from './Text';
 import { Button } from './Button';
-import { colors, spacing } from '@/theme';
+import { TimeHero } from './TimeHero';
+import { TimeWheelSheet } from './TimeWheelSheet';
+import { spacing } from '@/theme';
+import { useBabyStore } from '@/state/babyStore';
 import { t } from '@/i18n';
 
 export type TimelineEditKind = 'wake' | 'nap' | 'activeStart';
@@ -20,6 +22,8 @@ interface TimelineEditSheetProps {
   title?: string;
 }
 
+type PickerSide = 'start' | 'end' | null;
+
 export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
   visible,
   kind,
@@ -30,13 +34,16 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
   onDelete,
   title,
 }) => {
+  const use24h = useBabyStore((s) => s.preferences.use24h);
   const [start, setStart] = useState<Date | undefined>(initialStart);
   const [end, setEnd] = useState<Date | undefined>(initialEnd);
+  const [picker, setPicker] = useState<PickerSide>(null);
 
   useEffect(() => {
     if (visible) {
       setStart(initialStart);
       setEnd(initialEnd);
+      setPicker(null);
     }
   }, [visible, initialStart, initialEnd]);
 
@@ -73,84 +80,87 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
     }
   };
 
+  const isRange = kind === 'nap';
+  const heroPrimary = kind === 'wake' ? end : start;
+  const heroSecondary = kind === 'wake' ? undefined : end;
+
+  const onPressPrimary =
+    kind === 'wake'
+      ? () => setPicker('end')
+      : () => setPicker('start');
+
+  const onPressSecondary = isRange ? () => setPicker('end') : undefined;
+
+  const pickerInitial =
+    picker === 'start'
+      ? (start ?? new Date())
+      : picker === 'end'
+        ? (end ?? start ?? new Date())
+        : new Date();
+
+  const onPickerConfirm = (value: Date) => {
+    if (picker === 'start') setStart(value);
+    else if (picker === 'end') setEnd(value);
+    setPicker(null);
+  };
+
   return (
-    <Sheet visible={visible} onClose={onClose}>
-      <Text variant="title" style={styles.title}>
-        {resolvedTitle}
-      </Text>
+    <>
+      <Sheet visible={visible} onClose={onClose}>
+        <Text variant="title" style={styles.title}>
+          {resolvedTitle}
+        </Text>
 
-      {kind === 'nap' || kind === 'activeStart' ? (
-        <View style={styles.pickerBlock}>
-          <Text variant="eyebrow" tone="tertiary" style={styles.pickerLabel}>
-            {t('timeline.startTime')}
-          </Text>
-          <View style={styles.pickerWrap}>
-            <DateTimePicker
-              value={start ?? new Date()}
-              mode="time"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              textColor={colors.text.primary}
-              themeVariant="dark"
-              onChange={(_, d) => d && setStart(d)}
-            />
-          </View>
-        </View>
-      ) : null}
-
-      {kind !== 'activeStart' ? (
-        <View style={styles.pickerBlock}>
-          <Text variant="eyebrow" tone="tertiary" style={styles.pickerLabel}>
-            {kind === 'wake' ? t('timeline.wake') : t('timeline.endTime')}
-          </Text>
-          <View style={styles.pickerWrap}>
-            <DateTimePicker
-              value={end ?? new Date()}
-              mode="time"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              textColor={colors.text.primary}
-              themeVariant="dark"
-              onChange={(_, d) => d && setEnd(d)}
-            />
-          </View>
-        </View>
-      ) : null}
-
-      <View style={styles.actions}>
-        <Button
-          title={t('profile.save')}
-          onPress={handleSave}
-          disabled={!canSave()}
+        <TimeHero
+          primary={heroPrimary}
+          secondary={heroSecondary}
+          isRange={isRange}
+          use24h={use24h}
+          onPressPrimary={onPressPrimary}
+          onPressSecondary={onPressSecondary}
         />
-        <View style={{ height: spacing.sm }} />
-        <Button title={t('profile.cancel')} variant="ghost" onPress={onClose} />
-        {onDelete ? (
-          <>
-            <View style={{ height: spacing.sm }} />
-            <Button
-              title={t('timeline.deleteEvent')}
-              variant="dangerGhost"
-              onPress={onDelete}
-            />
-          </>
-        ) : null}
-      </View>
-    </Sheet>
+
+        <View style={styles.actions}>
+          <Button
+            title={t('profile.save')}
+            onPress={handleSave}
+            disabled={!canSave()}
+          />
+          <View style={{ height: spacing.sm }} />
+          <Button
+            title={t('profile.cancel')}
+            variant="ghost"
+            onPress={onClose}
+          />
+          {onDelete ? (
+            <>
+              <View style={{ height: spacing.sm }} />
+              <Button
+                title={t('timeline.deleteEvent')}
+                variant="dangerGhost"
+                onPress={onDelete}
+              />
+            </>
+          ) : null}
+        </View>
+      </Sheet>
+
+      <TimeWheelSheet
+        visible={picker !== null}
+        initial={pickerInitial}
+        use24h={use24h}
+        onClose={() => setPicker(null)}
+        onConfirm={onPickerConfirm}
+      />
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   title: {
     marginTop: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  pickerBlock: {
     marginBottom: spacing.md,
-  },
-  pickerLabel: {
-    marginBottom: spacing.xs,
-  },
-  pickerWrap: {
-    alignItems: 'center',
+    textAlign: 'center',
   },
   actions: {
     marginTop: spacing.lg,

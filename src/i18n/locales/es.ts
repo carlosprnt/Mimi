@@ -117,6 +117,7 @@ export const es: Translations = {
     startTime: 'Inicio',
     endTime: 'Fin',
     time: 'Hora',
+    setTime: 'Establecer hora',
     editFeeding: 'Editar toma',
     editDiaper: 'Editar cambio de pañal',
     editNightWake: 'Editar despertar nocturno',

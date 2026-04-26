@@ -115,6 +115,7 @@ export const en = {
     startTime: 'Start',
     endTime: 'End',
     time: 'Time',
+    setTime: 'Set time',
     editFeeding: 'Edit feeding',
     editDiaper: 'Edit diaper change',
     editNightWake: 'Edit night waking',
