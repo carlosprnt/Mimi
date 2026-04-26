@@ -154,9 +154,13 @@ const DASH_HEIGHT = 4;
 const DASH_COUNT = 5;
 const OVERNIGHT_OPACITY = 0.5;
 
+// Variant priority for a rail segment (highest wins):
+//   interrupted > suggested > overnight > normal
+type RailVariant = 'normal' | 'overnight' | 'suggested' | 'interrupted';
+
 const SolidLine: React.FC<{
   hidden?: boolean;
-  variant?: 'normal' | 'overnight' | 'suggested';
+  variant?: RailVariant;
 }> = ({ hidden, variant = 'normal' }) => {
   if (hidden) return <View style={styles.lineSpacer} />;
   if (variant === 'suggested') {
@@ -173,6 +177,7 @@ const SolidLine: React.FC<{
       style={[
         styles.line,
         variant === 'overnight' && styles.lineOvernight,
+        variant === 'interrupted' && styles.lineInterrupted,
       ]}
     />
   );
@@ -294,6 +299,23 @@ export const Timeline: React.FC<TimelineProps> = ({
           !!next &&
           event.status === 'suggested' &&
           next.status === 'suggested';
+        // Night-wake interruption: red rail above + below the dot, only
+        // within this row. Adjacent rows return to violet immediately.
+        const isInterruption =
+          event.kind === 'nightWake' && event.status === 'real';
+
+        const railVariant = (
+          interrupted: boolean,
+          suggested: boolean,
+          overnight: boolean,
+        ): RailVariant =>
+          interrupted
+            ? 'interrupted'
+            : suggested
+              ? 'suggested'
+              : overnight
+                ? 'overnight'
+                : 'normal';
 
         const isNext = index === nextMilestoneIndex;
         const dimRow = !!event.overnightChain && event.kind !== 'wake';
@@ -304,13 +326,11 @@ export const Timeline: React.FC<TimelineProps> = ({
             <View style={styles.rail}>
               <SolidLine
                 hidden={isFirst}
-                variant={
-                  aboveSuggested
-                    ? 'suggested'
-                    : aboveOvernight
-                      ? 'overnight'
-                      : 'normal'
-                }
+                variant={railVariant(
+                  isInterruption,
+                  aboveSuggested,
+                  aboveOvernight,
+                )}
               />
               <View style={styles.dotContainer}>
                 {isNext ? <PulsingGlow /> : null}
@@ -349,13 +369,11 @@ export const Timeline: React.FC<TimelineProps> = ({
               </View>
               <SolidLine
                 hidden={isLast}
-                variant={
-                  belowSuggested
-                    ? 'suggested'
-                    : belowOvernight
-                      ? 'overnight'
-                      : 'normal'
-                }
+                variant={railVariant(
+                  isInterruption,
+                  belowSuggested,
+                  belowOvernight,
+                )}
               />
             </View>
 
@@ -441,6 +459,9 @@ const styles = StyleSheet.create({
   },
   lineOvernight: {
     backgroundColor: 'rgba(168, 165, 230, 0.22)',
+  },
+  lineInterrupted: {
+    backgroundColor: 'rgba(226, 107, 98, 0.7)',
   },
   lineSpacer: {
     flex: 1,
