@@ -97,7 +97,7 @@ export const es: Translations = {
     feeding: 'Toma',
     diaper: 'Cambio de pañal',
     nightWake: 'Despertar nocturno',
-    suggested: 'Sugerido',
+    suggested: 'Estimado',
     inProgress: 'En curso',
     editWake: 'Editar hora de despertar',
     editNap: 'Editar siesta',

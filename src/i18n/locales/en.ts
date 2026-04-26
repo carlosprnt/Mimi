@@ -95,7 +95,7 @@ export const en = {
     feeding: 'Feeding',
     diaper: 'Diaper change',
     nightWake: 'Night waking',
-    suggested: 'Suggested',
+    suggested: 'Estimated',
     inProgress: 'In progress',
     editWake: 'Edit wake time',
     editNap: 'Edit nap',

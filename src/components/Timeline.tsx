@@ -106,7 +106,11 @@ const formatCaption = (
   return null;
 };
 
-const dotColors = (status: TimelineStatus, kind: TimelineKind) => {
+const dotColors = (
+  status: TimelineStatus,
+  kind: TimelineKind,
+  confidence?: 'high' | 'low',
+) => {
   if (kind === 'nightWake' && status === 'real') {
     return {
       background: 'rgba(226, 107, 98, 0.18)',
@@ -128,9 +132,17 @@ const dotColors = (status: TimelineStatus, kind: TimelineKind) => {
       icon: colors.accent.base,
     };
   }
+  // suggested
+  if (confidence === 'low') {
+    return {
+      background: 'rgba(255, 255, 255, 0.025)',
+      border: 'rgba(255, 255, 255, 0.12)',
+      icon: 'rgba(255, 255, 255, 0.4)',
+    };
+  }
   return {
-    background: 'rgba(255, 255, 255, 0.04)',
-    border: 'rgba(255, 255, 255, 0.2)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: 'rgba(255, 255, 255, 0.28)',
     icon: colors.text.tertiary,
   };
 };
@@ -252,7 +264,7 @@ export const Timeline: React.FC<TimelineProps> = ({
       {events.map((event, index) => {
         const isFirst = index === 0;
         const isLast = index === events.length - 1;
-        const dc = dotColors(event.status, event.kind);
+        const dc = dotColors(event.status, event.kind, event.confidence);
         const timeText = formatEventTime(event, use24h);
         const caption = formatCaption(event, use24h, now);
         const editable =
@@ -271,12 +283,17 @@ export const Timeline: React.FC<TimelineProps> = ({
           !!prev && !!event.overnightChain && !!prev.overnightChain;
         const belowOvernight =
           !!next && !!event.overnightChain && !!next.overnightChain;
+        // Dashed only when BOTH ends of the segment are suggested.
+        // The line from a real anchor into the next prediction stays solid
+        // so the eye can follow "you are here → next" without breaking.
         const aboveSuggested =
           !!prev &&
-          (event.status === 'suggested' || prev.status === 'suggested');
+          event.status === 'suggested' &&
+          prev.status === 'suggested';
         const belowSuggested =
           !!next &&
-          (event.status === 'suggested' || next.status === 'suggested');
+          event.status === 'suggested' &&
+          next.status === 'suggested';
 
         const isNext = index === nextMilestoneIndex;
         const dimRow = !!event.overnightChain && event.kind !== 'wake';
@@ -346,14 +363,26 @@ export const Timeline: React.FC<TimelineProps> = ({
               <View style={styles.titleRow}>
                 <Text
                   variant="body"
-                  tone={event.status === 'suggested' ? 'secondary' : 'primary'}
+                  tone={
+                    event.status === 'suggested'
+                      ? event.confidence === 'low'
+                        ? 'tertiary'
+                        : 'secondary'
+                      : 'primary'
+                  }
                   style={styles.title}
                 >
                   {labelFor(event.kind)}
                 </Text>
                 <Text
                   variant="body"
-                  tone={event.status === 'suggested' ? 'secondary' : 'primary'}
+                  tone={
+                    event.status === 'suggested'
+                      ? event.confidence === 'low'
+                        ? 'tertiary'
+                        : 'secondary'
+                      : 'primary'
+                  }
                   tabular
                 >
                   {timeText}

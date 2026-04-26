@@ -32,6 +32,10 @@ export interface TimelineEvent {
   overnightChain?: boolean;
   captionKey?: 'yesterday' | 'noNightData';
   microNap?: boolean;
+  /** For suggested events: 'high' for the next predicted event, 'low' for
+   *  predictions further down the chain (each one inherits its anchor's
+   *  uncertainty). */
+  confidence?: 'high' | 'low';
 }
 
 const TYPICAL_NAP_MS = 60 * 60 * 1000;
@@ -210,6 +214,7 @@ export function buildTimeline(
           id: `suggested-nap-${i}`,
           kind: 'nap',
           status: 'suggested',
+          confidence: i === 0 ? 'high' : 'low',
           from: new Date(fromMs),
           to: new Date(toMs),
         });
@@ -227,10 +232,18 @@ export function buildTimeline(
       at: new Date(nightStartedThatDay.startedAt),
     });
   } else if (isToday && active?.kind !== 'night') {
+    // The suggested bedtime sits at the tail of the prediction chain. If
+    // there's already a real anchor today (no daytime suggestions in
+    // between, e.g. last nap real and bedtime is the next event), it gets
+    // high confidence; otherwise it inherits the chain's uncertainty.
+    const hasSuggestedNapsBefore = events.some(
+      (e) => e.kind === 'nap' && e.status === 'suggested',
+    );
     events.push({
       id: 'bedtime',
       kind: 'bedtime',
       status: 'suggested',
+      confidence: hasSuggestedNapsBefore ? 'low' : 'high',
       from: bedtimeStart,
       to: bedtimeEnd,
     });
