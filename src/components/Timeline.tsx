@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import Svg, {
   Circle,
   Defs,
@@ -282,12 +283,27 @@ export const Timeline: React.FC<TimelineProps> = ({
                   style={[
                     styles.dot,
                     {
-                      backgroundColor: dc.background,
+                      backgroundColor: isNext ? 'transparent' : dc.background,
                       borderColor: dc.border,
                       opacity: rowOpacity,
                     },
                   ]}
                 >
+                  {isNext ? (
+                    <>
+                      <BlurView
+                        intensity={Platform.OS === 'ios' ? 30 : 18}
+                        tint="dark"
+                        style={StyleSheet.absoluteFill}
+                      />
+                      <View
+                        style={[
+                          StyleSheet.absoluteFill,
+                          { backgroundColor: 'rgba(11, 20, 54, 0.6)' },
+                        ]}
+                      />
+                    </>
+                  ) : null}
                   <Ionicons
                     name={iconFor(event.kind)}
                     size={14}
@@ -413,6 +429,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   content: {
     flex: 1,

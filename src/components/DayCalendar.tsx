@@ -83,15 +83,15 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
   }, [selectedIndex, width]);
 
   const handleScrollStart = () => {
-    cellScale.value = withTiming(0.95, {
-      duration: 180,
+    cellScale.value = withTiming(0.9, {
+      duration: 160,
       easing: Easing.out(Easing.quad),
     });
   };
   const handleScrollEnd = () => {
     cellScale.value = withTiming(1, {
-      duration: 240,
-      easing: Easing.out(Easing.quad),
+      duration: 120,
+      easing: Easing.out(Easing.cubic),
     });
   };
 
