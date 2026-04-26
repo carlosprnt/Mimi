@@ -360,11 +360,15 @@ export const Timeline: React.FC<TimelineProps> = ({
                       />
                     </>
                   ) : null}
-                  <Ionicons
-                    name={iconFor(event.kind)}
-                    size={14}
-                    color={isNext ? colors.pure.white : dc.icon}
-                  />
+                  {isInterruption ? (
+                    <View style={styles.nightWakeBar} />
+                  ) : (
+                    <Ionicons
+                      name={iconFor(event.kind)}
+                      size={14}
+                      color={isNext ? colors.pure.white : dc.icon}
+                    />
+                  )}
                 </View>
               </View>
               <SolidLine
@@ -504,6 +508,12 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
+  },
+  nightWakeBar: {
+    width: 12,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: colors.danger.base,
   },
   content: {
     flex: 1,
