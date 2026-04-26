@@ -29,7 +29,7 @@ export interface TimelineEvent {
   to?: Date;
   durationMs?: number;
   overnightChain?: boolean;
-  captionKey?: 'yesterday';
+  captionKey?: 'yesterday' | 'noNightData';
 }
 
 const TYPICAL_NAP_MS = 60 * 60 * 1000;
@@ -79,6 +79,18 @@ export function buildTimeline(
 
   const usedCareEventIds = new Set<string>();
 
+  // Wake-anchor (morningWake care event) — solo se renderiza si NO hay
+  // sesión nocturna real que termine ese día. Es la huella honesta de
+  // un despertar registrado sin la noche que lo precedió.
+  const morningWakeAnchor =
+    !lastNightEndedThatDay
+      ? careEvents.find((e) => {
+          if (e.kind !== 'morningWake') return false;
+          const t = new Date(e.at).getTime();
+          return t >= dayStartMs && t < dayEndMs;
+        })
+      : undefined;
+
   if (lastNightEndedThatDay) {
     const nightStartMs = new Date(lastNightEndedThatDay.startedAt).getTime();
     const nightEndMs = new Date(lastNightEndedThatDay.endedAt!).getTime();
@@ -118,6 +130,16 @@ export function buildTimeline(
       at: new Date(nightEndMs),
       overnightChain: true,
     });
+  } else if (morningWakeAnchor) {
+    events.push({
+      id: `wake-anchor-${morningWakeAnchor.id}`,
+      kind: 'wake',
+      status: 'real',
+      careEventId: morningWakeAnchor.id,
+      at: new Date(morningWakeAnchor.at),
+      captionKey: 'noNightData',
+    });
+    usedCareEventIds.add(morningWakeAnchor.id);
   }
 
   const dayNaps = completed.filter((s) => {

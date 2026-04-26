@@ -82,6 +82,7 @@ const formatCaption = (
   now: Date,
 ): string | null => {
   if (event.captionKey === 'yesterday') return t('date.yesterday');
+  if (event.captionKey === 'noNightData') return t('timeline.morningWakeNoNight');
   if (event.status === 'active' && event.from) {
     const elapsed = now.getTime() - event.from.getTime();
     return `${t('timeline.inProgress')} · ${formatDuration(elapsed)}`;

@@ -1,6 +1,7 @@
 import { Baby, ageInMonths } from './age';
 import { startOfDay } from './format';
 import { formatShortDuration } from './format';
+import { CareEvent } from './careEvents';
 import { t } from '@/i18n';
 
 export type SleepKind = 'nap' | 'night';
@@ -261,7 +262,8 @@ function hoursFraction(date: Date): number {
 export function computeRecommendation(
   baby: Baby,
   sessions: SleepSession[],
-  now = new Date(),
+  now: Date = new Date(),
+  careEvents: CareEvent[] = [],
 ): Recommendation {
   const months = ageInMonths(baby, now);
   const active = activeSession(sessions);
@@ -288,7 +290,25 @@ export function computeRecommendation(
     };
   }
 
-  const last = lastCompletedSession(sessions);
+  // Anchor: el último punto conocido del que partir las proyecciones.
+  // Puede ser el final de una sesión completada o un wake-anchor (despertar
+  // matinal anotado sin sesión nocturna asociada).
+  const lastSession = lastCompletedSession(sessions);
+  const lastSessionEnd = lastSession
+    ? new Date(lastSession.endedAt!).getTime()
+    : 0;
+  const morningWake = [...careEvents]
+    .filter((e) => e.kind === 'morningWake')
+    .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime())
+    .pop();
+  const morningWakeAt = morningWake
+    ? new Date(morningWake.at).getTime()
+    : 0;
+  const anchorIsWakeAnchor =
+    morningWakeAt > 0 && morningWakeAt >= lastSessionEnd;
+  const anchorMs =
+    anchorIsWakeAnchor ? morningWakeAt : lastSession ? lastSessionEnd : 0;
+  const hasAnchor = anchorMs > 0;
   const todaySessions = sessionsToday(sessions, now);
   const baseWakeWin = wakeWindowForAge(months);
   const wakeWin = adjustedWakeWindow(baseWakeWin, todaySessions);
@@ -320,7 +340,7 @@ export function computeRecommendation(
     : undefined;
 
   // 2. STAND_BY — no hay último despertar conocido
-  if (!last) {
+  if (!hasAnchor) {
     if (isEvening) {
       return {
         root: 'STAND_BY',
@@ -353,10 +373,13 @@ export function computeRecommendation(
     };
   }
 
-  const lastEnd = new Date(last.endedAt!);
+  const lastEnd = new Date(anchorMs);
   const sinceWake = now.getTime() - lastEnd.getTime();
   const untilMin = wakeWin.minMs - sinceWake;
   const untilMax = wakeWin.maxMs - sinceWake;
+  const reasoningPartial = anchorIsWakeAnchor
+    ? t('recommendation.reasoningPartialData')
+    : undefined;
 
   // 3. NOW + night (overdue / imminent) — entrando en bedtime
   if (isEvening || pastLatestBedtime || (expectedNaps === 0 && hoursNow > 17)) {
@@ -410,19 +433,22 @@ export function computeRecommendation(
     };
   }
 
+  const napConfidence: 'high' | 'low' = anchorIsWakeAnchor ? 'low' : 'high';
+  const napReasoning = reasoningPartial ?? reasoningShortNaps;
+
   // 5. NOW + nap (overdue) — pasada la ventana max
   if (untilMax <= 0) {
     return {
       root: 'NOW',
       kind: 'nap',
-      confidence: 'high',
+      confidence: napConfidence,
       state: 'overdue',
       eyebrow: t('recommendation.napWindow'),
       primary: t('recommendation.now'),
       supporting: t('recommendation.settleSoon', {
         duration: formatShortDuration(-untilMax),
       }),
-      reasoning: reasoningShortNaps,
+      reasoning: napReasoning,
       context,
       contextTone: 'warn',
       primaryAction: 'start',
@@ -435,14 +461,14 @@ export function computeRecommendation(
     return {
       root: 'NOW',
       kind: 'nap',
-      confidence: 'high',
+      confidence: napConfidence,
       state: 'due',
       eyebrow: t('recommendation.napWindow'),
       primary: t('recommendation.withinMin'),
       supporting: t('recommendation.napInRangeSupporting', {
         time: formatClock(windowEnd),
       }),
-      reasoning: reasoningShortNaps,
+      reasoning: napReasoning,
       context,
       contextTone,
       primaryAction: 'start',
@@ -455,7 +481,7 @@ export function computeRecommendation(
   return {
     root: 'UPCOMING',
     kind: 'nap',
-    confidence: 'high',
+    confidence: napConfidence,
     state: 'countdown',
     eyebrow: t('recommendation.nextNapIn'),
     primary: `${formatClock(napFrom)} – ${formatClock(napTo)}`,

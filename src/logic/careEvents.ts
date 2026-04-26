@@ -1,4 +1,8 @@
-export type CareEventKind = 'feeding' | 'diaper' | 'nightWake';
+export type CareEventKind =
+  | 'feeding'
+  | 'diaper'
+  | 'nightWake'
+  | 'morningWake';
 
 export interface CareEvent {
   id: string;

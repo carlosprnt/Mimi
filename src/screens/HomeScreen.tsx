@@ -94,7 +94,7 @@ export const HomeScreen: React.FC = () => {
   const [editing, setEditing] = useState<{
     kind: TimelineEditKind;
     sessionId: string | null;
-    mode: 'edit' | 'addNap' | 'addWake';
+    mode: 'edit' | 'addNap';
     start?: Date;
     end?: Date;
   } | null>(null);
@@ -120,8 +120,11 @@ export const HomeScreen: React.FC = () => {
   const isToday = useMemo(() => isSameDay(selectedDate, now), [selectedDate, now]);
 
   const recommendation = useMemo(
-    () => (baby && isToday ? computeRecommendation(baby, sessions, now) : null),
-    [baby, sessions, now, isToday],
+    () =>
+      baby && isToday
+        ? computeRecommendation(baby, sessions, now, careEvents)
+        : null,
+    [baby, sessions, now, isToday, careEvents],
   );
 
   const active = useMemo(() => activeSession(sessions), [sessions]);
@@ -216,15 +219,19 @@ export const HomeScreen: React.FC = () => {
         end: event.to,
       });
     } else if (event.careEventId && event.at) {
+      // The visual kind 'wake' on a careEventId actually represents a
+      // morningWake CareEvent (logged without a night session).
+      const careKind: CareEventKind =
+        event.kind === 'wake' ? 'morningWake' : (event.kind as CareEventKind);
       const titleMap: Record<CareEventKind, string> = {
         feeding: t('timeline.editFeeding'),
         diaper: t('timeline.editDiaper'),
         nightWake: t('timeline.editNightWake'),
+        morningWake: t('timeline.editMorningWake'),
       };
-      const kind = event.kind as CareEventKind;
       setPointEvent({
-        kind,
-        title: titleMap[kind],
+        kind: careKind,
+        title: titleMap[careKind],
         initial: event.at,
         careEventId: event.careEventId,
       });
@@ -234,11 +241,11 @@ export const HomeScreen: React.FC = () => {
   const onPressAddWake = () => {
     const defaultWake = new Date(selectedDate);
     defaultWake.setHours(7, 0, 0, 0);
-    setEditing({
-      kind: 'wake',
-      sessionId: null,
-      mode: 'addWake',
-      end: defaultWake,
+    setPointEvent({
+      kind: 'morningWake',
+      title: t('timeline.editMorningWake'),
+      initial: defaultWake,
+      careEventId: null,
     });
   };
 
@@ -324,17 +331,6 @@ export const HomeScreen: React.FC = () => {
     if (!editing) return;
     if (editing.sessionId) {
       updateSession(baby.id, editing.sessionId, update);
-    } else if (editing.mode === 'addWake' && update.endedAt) {
-      const endTime = new Date(update.endedAt);
-      const startTime = new Date(endTime);
-      startTime.setDate(startTime.getDate() - 1);
-      startTime.setHours(22, 0, 0, 0);
-      addSession(baby.id, {
-        id: makeId(),
-        startedAt: startTime.toISOString(),
-        endedAt: endTime.toISOString(),
-        kind: 'night',
-      });
     } else if (editing.mode === 'addNap' && update.startedAt && update.endedAt) {
       addSession(baby.id, {
         id: makeId(),
