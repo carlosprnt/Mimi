@@ -163,7 +163,7 @@ export const ProfileScreen: React.FC = () => {
         <SectionLabel label={t('profile.danger')} />
         <Button
           title={t('profile.deleteChild')}
-          variant="ghost"
+          variant="dangerGhost"
           onPress={() => setEditing('delete')}
           style={styles.deleteButton}
         />

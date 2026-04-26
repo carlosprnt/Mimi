@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -104,20 +104,25 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
                     pressed && styles.pressed,
                   ]}
                 >
+                  <BlurView
+                    intensity={Platform.OS === 'ios' ? 24 : 14}
+                    tint="dark"
+                    style={[StyleSheet.absoluteFill, styles.rowBlur]}
+                  />
                   <View style={styles.iconWell}>
                     <Ionicons
                       name={item.icon}
                       size={20}
-                      color={colors.night.bottom}
+                      color={colors.pure.white}
                     />
                   </View>
-                  <Text variant="body" style={styles.label}>
+                  <Text variant="body" tone="primary" style={styles.label}>
                     {item.label}
                   </Text>
                   <Ionicons
                     name="chevron-forward"
                     size={16}
-                    color="rgba(14, 15, 18, 0.45)"
+                    color="rgba(255, 255, 255, 0.45)"
                   />
                 </Pressable>
               </Animated.View>
@@ -153,31 +158,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: radii.xl,
-    backgroundColor: colors.pure.white,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOpacity: 0.25,
-        shadowRadius: 18,
-        shadowOffset: { width: 0, height: 8 },
-      },
-      android: { elevation: 6 },
-    }),
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.22)',
+    overflow: 'hidden',
+  },
+  rowBlur: {
+    borderRadius: radii.xl,
   },
   pressed: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   iconWell: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(14, 15, 18, 0.06)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
     flex: 1,
-    color: colors.night.bottom,
     fontFamily: fonts.medium,
   },
 });

@@ -57,7 +57,7 @@ export const PointEventSheet: React.FC<PointEventSheetProps> = ({
             <View style={{ height: spacing.sm }} />
             <Button
               title={t('timeline.deleteEvent')}
-              variant="ghost"
+              variant="dangerGhost"
               onPress={onDelete}
             />
           </>

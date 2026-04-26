@@ -128,7 +128,7 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
             <View style={{ height: spacing.sm }} />
             <Button
               title={t('timeline.deleteEvent')}
-              variant="ghost"
+              variant="dangerGhost"
               onPress={onDelete}
             />
           </>

@@ -12,7 +12,7 @@ import { BlurView } from 'expo-blur';
 import { colors, fonts, radii, spacing } from '@/theme';
 import { Text } from './Text';
 
-type Variant = 'primary' | 'ghost' | 'subtle' | 'outline' | 'destructive';
+type Variant = 'primary' | 'ghost' | 'subtle' | 'outline' | 'destructive' | 'dangerGhost';
 
 interface ButtonProps extends Omit<PressableProps, 'style'> {
   title: string;
@@ -26,13 +26,15 @@ const blurCapableVariants: Variant[] = ['outline', 'subtle', 'destructive'];
 
 const labelTone = (variant: Variant): 'primary' | 'onAccent' | 'accent' | 'danger' => {
   if (variant === 'primary') return 'onAccent';
-  if (variant === 'destructive') return 'danger';
+  if (variant === 'destructive' || variant === 'dangerGhost') return 'danger';
+  if (variant === 'outline' || variant === 'subtle') return 'primary';
   return 'accent';
 };
 
 const spinnerColor = (variant: Variant): string => {
   if (variant === 'primary') return colors.text.onAccent;
-  if (variant === 'destructive') return colors.danger.base;
+  if (variant === 'destructive' || variant === 'dangerGhost')
+    return colors.danger.base;
   return colors.accent.base;
 };
 
@@ -126,6 +128,7 @@ const variantStyle: Record<Variant, ViewStyle> = {
     borderWidth: 1,
     borderColor: colors.danger.border,
   },
+  dangerGhost: { backgroundColor: 'transparent' },
 };
 
 const pressedStyle: Record<Variant, ViewStyle> = {
@@ -134,4 +137,5 @@ const pressedStyle: Record<Variant, ViewStyle> = {
   subtle: { backgroundColor: colors.border.hairline },
   outline: { backgroundColor: 'rgba(255, 255, 255, 0.14)' },
   destructive: { backgroundColor: 'rgba(226, 107, 98, 0.22)' },
+  dangerGhost: { opacity: 0.6 },
 };

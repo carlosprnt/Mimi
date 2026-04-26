@@ -120,7 +120,7 @@ export const StickyAction: React.FC<StickyActionProps> = ({
             <Ionicons
               name="ellipsis-horizontal"
               size={22}
-              color={colors.accent.base}
+              color={colors.pure.white}
             />
           </Pressable>
         ) : null}
