@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Dimensions, Pressable, StyleSheet, View } from 'react-native';
 import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
@@ -12,6 +12,11 @@ import { useBabyStore } from '@/state/babyStore';
 import { ageLabel } from '@/logic/age';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const SCENE_SCALE = 0.9;
+const PANEL_VERTICAL_INSET = (SCREEN_HEIGHT * (1 - SCENE_SCALE)) / 2;
+const PANEL_RADIUS = 32;
 
 type RouteName = 'Home' | 'History' | 'Profile';
 
@@ -52,31 +57,26 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
   ];
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[colors.night.top, colors.night.mid, colors.night.bottom]}
-        locations={[0, 0.55, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-      <DrawerContentScrollView
-        {...props}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: insets.top + spacing.xl },
-        ]}
-      >
+    <View style={styles.outer}>
+      <View style={styles.panel}>
+        <LinearGradient
+          colors={[colors.night.top, colors.night.mid, colors.night.bottom]}
+          locations={[0, 0.55, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+        <DrawerContentScrollView
+          {...props}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingTop: Math.max(insets.top, spacing.xl) },
+          ]}
+        >
         <View style={styles.header}>
-          <View style={styles.logoMark}>
-            <Ionicons name="moon" size={14} color={colors.pure.white} />
-          </View>
           <Text variant="wordmark" tone="primary" style={styles.logo}>
             MIMI
           </Text>
         </View>
 
-        <Text variant="eyebrow" tone="tertiary" style={styles.sectionLabel}>
-          {t('drawer.children')}
-        </Text>
         {babies.length === 0 ? (
           <View style={styles.emptyRow}>
             <Text variant="callout" tone="tertiary">
@@ -152,10 +152,6 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
 
         <View style={styles.divider} />
 
-        <Text variant="eyebrow" tone="tertiary" style={styles.sectionLabel}>
-          {t('nav.menu')}
-        </Text>
-
         {navItems.map((item) => {
           const isActive = currentRoute === item.route;
           return (
@@ -196,14 +192,21 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
           );
         })}
       </DrawerContentScrollView>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  outer: {
     flex: 1,
+    paddingVertical: PANEL_VERTICAL_INSET,
+  },
+  panel: {
+    flex: 1,
+    borderRadius: PANEL_RADIUS,
     backgroundColor: colors.night.bottom,
+    overflow: 'hidden',
   },
   scrollContent: {
     paddingBottom: spacing.xl,
@@ -215,23 +218,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
     gap: spacing.sm,
   },
-  logoMark: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(168, 165, 230, 0.16)',
-    borderWidth: 1,
-    borderColor: 'rgba(168, 165, 230, 0.32)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   logo: {
     fontSize: 20,
     letterSpacing: 4,
-  },
-  sectionLabel: {
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
   },
   childList: {
     paddingHorizontal: spacing.md,

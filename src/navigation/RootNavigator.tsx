@@ -12,10 +12,26 @@ import { DobScreen } from '@/screens/onboarding/DobScreen';
 import { PrematurityScreen } from '@/screens/onboarding/PrematurityScreen';
 import { colors } from '@/theme';
 import { DrawerContent } from './DrawerContent';
+import { DrawerSceneWrapper } from './DrawerSceneWrapper';
 import { DrawerParamList, RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<DrawerParamList>();
+
+const wrapDrawerScene = (
+  Inner: React.ComponentType<Record<string, unknown>>,
+): React.ComponentType<Record<string, unknown>> => {
+  const Scene: React.FC<Record<string, unknown>> = (props) => (
+    <DrawerSceneWrapper>
+      <Inner {...props} />
+    </DrawerSceneWrapper>
+  );
+  return Scene;
+};
+
+const HomeScene = wrapDrawerScene(HomeScreen as React.ComponentType<Record<string, unknown>>);
+const HistoryScene = wrapDrawerScene(HistoryScreen as React.ComponentType<Record<string, unknown>>);
+const ProfileScene = wrapDrawerScene(ProfileScreen as React.ComponentType<Record<string, unknown>>);
 
 const navTheme = {
   ...DarkTheme,
@@ -37,7 +53,7 @@ const RootDrawer: React.FC = () => {
       screenOptions={{
         headerShown: false,
         drawerStyle: {
-          backgroundColor: colors.night.bottom,
+          backgroundColor: 'transparent',
           width: 300,
           borderRightWidth: 0,
         },
@@ -45,13 +61,13 @@ const RootDrawer: React.FC = () => {
           backgroundColor: colors.bg.base,
         },
         drawerType: 'front',
-        overlayColor: 'rgba(0,0,0,0.5)',
+        overlayColor: 'transparent',
         swipeEnabled: true,
       }}
     >
-      <Drawer.Screen name="Home" component={HomeScreen} />
-      <Drawer.Screen name="History" component={HistoryScreen} />
-      <Drawer.Screen name="Profile" component={ProfileScreen} />
+      <Drawer.Screen name="Home" component={HomeScene} />
+      <Drawer.Screen name="History" component={HistoryScene} />
+      <Drawer.Screen name="Profile" component={ProfileScene} />
     </Drawer.Navigator>
   );
 };
