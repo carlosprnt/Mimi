@@ -140,9 +140,6 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xl,
     minHeight: 220,
   },
   glow: {
