@@ -83,6 +83,11 @@ const formatCaption = (
 ): string | null => {
   if (event.captionKey === 'yesterday') return t('date.yesterday');
   if (event.captionKey === 'noNightData') return t('timeline.morningWakeNoNight');
+  if (event.kind === 'nightWake' && event.durationMs != null) {
+    return t('timeline.nightWakeAwakeFor', {
+      duration: formatDuration(event.durationMs),
+    });
+  }
   if (event.status === 'active' && event.from) {
     const elapsed = now.getTime() - event.from.getTime();
     return `${t('timeline.inProgress')} · ${formatDuration(elapsed)}`;
@@ -96,7 +101,14 @@ const formatCaption = (
   return null;
 };
 
-const dotColors = (status: TimelineStatus) => {
+const dotColors = (status: TimelineStatus, kind: TimelineKind) => {
+  if (kind === 'nightWake' && status === 'real') {
+    return {
+      background: 'rgba(226, 107, 98, 0.18)',
+      border: colors.danger.base,
+      icon: colors.danger.base,
+    };
+  }
   if (status === 'active') {
     return {
       background: colors.accent.base,
@@ -235,7 +247,7 @@ export const Timeline: React.FC<TimelineProps> = ({
       {events.map((event, index) => {
         const isFirst = index === 0;
         const isLast = index === events.length - 1;
-        const dc = dotColors(event.status);
+        const dc = dotColors(event.status, event.kind);
         const timeText = formatEventTime(event, use24h);
         const caption = formatCaption(event, use24h, now);
         const editable =

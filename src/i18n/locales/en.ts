@@ -108,6 +108,7 @@ export const en = {
     editMorningWake: 'Edit wake time',
     morningWake: 'Wake up',
     morningWakeNoNight: 'No night data',
+    nightWakeAwakeFor: 'Awake · {duration}',
     startTime: 'Start',
     endTime: 'End',
     time: 'Time',

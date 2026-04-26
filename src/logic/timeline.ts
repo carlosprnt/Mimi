@@ -116,6 +116,10 @@ export function buildTimeline(
           status: 'real',
           careEventId: ev.id,
           at: new Date(ev.at),
+          to: ev.endedAt ? new Date(ev.endedAt) : undefined,
+          durationMs: ev.endedAt
+            ? new Date(ev.endedAt).getTime() - t
+            : undefined,
           overnightChain: true,
         });
         usedCareEventIds.add(ev.id);
@@ -240,6 +244,10 @@ export function buildTimeline(
         status: 'real',
         careEventId: ev.id,
         at: new Date(ev.at),
+        to: ev.endedAt ? new Date(ev.endedAt) : undefined,
+        durationMs: ev.endedAt
+          ? new Date(ev.endedAt).getTime() - t
+          : undefined,
       });
     }
   }

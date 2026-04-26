@@ -29,7 +29,7 @@ import {
   PointEventSheet,
 } from '@/components';
 import { buildTimeline, TimelineEvent } from '@/logic/timeline';
-import { CareEventKind } from '@/logic/careEvents';
+import { CareEvent, CareEventKind } from '@/logic/careEvents';
 import { makeId } from '@/utils/id';
 import { colors, spacing, screenGutter } from '@/theme';
 import { useActiveBaby, useBabyStore } from '@/state/babyStore';
@@ -102,6 +102,7 @@ export const HomeScreen: React.FC = () => {
     kind: CareEventKind;
     title: string;
     initial: Date;
+    initialEnd?: Date;
     careEventId: string | null;
   } | null>(null);
 
@@ -233,6 +234,7 @@ export const HomeScreen: React.FC = () => {
         kind: careKind,
         title: titleMap[careKind],
         initial: event.at,
+        initialEnd: event.to,
         careEventId: event.careEventId,
       });
     }
@@ -299,17 +301,20 @@ export const HomeScreen: React.FC = () => {
     },
   ];
 
-  const onSavePointEvent = (time: Date) => {
+  const onSavePointEvent = (time: Date, endTime?: Date) => {
     if (!pointEvent) return;
+    const patch: Partial<CareEvent> = {
+      at: time.toISOString(),
+      endedAt: endTime ? endTime.toISOString() : undefined,
+    };
     if (pointEvent.careEventId) {
-      updateCareEvent(baby.id, pointEvent.careEventId, {
-        at: time.toISOString(),
-      });
+      updateCareEvent(baby.id, pointEvent.careEventId, patch);
     } else {
       addCareEvent(baby.id, {
         id: makeId(),
         kind: pointEvent.kind,
-        at: time.toISOString(),
+        at: patch.at!,
+        endedAt: patch.endedAt,
       });
     }
     setPointEvent(null);
@@ -523,6 +528,8 @@ export const HomeScreen: React.FC = () => {
         visible={pointEvent !== null}
         title={pointEvent?.title ?? ''}
         initial={pointEvent?.initial ?? now}
+        initialEnd={pointEvent?.initialEnd}
+        withEnd={pointEvent?.kind === 'nightWake'}
         onClose={() => setPointEvent(null)}
         onSave={onSavePointEvent}
         onDelete={pointEvent?.careEventId ? onDeletePointEvent : undefined}

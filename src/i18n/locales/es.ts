@@ -110,6 +110,7 @@ export const es: Translations = {
     editMorningWake: 'Editar hora de despertar',
     morningWake: 'Despertar',
     morningWakeNoNight: 'Sin datos de la noche',
+    nightWakeAwakeFor: 'Despertó · {duration}',
     startTime: 'Inicio',
     endTime: 'Fin',
     time: 'Hora',
