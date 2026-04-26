@@ -259,6 +259,36 @@ function hoursFraction(date: Date): number {
   return date.getHours() + date.getMinutes() / 60;
 }
 
+const BEDTIME_CAP_PAST_LATEST_MS = 30 * MINUTE;
+
+/** Computes the bedtime range for today, capped at +30m above the
+ *  age-typical latest. Returns whether the cap was applied. */
+export function computeBedtimeWindow(
+  day: Date,
+  bedtimeForAge: { earliest: number; latest: number },
+  lastNapEnd: Date | null,
+  wakeWindowMin: number,
+): { from: Date; to: Date; capped: boolean; natural: Date | null } {
+  const earliest = floatToTime(day, bedtimeForAge.earliest);
+  const latest = floatToTime(day, bedtimeForAge.latest);
+  const cap = new Date(latest.getTime() + BEDTIME_CAP_PAST_LATEST_MS);
+
+  if (!lastNapEnd) {
+    return { from: earliest, to: latest, capped: false, natural: null };
+  }
+  const natural = new Date(lastNapEnd.getTime() + wakeWindowMin);
+  if (natural <= earliest) {
+    return { from: earliest, to: latest, capped: false, natural };
+  }
+  if (natural >= cap) {
+    // Capped to the maximum allowed bedtime.
+    return { from: cap, to: cap, capped: true, natural };
+  }
+  // Natural fits between earliest and cap; show as the new range, with
+  // the natural as the soft starting point.
+  return { from: natural, to: latest > natural ? latest : cap, capped: false, natural };
+}
+
 const NIGHT_WAKE_RESTLESS_COUNT = 3;
 const NIGHT_WAKE_RESTLESS_TOTAL_MS = 40 * MINUTE;
 const NAP_TRANSITION_WEEKS = 3;
@@ -457,8 +487,18 @@ export function computeRecommendation(
     ? t('recommendation.reasoningPartialData')
     : undefined;
 
-  // 3. NOW + night (overdue / imminent) — entrando en bedtime
+  // 3. Bedtime states. Calcula la ventana con cap.
   if (isEvening || pastLatestBedtime || (expectedNaps === 0 && hoursNow > 17)) {
+    const bedtimeWindow = computeBedtimeWindow(
+      now,
+      bedtime,
+      hasAnchor ? new Date(anchorMs) : null,
+      wakeWin.minMs,
+    );
+    const bedtimeReasoning = bedtimeWindow.capped
+      ? t('recommendation.reasoningCappedBedtime')
+      : undefined;
+
     if (pastLatestBedtime) {
       return {
         root: 'NOW',
@@ -468,13 +508,17 @@ export function computeRecommendation(
         eyebrow: t('recommendation.bedtimeWindow'),
         primary: t('recommendation.now'),
         supporting: t('recommendation.earlierTonight'),
+        reasoning: bedtimeReasoning,
         context,
         contextTone: 'warn',
         primaryAction: 'start',
       };
     }
-    const minsToLatest = Math.max(0, (bedtime.latest - hoursNow) * 60);
-    if (minsToLatest < 30) {
+    const minsToFrom = Math.max(
+      0,
+      (bedtimeWindow.from.getTime() - now.getTime()) / MINUTE,
+    );
+    if (minsToFrom < 30) {
       return {
         root: 'NOW',
         kind: 'night',
@@ -483,26 +527,26 @@ export function computeRecommendation(
         eyebrow: t('recommendation.bedtimeRoutine'),
         primary: t('recommendation.inFewMin'),
         supporting: t('recommendation.inMin', {
-          min: formatShortDuration(minsToLatest * MINUTE),
+          min: formatShortDuration(minsToFrom * MINUTE),
         }),
+        reasoning: bedtimeReasoning,
         context,
         contextTone,
         primaryAction: 'start',
       };
     }
     // 4. UPCOMING + night
-    const bedtimeStart = floatToTime(now, bedtime.earliest);
-    const bedtimeEnd = floatToTime(now, bedtime.latest);
     return {
       root: 'UPCOMING',
       kind: 'night',
       confidence: 'high',
       state: 'bedtime',
       eyebrow: t('recommendation.bedtimeRoutine'),
-      primary: `${formatClock(bedtimeStart)} – ${formatClock(bedtimeEnd)}`,
+      primary: `${formatClock(bedtimeWindow.from)} – ${formatClock(bedtimeWindow.to)}`,
       supporting: t('recommendation.nextNapClockSupporting', {
-        duration: formatShortDuration(minsToLatest * MINUTE),
+        duration: formatShortDuration(minsToFrom * MINUTE),
       }),
+      reasoning: bedtimeReasoning,
       context,
       contextTone,
       primaryAction: 'start',
