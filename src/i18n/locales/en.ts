@@ -109,6 +109,7 @@ export const en = {
     morningWake: 'Wake up',
     morningWakeNoNight: 'No night data',
     nightWakeAwakeFor: 'Awake · {duration}',
+    microNapTag: 'micro · {duration}',
     startTime: 'Start',
     endTime: 'End',
     time: 'Time',

@@ -111,6 +111,7 @@ export const es: Translations = {
     morningWake: 'Despertar',
     morningWakeNoNight: 'Sin datos de la noche',
     nightWakeAwakeFor: 'Despertó · {duration}',
+    microNapTag: 'micro · {duration}',
     startTime: 'Inicio',
     endTime: 'Fin',
     time: 'Hora',

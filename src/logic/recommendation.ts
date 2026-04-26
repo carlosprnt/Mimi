@@ -40,22 +40,73 @@ export interface Recommendation {
 }
 
 const MINUTE = 60 * 1000;
+const TRANSITION_BLEND_MONTHS = 0.7; // ~3 weeks
+
+const lerp = (a: number, b: number, t: number): number =>
+  a + (b - a) * Math.max(0, Math.min(1, t));
+
+interface WakeBand {
+  until: number;
+  min: number;
+  max: number;
+}
+
+const WAKE_WINDOW_BANDS: readonly WakeBand[] = [
+  { until: 1, min: 45, max: 60 },
+  { until: 2, min: 60, max: 90 },
+  { until: 3, min: 75, max: 105 },
+  { until: 4, min: 90, max: 120 },
+  { until: 5, min: 105, max: 135 },
+  { until: 6, min: 120, max: 150 },
+  { until: 8, min: 135, max: 165 },
+  { until: 10, min: 150, max: 180 },
+  { until: 12, min: 180, max: 210 },
+  { until: 15, min: 210, max: 240 },
+  { until: 18, min: 240, max: 300 },
+  { until: 24, min: 270, max: 330 },
+  { until: 36, min: 330, max: 390 },
+  { until: Infinity, min: 330, max: 420 },
+];
+
+interface BedtimeBand {
+  until: number;
+  earliest: number;
+  latest: number;
+}
+
+const BEDTIME_BANDS: readonly BedtimeBand[] = [
+  { until: 3, earliest: 19.5, latest: 22 },
+  { until: 6, earliest: 18.5, latest: 20 },
+  { until: 12, earliest: 18.5, latest: 19.75 },
+  { until: 24, earliest: 19, latest: 20.5 },
+  { until: 48, earliest: 19.5, latest: 20.75 },
+  { until: Infinity, earliest: 19.75, latest: 21 },
+];
+
+function findBandIndex<T extends { until: number }>(
+  bands: readonly T[],
+  months: number,
+): number {
+  const i = bands.findIndex((b) => months < b.until);
+  return i < 0 ? bands.length - 1 : i;
+}
 
 export function wakeWindowForAge(months: number): WakeWindow {
-  if (months < 1) return { minMs: 45 * MINUTE, maxMs: 60 * MINUTE };
-  if (months < 2) return { minMs: 60 * MINUTE, maxMs: 90 * MINUTE };
-  if (months < 3) return { minMs: 75 * MINUTE, maxMs: 105 * MINUTE };
-  if (months < 4) return { minMs: 90 * MINUTE, maxMs: 120 * MINUTE };
-  if (months < 5) return { minMs: 105 * MINUTE, maxMs: 135 * MINUTE };
-  if (months < 6) return { minMs: 120 * MINUTE, maxMs: 150 * MINUTE };
-  if (months < 8) return { minMs: 135 * MINUTE, maxMs: 165 * MINUTE };
-  if (months < 10) return { minMs: 150 * MINUTE, maxMs: 180 * MINUTE };
-  if (months < 12) return { minMs: 180 * MINUTE, maxMs: 210 * MINUTE };
-  if (months < 15) return { minMs: 210 * MINUTE, maxMs: 240 * MINUTE };
-  if (months < 18) return { minMs: 240 * MINUTE, maxMs: 300 * MINUTE };
-  if (months < 24) return { minMs: 270 * MINUTE, maxMs: 330 * MINUTE };
-  if (months < 36) return { minMs: 330 * MINUTE, maxMs: 390 * MINUTE };
-  return { minMs: 330 * MINUTE, maxMs: 420 * MINUTE };
+  const i = findBandIndex(WAKE_WINDOW_BANDS, months);
+  const cur = WAKE_WINDOW_BANDS[i];
+  const next = WAKE_WINDOW_BANDS[i + 1];
+  if (!next || cur.until === Infinity) {
+    return { minMs: cur.min * MINUTE, maxMs: cur.max * MINUTE };
+  }
+  const distanceToBoundary = cur.until - months;
+  if (distanceToBoundary > TRANSITION_BLEND_MONTHS) {
+    return { minMs: cur.min * MINUTE, maxMs: cur.max * MINUTE };
+  }
+  const blend = (TRANSITION_BLEND_MONTHS - distanceToBoundary) / TRANSITION_BLEND_MONTHS;
+  return {
+    minMs: lerp(cur.min, next.min, blend) * MINUTE,
+    maxMs: lerp(cur.max, next.max, blend) * MINUTE,
+  };
 }
 
 export function expectedNapsForAge(months: number): number {
@@ -68,12 +119,21 @@ export function expectedNapsForAge(months: number): number {
 }
 
 export function bedtimeHintForAge(months: number): { earliest: number; latest: number } {
-  if (months < 3) return { earliest: 19.5, latest: 22 };
-  if (months < 6) return { earliest: 18.5, latest: 20 };
-  if (months < 12) return { earliest: 18.5, latest: 19.75 };
-  if (months < 24) return { earliest: 19, latest: 20.5 };
-  if (months < 48) return { earliest: 19.5, latest: 20.75 };
-  return { earliest: 19.75, latest: 21 };
+  const i = findBandIndex(BEDTIME_BANDS, months);
+  const cur = BEDTIME_BANDS[i];
+  const next = BEDTIME_BANDS[i + 1];
+  if (!next || cur.until === Infinity) {
+    return { earliest: cur.earliest, latest: cur.latest };
+  }
+  const distanceToBoundary = cur.until - months;
+  if (distanceToBoundary > TRANSITION_BLEND_MONTHS) {
+    return { earliest: cur.earliest, latest: cur.latest };
+  }
+  const blend = (TRANSITION_BLEND_MONTHS - distanceToBoundary) / TRANSITION_BLEND_MONTHS;
+  return {
+    earliest: lerp(cur.earliest, next.earliest, blend),
+    latest: lerp(cur.latest, next.latest, blend),
+  };
 }
 
 export interface SleepTargets {
@@ -206,8 +266,16 @@ export function napsCountForDay(
   now: Date = new Date(),
 ): number {
   return sessionsForDay(sessions, day, now).filter(
-    (s) => s.kind === 'nap' && s.endedAt,
+    (s) => s.kind === 'nap' && s.endedAt && !isMicroNap(s),
   ).length;
+}
+
+export function microNapsCountForDay(
+  sessions: SleepSession[],
+  day: Date = new Date(),
+  now: Date = new Date(),
+): number {
+  return sessionsForDay(sessions, day, now).filter(isMicroNap).length;
 }
 
 export const sessionsToday = (sessions: SleepSession[], now = new Date()) =>
@@ -235,10 +303,20 @@ export function lastWakeWindowMs(sessions: SleepSession[], now = new Date()): nu
   return now.getTime() - new Date(last.endedAt!).getTime();
 }
 
+const MICRO_NAP_THRESHOLD_MS = 15 * MINUTE;
+
+export function isMicroNap(session: SleepSession): boolean {
+  if (session.kind !== 'nap' || !session.endedAt) return false;
+  const duration =
+    new Date(session.endedAt).getTime() - new Date(session.startedAt).getTime();
+  return duration <= MICRO_NAP_THRESHOLD_MS;
+}
+
 function isShortNap(session: SleepSession): boolean {
   if (session.kind !== 'nap' || !session.endedAt) return false;
-  const duration = new Date(session.endedAt).getTime() - new Date(session.startedAt).getTime();
-  return duration < 35 * MINUTE;
+  const duration =
+    new Date(session.endedAt).getTime() - new Date(session.startedAt).getTime();
+  return duration > MICRO_NAP_THRESHOLD_MS && duration < 35 * MINUTE;
 }
 
 const SHORT_NAP_REDUCTION_MS = 10 * MINUTE;

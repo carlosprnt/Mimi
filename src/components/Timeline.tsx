@@ -88,6 +88,11 @@ const formatCaption = (
       duration: formatDuration(event.durationMs),
     });
   }
+  if (event.microNap && event.durationMs != null) {
+    return t('timeline.microNapTag', {
+      duration: formatDuration(event.durationMs),
+    });
+  }
   if (event.status === 'active' && event.from) {
     const elapsed = now.getTime() - event.from.getTime();
     return `${t('timeline.inProgress')} · ${formatDuration(elapsed)}`;
@@ -295,6 +300,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                 <View
                   style={[
                     styles.dot,
+                    event.microNap && styles.dotMicro,
                     {
                       backgroundColor: isNext ? 'transparent' : dc.background,
                       borderColor: dc.border,
@@ -443,6 +449,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+  },
+  dotMicro: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
   },
   content: {
     flex: 1,

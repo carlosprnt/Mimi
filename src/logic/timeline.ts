@@ -6,6 +6,7 @@ import {
   expectedNapsForAge,
   bedtimeHintForAge,
   adjustedWakeWindow,
+  isMicroNap,
 } from './recommendation';
 import { CareEvent } from './careEvents';
 
@@ -30,6 +31,7 @@ export interface TimelineEvent {
   durationMs?: number;
   overnightChain?: boolean;
   captionKey?: 'yesterday' | 'noNightData';
+  microNap?: boolean;
 }
 
 const TYPICAL_NAP_MS = 60 * 60 * 1000;
@@ -162,6 +164,7 @@ export function buildTimeline(
       from: start,
       to: end,
       durationMs: end.getTime() - start.getTime(),
+      microNap: isMicroNap(nap),
     });
   }
 
