@@ -4,6 +4,7 @@ import { SafeAreaView, Edge } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, gradients } from '@/theme';
 import { StarField } from './StarField';
+import { CloudField } from './CloudField';
 
 type Backdrop = 'flat' | 'night';
 
@@ -40,6 +41,7 @@ export const Screen: React.FC<ScreenProps> = ({
             style={StyleSheet.absoluteFill}
           />
           <StarField />
+          <CloudField />
         </>
       ) : null}
       <SafeAreaView style={[styles.safe, style]} edges={edges}>
