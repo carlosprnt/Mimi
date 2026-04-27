@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, spacing } from '@/theme';
 import { Text } from './Text';
 import { ShimmerText } from './ShimmerText';
+import { SleepingZzz } from './SleepingZzz';
 
 interface DashboardHeaderProps {
   name: string;
@@ -164,6 +165,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             >
               {status}
             </ShimmerText>
+            <View style={styles.zzzSlot}>
+              <SleepingZzz />
+            </View>
           </View>
         ) : null}
 
@@ -215,6 +219,14 @@ const styles = StyleSheet.create({
   status: {
     flexShrink: 1,
     marginLeft: spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  zzzSlot: {
+    width: 36,
+    height: 22,
+    position: 'relative',
   },
   nameWrap: {
     flex: 1,

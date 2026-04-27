@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MoonPhaseGlyph } from './MoonPhaseGlyph';
-import { SleepingZzz } from './SleepingZzz';
 import Svg, {
   Circle,
   Defs,
@@ -133,10 +132,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
       </View>
 
       {isSleeping ? (
-        <View style={styles.eyebrowRow}>
-          <View style={styles.zzzSlot}>
-            <SleepingZzz />
-          </View>
+        <View style={styles.eyebrow}>
           <ShimmerText variant="eyebrow" tone="tertiary">
             {recommendation.eyebrow}
           </ShimmerText>
@@ -216,17 +212,6 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     marginBottom: spacing.sm,
-  },
-  eyebrowRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 6,
-    marginBottom: spacing.sm,
-  },
-  zzzSlot: {
-    width: 36,
-    height: 26,
-    position: 'relative',
   },
   primary: {
     fontFamily: fonts.medium,

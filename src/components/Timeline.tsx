@@ -296,35 +296,43 @@ export const Timeline: React.FC<TimelineProps> = ({
     morningWakeIdx > 0 &&
     (completedNapCount >= 2 || now.getHours() >= 16);
   const [expanded, setExpanded] = React.useState(false);
-  const showCollapseToggle = collapsible && !expanded;
-  const visibleEvents = showCollapseToggle
-    ? events.slice(morningWakeIdx)
-    : events;
+  const visibleEvents =
+    collapsible && !expanded ? events.slice(morningWakeIdx) : events;
   const nextMilestoneIndex = visibleEvents.findIndex(
     (e) => e.status === 'suggested' || e.status === 'active',
   );
 
   return (
     <View style={styles.wrap}>
-      {showCollapseToggle ? (
+      {collapsible ? (
         <Pressable
-          onPress={() => setExpanded(true)}
+          onPress={() => setExpanded((v) => !v)}
           style={({ pressed }) => [
-            styles.collapseToggle,
+            styles.row,
             pressed && styles.pressed,
           ]}
           hitSlop={8}
         >
-          <View style={styles.collapseDot}>
-            <Ionicons
-              name="ellipsis-horizontal"
-              size={14}
-              color={colors.accent.base}
-            />
+          <View style={styles.rail}>
+            <SolidLine hidden />
+            <View style={styles.dotContainer}>
+              <View style={[styles.dot, styles.dotPlaceholder]}>
+                <Ionicons
+                  name="ellipsis-horizontal"
+                  size={12}
+                  color={colors.accent.base}
+                />
+              </View>
+            </View>
+            <SolidLine hidden />
           </View>
-          <Text variant="body" tone="accent">
-            {t('timeline.viewPreviousNight')}
-          </Text>
+          <View style={styles.content}>
+            <Text variant="body" tone="accent">
+              {expanded
+                ? t('timeline.hidePreviousNight')
+                : t('timeline.viewPreviousNight')}
+            </Text>
+          </View>
         </Pressable>
       ) : null}
       {visibleEvents.map((event, index) => {
@@ -580,25 +588,6 @@ export const Timeline: React.FC<TimelineProps> = ({
 const styles = StyleSheet.create({
   wrap: {
     width: '100%',
-  },
-  collapseToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: 4,
-    gap: spacing.md,
-    marginBottom: spacing.xs,
-  },
-  collapseDot: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: colors.accent.base,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 4,
   },
   row: {
     flexDirection: 'row',

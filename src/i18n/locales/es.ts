@@ -128,6 +128,7 @@ export const es: Translations = {
     addBedtimeData: 'Añadir datos de la noche',
     addNightWakePlaceholder: 'Añadir despertar nocturno',
     viewPreviousNight: 'Ver noche anterior',
+    hidePreviousNight: 'Ocultar noche anterior',
     nightWakeAwakeFor: 'Despertó · {duration}',
     microNapTag: 'Microsueño',
     startTime: 'Inicio',
