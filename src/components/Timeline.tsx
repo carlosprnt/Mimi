@@ -282,15 +282,54 @@ export const Timeline: React.FC<TimelineProps> = ({
   now = new Date(),
   onPressEvent,
 }) => {
-  const nextMilestoneIndex = events.findIndex(
+  // Collapse the previous-night portion of the timeline once the day
+  // is well underway: when the parent has logged ≥2 naps, or it's past
+  // 16:00. The collapsed segment is everything before the morning wake;
+  // a tappable header restores it.
+  const morningWakeIdx = events.findIndex(
+    (e) => e.kind === 'wake' && e.status === 'real',
+  );
+  const completedNapCount = events.filter(
+    (e) => e.kind === 'nap' && e.status === 'real',
+  ).length;
+  const collapsible =
+    morningWakeIdx > 0 &&
+    (completedNapCount >= 2 || now.getHours() >= 16);
+  const [expanded, setExpanded] = React.useState(false);
+  const showCollapseToggle = collapsible && !expanded;
+  const visibleEvents = showCollapseToggle
+    ? events.slice(morningWakeIdx)
+    : events;
+  const nextMilestoneIndex = visibleEvents.findIndex(
     (e) => e.status === 'suggested' || e.status === 'active',
   );
 
   return (
     <View style={styles.wrap}>
-      {events.map((event, index) => {
+      {showCollapseToggle ? (
+        <Pressable
+          onPress={() => setExpanded(true)}
+          style={({ pressed }) => [
+            styles.collapseToggle,
+            pressed && styles.pressed,
+          ]}
+          hitSlop={8}
+        >
+          <View style={styles.collapseDot}>
+            <Ionicons
+              name="ellipsis-horizontal"
+              size={14}
+              color={colors.accent.base}
+            />
+          </View>
+          <Text variant="body" tone="accent">
+            {t('timeline.viewPreviousNight')}
+          </Text>
+        </Pressable>
+      ) : null}
+      {visibleEvents.map((event, index) => {
         const isFirst = index === 0;
-        const isLast = index === events.length - 1;
+        const isLast = index === visibleEvents.length - 1;
 
         // Tappable placeholder rows (e.g. "Añadir datos de la noche",
         // "Añadir despertar nocturno"). Render with a dashed accent dot
@@ -346,8 +385,8 @@ export const Timeline: React.FC<TimelineProps> = ({
             (event.status === 'active' && !!event.sessionId) ||
             event.status === 'suggested');
 
-        const prev = events[index - 1];
-        const next = events[index + 1];
+        const prev = visibleEvents[index - 1];
+        const next = visibleEvents[index + 1];
         const aboveOvernight =
           !!prev && !!event.overnightChain && !!prev.overnightChain;
         const belowOvernight =
@@ -541,6 +580,25 @@ export const Timeline: React.FC<TimelineProps> = ({
 const styles = StyleSheet.create({
   wrap: {
     width: '100%',
+  },
+  collapseToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: 4,
+    gap: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  collapseDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: colors.accent.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
   },
   row: {
     flexDirection: 'row',
