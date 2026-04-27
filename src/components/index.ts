@@ -39,3 +39,4 @@ export { EmptyDay } from './EmptyDay';
 export { MoonIllustration } from './MoonIllustration';
 export { MoonPhaseGlyph } from './MoonPhaseGlyph';
 export { SleepingZzz } from './SleepingZzz';
+export { SignOutIcon } from './SignOutIcon';

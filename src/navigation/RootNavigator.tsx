@@ -20,7 +20,7 @@ import { DrawerContent } from './DrawerContent';
 import { DrawerSceneWrapper, DRAWER_WIDTH } from './DrawerSceneWrapper';
 import { DrawerParamList, RootStackParamList } from './types';
 
-const DEEP_NIGHT_BG = '#030616';
+const DEEP_NIGHT_BG = '#000000';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<DrawerParamList>();

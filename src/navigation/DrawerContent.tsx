@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, Sheet, Button } from '@/components';
+import { Text, Sheet, Button, SignOutIcon } from '@/components';
 import { useBabyStore } from '@/state/babyStore';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import { useAuthStore } from '@/state/authStore';
@@ -294,12 +294,7 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
                 pressed && styles.pressed,
               ]}
             >
-              <Ionicons
-                name="log-out-outline"
-                size={20}
-                color={colors.danger.base}
-                style={styles.iconLead}
-              />
+              <SignOutIcon size={20} />
               <Text variant="body" tone="danger">
                 {t('drawer.signOut')}
               </Text>
@@ -479,13 +474,14 @@ const styles = StyleSheet.create({
   },
   accountEyebrow: {
     paddingHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
+    marginBottom: 2,
   },
   accountRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingTop: 0,
+    paddingBottom: spacing.sm,
     gap: spacing.md,
   },
   accountInfo: {
