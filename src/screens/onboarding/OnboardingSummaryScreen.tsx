@@ -1,6 +1,10 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import React, { useEffect } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
+import {
+  CommonActions,
+  useIsFocused,
+  useNavigation,
+} from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OnboardingScene } from '@/components/onboarding/OnboardingScene';
 import { AuthButton } from '@/components/onboarding/AuthButton';
@@ -12,6 +16,8 @@ import {
   computePrematureWeeks,
 } from '@/state/onboardingDraft';
 import { useBabyStore } from '@/state/babyStore';
+import { useAuthStore } from '@/state/authStore';
+import { useGoogleSignIn } from '@/services/googleAuth';
 import { spacing } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
@@ -32,6 +38,9 @@ export const OnboardingSummaryScreen: React.FC = () => {
   const draft = useOnboardingDraft();
   const addBaby = useBabyStore((s) => s.addBaby);
   const clearDraft = useOnboardingDraft((s) => s.clear);
+  const authedUser = useAuthStore((s) => s.user);
+  const { ready: googleReady, signIn: signInWithGoogle } = useGoogleSignIn();
+  const isFocused = useIsFocused();
 
   const sexLabel =
     draft.sex === 'girl'
@@ -47,10 +56,7 @@ export const OnboardingSummaryScreen: React.FC = () => {
         ? t('onboarding.summary.rowAtTermNo')
         : '—';
 
-  // Phase A: auth not wired yet; for local dev we let the user finish the
-  // onboarding without an account so the rest of the app is reachable.
-  // Phase B will replace this with the real auth handoff.
-  const finishWithoutAuth = () => {
+  const finalize = () => {
     if (!draft.name || !draft.dob || draft.sex === undefined) return;
     const prematureWeeks =
       draft.atTerm === false
@@ -64,11 +70,36 @@ export const OnboardingSummaryScreen: React.FC = () => {
     });
     clearDraft();
     navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'Root' }],
-      }),
+      CommonActions.reset({ index: 0, routes: [{ name: 'Root' }] }),
     );
+  };
+
+  // When Google auth finishes (authedUser flips to non-null) AND the
+  // user is on this screen, finalize the onboarding: persist the baby
+  // from the draft and route to Root. useIsFocused guards against the
+  // Welcome screen's effect firing for the same auth event.
+  useEffect(() => {
+    if (!isFocused || !authedUser) return;
+    finalize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFocused, authedUser]);
+
+  const onApple = () => {
+    Alert.alert(
+      'Apple',
+      'Apple Sign-In requiere un dev build. Estará disponible cuando arranquemos Phase B.',
+    );
+  };
+
+  const onGoogle = async () => {
+    if (!googleReady) {
+      Alert.alert(
+        'Google',
+        'Falta configurar EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID en .env.',
+      );
+      return;
+    }
+    await signInWithGoogle();
   };
 
   return (
@@ -121,16 +152,16 @@ export const OnboardingSummaryScreen: React.FC = () => {
       </Text>
 
       <View style={styles.auth}>
-        <AuthButton provider="apple" label={t('onboarding.summary.apple')} disabled />
-        <AuthButton provider="google" label={t('onboarding.summary.google')} disabled />
-        <Text
-          variant="footnote"
-          tone="tertiary"
-          align="center"
-          style={styles.authNote}
-        >
-          {t('onboarding.summary.authComingSoon')}
-        </Text>
+        <AuthButton
+          provider="apple"
+          label={t('onboarding.summary.apple')}
+          onPress={onApple}
+        />
+        <AuthButton
+          provider="google"
+          label={t('onboarding.summary.google')}
+          onPress={onGoogle}
+        />
       </View>
 
       <View style={styles.devSkip}>
@@ -138,7 +169,7 @@ export const OnboardingSummaryScreen: React.FC = () => {
           variant="footnote"
           tone="accent"
           align="center"
-          onPress={finishWithoutAuth}
+          onPress={finalize}
         >
           {t('onboarding.common.continue')} →
         </Text>
@@ -157,9 +188,6 @@ const styles = StyleSheet.create({
   },
   auth: {
     gap: spacing.sm,
-  },
-  authNote: {
-    marginTop: spacing.sm,
   },
   devSkip: {
     marginTop: spacing.xl,

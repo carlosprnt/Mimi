@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import {
   CommonActions,
+  useIsFocused,
   useNavigation,
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -27,22 +28,35 @@ export const WelcomeScreen: React.FC = () => {
   const { ready: googleReady, signIn: signInWithGoogle } = useGoogleSignIn();
   const authedUser = useAuthStore((s) => s.user);
   const babiesCount = useBabyStore((s) => s.babies.length);
+  const isFocused = useIsFocused();
 
-  // Once Google auth completes the auth store flips to signed-in.
-  // - If the local baby list isn't empty (the parent had finished
-  //   onboarding before signing out), jump straight to Root.
-  // - Otherwise stay on Welcome so the parent finishes onboarding —
-  //   without a backend (Phase B) there are no remote babies to pull,
-  //   so a fresh device will always need onboarding.
+  // Welcome reacts to Google auth like a "sign in" entry point:
+  // - babies on this device → straight to Root.
+  // - no babies on this device → tell the parent and force them to
+  //   complete onboarding. Without a backend (Phase B) we can't tell
+  //   if the *Google account* has data; we only know what's local.
+  // Guarded by useIsFocused so the same auth event doesn't double-fire
+  // if the parent triggered Google from a different screen.
   useEffect(() => {
-    if (!authedUser) return;
+    if (!isFocused || !authedUser) return;
     setSignInOpen(false);
     if (babiesCount > 0) {
       navigation.dispatch(
         CommonActions.reset({ index: 0, routes: [{ name: 'Root' }] }),
       );
+      return;
     }
-  }, [authedUser, babiesCount, navigation]);
+    Alert.alert(
+      'Sin datos en este dispositivo',
+      `Hola ${authedUser.name ?? authedUser.email ?? ''}. No encontramos un bebé guardado aquí. Completa el onboarding para empezar.`,
+      [
+        {
+          text: 'Continuar',
+          onPress: () => navigation.navigate('OnboardingDob'),
+        },
+      ],
+    );
+  }, [isFocused, authedUser, babiesCount, navigation]);
 
   const onApple = () => {
     setSignInOpen(false);
