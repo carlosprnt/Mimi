@@ -27,6 +27,7 @@ export { DayCalendar, dayKey } from './DayCalendar';
 export { ActionMenu } from './ActionMenu';
 export type { ActionMenuItem } from './ActionMenu';
 export { PointEventSheet } from './PointEventSheet';
+export { SuggestionInfoSheet } from './SuggestionInfoSheet';
 export { TimeHero } from './TimeHero';
 export { TimeWheelView } from './TimeWheelView';
 export { WheelPicker } from './WheelPicker';

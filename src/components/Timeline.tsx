@@ -337,7 +337,8 @@ export const Timeline: React.FC<TimelineProps> = ({
               event.kind === 'feeding' ||
               event.kind === 'diaper' ||
               event.kind === 'nightWake')) ||
-            (event.status === 'active' && !!event.sessionId));
+            (event.status === 'active' && !!event.sessionId) ||
+            event.status === 'suggested');
 
         const prev = events[index - 1];
         const next = events[index + 1];

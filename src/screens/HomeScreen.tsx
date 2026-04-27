@@ -27,6 +27,7 @@ import {
   HomeHero,
   dayKey,
   PointEventSheet,
+  SuggestionInfoSheet,
   TimeWheelView,
 } from '@/components';
 import { buildTimeline, TimelineEvent } from '@/logic/timeline';
@@ -109,6 +110,9 @@ export const HomeScreen: React.FC = () => {
     wakeCareEventId: string | null;
     initial: Date;
   } | null>(null);
+  const [suggestionInfo, setSuggestionInfo] = useState<TimelineEvent | null>(
+    null,
+  );
 
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler({
@@ -213,6 +217,10 @@ export const HomeScreen: React.FC = () => {
   const hasWakeEvent = timeline.some((e) => e.kind === 'wake');
 
   const onPressTimelineEvent = (event: TimelineEvent) => {
+    if (event.status === 'suggested' && !event.placeholder) {
+      setSuggestionInfo(event);
+      return;
+    }
     if (event.placeholder === 'addBedtime') {
       // Default: 21:00 of the day before the morning wake.
       const wake = timeline.find(
@@ -652,6 +660,15 @@ export const HomeScreen: React.FC = () => {
           />
         ) : null}
       </Sheet>
+
+      <SuggestionInfoSheet
+        visible={suggestionInfo !== null}
+        event={suggestionInfo}
+        baby={baby}
+        use24h={use24h}
+        now={now}
+        onClose={() => setSuggestionInfo(null)}
+      />
     </Screen>
   );
 };
