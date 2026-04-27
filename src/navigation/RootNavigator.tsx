@@ -12,8 +12,10 @@ import { DobScreen } from '@/screens/onboarding/DobScreen';
 import { PrematurityScreen } from '@/screens/onboarding/PrematurityScreen';
 import { colors } from '@/theme';
 import { DrawerContent } from './DrawerContent';
-import { DrawerSceneWrapper } from './DrawerSceneWrapper';
+import { DrawerSceneWrapper, DRAWER_WIDTH } from './DrawerSceneWrapper';
 import { DrawerParamList, RootStackParamList } from './types';
+
+const DEEP_NIGHT_BG = '#030616';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<DrawerParamList>();
@@ -37,7 +39,7 @@ const navTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: colors.bg.base,
+    background: DEEP_NIGHT_BG,
     card: colors.bg.base,
     text: colors.text.primary,
     border: colors.border.hairline,
@@ -54,11 +56,11 @@ const RootDrawer: React.FC = () => {
         headerShown: false,
         drawerStyle: {
           backgroundColor: 'transparent',
-          width: 300,
+          width: DRAWER_WIDTH,
           borderRightWidth: 0,
         },
         sceneStyle: {
-          backgroundColor: colors.bg.base,
+          backgroundColor: DEEP_NIGHT_BG,
         },
         drawerType: 'front',
         overlayColor: 'transparent',

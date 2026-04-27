@@ -12,10 +12,11 @@ import { useBabyStore } from '@/state/babyStore';
 import { ageLabel } from '@/logic/age';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
+import { DRAWER_SCALE_TO } from './DrawerSceneWrapper';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const SCENE_SCALE = 0.9;
-const PANEL_VERTICAL_INSET = (SCREEN_HEIGHT * (1 - SCENE_SCALE)) / 2;
+const PANEL_VERTICAL_INSET =
+  (SCREEN_HEIGHT * (1 - DRAWER_SCALE_TO)) / 2;
 const PANEL_RADIUS = 32;
 
 type RouteName = 'Home' | 'History' | 'Profile';
@@ -201,6 +202,7 @@ const styles = StyleSheet.create({
   outer: {
     flex: 1,
     paddingVertical: PANEL_VERTICAL_INSET,
+    paddingLeft: 4,
   },
   panel: {
     flex: 1,

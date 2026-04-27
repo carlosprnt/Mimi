@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, useWindowDimensions } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -9,21 +9,43 @@ import { useDrawerProgress } from '@react-navigation/drawer';
 import { BlurView } from 'expo-blur';
 import { colors } from '@/theme';
 
-const TRANSLATE_X = 64;
-const SCALE_TO = 0.9;
+export const DRAWER_WIDTH = 280;
+export const DRAWER_SCALE_TO = 0.7;
+export const DRAWER_GAP = 4;
 const RADIUS = 32;
 
 export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const progress = useDrawerProgress();
+  const { width } = useWindowDimensions();
+
+  // Dashboard, scaled to DRAWER_SCALE_TO with center origin, has its left
+  // edge at width * (1 - DRAWER_SCALE_TO) / 2. Translate so that left edge
+  // sits DRAWER_GAP pixels to the right of the menu panel's right edge.
+  const translateXTarget =
+    DRAWER_WIDTH + DRAWER_GAP - (width * (1 - DRAWER_SCALE_TO)) / 2;
 
   const sceneStyle = useAnimatedStyle(() => {
     const p = progress.value;
     return {
       transform: [
-        { translateX: interpolate(p, [0, 1], [0, TRANSLATE_X], Extrapolation.CLAMP) },
-        { scale: interpolate(p, [0, 1], [1, SCALE_TO], Extrapolation.CLAMP) },
+        {
+          translateX: interpolate(
+            p,
+            [0, 1],
+            [0, translateXTarget],
+            Extrapolation.CLAMP,
+          ),
+        },
+        {
+          scale: interpolate(
+            p,
+            [0, 1],
+            [1, DRAWER_SCALE_TO],
+            Extrapolation.CLAMP,
+          ),
+        },
       ],
       borderRadius: interpolate(p, [0, 1], [0, RADIUS], Extrapolation.CLAMP),
     };
@@ -40,7 +62,11 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
         pointerEvents="none"
         style={[StyleSheet.absoluteFillObject, blurStyle]}
       >
-        <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+        <BlurView
+          intensity={28}
+          tint="dark"
+          style={StyleSheet.absoluteFillObject}
+        />
       </Animated.View>
     </Animated.View>
   );
