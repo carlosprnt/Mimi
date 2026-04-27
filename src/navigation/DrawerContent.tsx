@@ -16,6 +16,7 @@ import { useBabyStore } from '@/state/babyStore';
 import { useSleepStore } from '@/state/sleepStore';
 import { useCareEventStore } from '@/state/careEventStore';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
+import { useAuthStore } from '@/state/authStore';
 import { ageLabel } from '@/logic/age';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
@@ -43,6 +44,8 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
   const resetSleep = useSleepStore((s) => s.resetAll);
   const resetCareEvents = useCareEventStore((s) => s.resetAll);
   const clearOnboardingDraft = useOnboardingDraft((s) => s.clear);
+  const signOutAuth = useAuthStore((s) => s.signOut);
+  const authedUser = useAuthStore((s) => s.user);
 
   const [signOutOpen, setSignOutOpen] = useState(false);
 
@@ -68,6 +71,7 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
     resetCareEvents();
     clearOnboardingDraft();
     resetBabies();
+    signOutAuth();
     props.navigation.dispatch(DrawerActions.closeDrawer());
     const parent = props.navigation.getParent();
     parent?.dispatch(
@@ -238,14 +242,14 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
 
           <View style={styles.accountRow}>
             <Ionicons
-              name="person-outline"
+              name={authedUser ? 'person-circle-outline' : 'person-outline'}
               size={20}
               color={colors.text.secondary}
               style={styles.iconLead}
             />
             <View style={styles.accountInfo}>
               <Text variant="body" tone="secondary" numberOfLines={1}>
-                {t('drawer.accountLocal')}
+                {authedUser?.name ?? authedUser?.email ?? t('drawer.accountLocal')}
               </Text>
               <Text
                 variant="footnote"
@@ -253,7 +257,11 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
                 numberOfLines={1}
                 style={styles.accountCaption}
               >
-                {t('drawer.accountLocalCaption')}
+                {authedUser
+                  ? authedUser.provider === 'google'
+                    ? 'Google'
+                    : 'Apple'
+                  : t('drawer.accountLocalCaption')}
               </Text>
             </View>
           </View>

@@ -7,6 +7,9 @@
     "userInterfaceStyle": "dark",
     "scheme": "mimi",
     "newArchEnabled": true,
+    "plugins": [
+      "expo-web-browser"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.mimi.app",
