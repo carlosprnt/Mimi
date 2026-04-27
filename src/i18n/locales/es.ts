@@ -26,7 +26,7 @@ export const es: Translations = {
     signOut: 'Cerrar sesión',
     signOutConfirmTitle: '¿Cerrar sesión?',
     signOutConfirmBody:
-      'Se borrarán los datos de Mimi en este dispositivo.',
+      'Tus datos están guardados en tu cuenta. Los recuperarás al volver a entrar.',
     signOutConfirmCta: 'Sí, cerrar sesión',
   },
   home: {

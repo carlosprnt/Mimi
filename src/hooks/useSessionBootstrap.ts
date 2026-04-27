@@ -28,10 +28,23 @@ const userFromSession = (user: User): AuthUser => {
   };
 };
 
-const hydrateBabies = async (userId: string): Promise<void> => {
+const hydrateBabies = async (
+  userId: string,
+  previousUserId: string | null,
+): Promise<void> => {
   const remote = await listBabies(userId);
-  if (remote.length === 0) return;
-  useBabyStore.getState().setBabies(remote);
+  // If the signed-in user changed, blow away the previous user's babies
+  // unconditionally — even if `remote` is empty — so a fresh account
+  // doesn't see the prior user's data leaked through.
+  if (previousUserId && previousUserId !== userId) {
+    useBabyStore.getState().setBabies(remote);
+    return;
+  }
+  // Same user re-signing in: only overwrite when there's something to
+  // overwrite with, otherwise the local cache stays as-is.
+  if (remote.length > 0) {
+    useBabyStore.getState().setBabies(remote);
+  }
 };
 
 const applySession = async (session: Session | null): Promise<void> => {
@@ -40,9 +53,10 @@ const applySession = async (session: Session | null): Promise<void> => {
     auth.signOut();
     return;
   }
+  const previousUserId = auth.user?.id ?? null;
   const user = userFromSession(session.user);
   auth.signIn(user);
-  await hydrateBabies(user.id);
+  await hydrateBabies(user.id, previousUserId);
 };
 
 export const useSessionBootstrap = (): void => {

@@ -13,8 +13,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Sheet, Button } from '@/components';
 import { useBabyStore } from '@/state/babyStore';
-import { useSleepStore } from '@/state/sleepStore';
-import { useCareEventStore } from '@/state/careEventStore';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import { useAuthStore } from '@/state/authStore';
 import { signOut as supabaseSignOut } from '@/services/auth';
@@ -41,9 +39,6 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
   const babies = useBabyStore((s) => s.babies);
   const activeBabyId = useBabyStore((s) => s.activeBabyId);
   const setActiveBabyId = useBabyStore((s) => s.setActiveBabyId);
-  const resetBabies = useBabyStore((s) => s.reset);
-  const resetSleep = useSleepStore((s) => s.resetAll);
-  const resetCareEvents = useCareEventStore((s) => s.resetAll);
   const clearOnboardingDraft = useOnboardingDraft((s) => s.clear);
   const signOutAuth = useAuthStore((s) => s.signOut);
   const authedUser = useAuthStore((s) => s.user);
@@ -67,12 +62,15 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
   };
 
   const handleSignOut = () => {
+    // Sign-out NO destroys data anymore. Babies + sleep + care events
+    // live in Supabase under the user account; when the parent signs in
+    // again (same or another device) useSessionBootstrap re-hydrates the
+    // local stores. Only the auth session and the in-progress onboarding
+    // draft are wiped. The mismatched-user case is handled at hydrate
+    // time (see useSessionBootstrap → setBabies on user change).
     setSignOutOpen(false);
     void supabaseSignOut();
-    resetSleep();
-    resetCareEvents();
     clearOnboardingDraft();
-    resetBabies();
     signOutAuth();
     props.navigation.dispatch(DrawerActions.closeDrawer());
     const parent = props.navigation.getParent();

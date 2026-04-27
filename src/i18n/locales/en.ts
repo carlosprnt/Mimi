@@ -24,7 +24,7 @@ export const en = {
     signOut: 'Sign out',
     signOutConfirmTitle: 'Sign out?',
     signOutConfirmBody:
-      'All Mimi data on this device will be cleared.',
+      'Your data is saved to your account. You will get it back when you sign in again.',
     signOutConfirmCta: 'Yes, sign out',
   },
   home: {
