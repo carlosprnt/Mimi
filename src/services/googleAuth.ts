@@ -51,17 +51,24 @@ interface UseGoogleSignInResult {
   signIn: () => Promise<void>;
 }
 
+// expo-auth-session/providers/google validates clientIds at hook-init
+// time and render-crashes if any platform's slot is missing. We can't
+// skip the hook (Rules of Hooks), so when nothing is configured we feed
+// a syntactically-valid placeholder and gate the actual sign-in call on
+// `configured` instead. The placeholder is a real-looking client id that
+// Google will reject with `invalid_client` if the user ever gets that
+// far without having set their own .env values.
+const PLACEHOLDER_CLIENT_ID = '0.apps.googleusercontent.com';
+
 export const useGoogleSignIn = (): UseGoogleSignInResult => {
-  const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-  // Fall back to the web client when platform-specific ones aren't set.
-  // expo-auth-session validates these strictly on iOS / Android, so without
-  // a fallback the screen render-crashes when only the web client is in
-  // .env. Using the web client for Expo Go OAuth (proxy via auth.expo.io)
-  // is the documented workaround.
-  const iosClientId =
-    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || webClientId;
-  const androidClientId =
-    process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || webClientId;
+  const envWeb = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+  const envIos = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+  const envAndroid = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
+  const configured = !!(envWeb || envIos || envAndroid);
+
+  const webClientId = envWeb || PLACEHOLDER_CLIENT_ID;
+  const iosClientId = envIos || envWeb || PLACEHOLDER_CLIENT_ID;
+  const androidClientId = envAndroid || envWeb || PLACEHOLDER_CLIENT_ID;
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId,
@@ -109,7 +116,7 @@ export const useGoogleSignIn = (): UseGoogleSignInResult => {
   }, [response, signInUser]);
 
   const signIn = async () => {
-    if (!request) return;
+    if (!configured || !request) return;
     try {
       await promptAsync();
     } catch {
@@ -117,5 +124,5 @@ export const useGoogleSignIn = (): UseGoogleSignInResult => {
     }
   };
 
-  return { ready: !!request, signIn };
+  return { ready: configured && !!request, signIn };
 };
