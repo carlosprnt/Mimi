@@ -93,11 +93,13 @@ const styles = StyleSheet.create({
   time: {
     fontFamily: fonts.medium,
     fontSize: 34,
-    lineHeight: 38,
+    lineHeight: CELL_HEIGHT,
     letterSpacing: -0.4,
     color: colors.text.primary,
     textAlign: 'center',
+    textAlignVertical: 'center',
     fontVariant: ['tabular-nums'],
+    includeFontPadding: false,
   },
   timePlaceholder: {
     color: colors.text.tertiary,
@@ -109,6 +111,8 @@ const styles = StyleSheet.create({
     lineHeight: CELL_HEIGHT,
     color: colors.text.tertiary,
     paddingHorizontal: 2,
+    textAlign: 'center',
     textAlignVertical: 'center',
+    includeFontPadding: false,
   },
 });
