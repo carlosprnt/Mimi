@@ -13,7 +13,7 @@ interface TimeHeroProps {
   onPressSecondary?: () => void;
 }
 
-const PLACEHOLDER = '–– : ––';
+const PLACEHOLDER = '--:--';
 
 export const TimeHero: React.FC<TimeHeroProps> = ({
   primary,
