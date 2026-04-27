@@ -88,16 +88,22 @@ export const PointEventSheet: React.FC<PointEventSheetProps> = ({
           />
 
           <View style={styles.actions}>
-            <Button title={t('profile.save')} onPress={handleSave} />
-            <View style={{ height: spacing.sm }} />
-            <Button
-              title={t('profile.cancel')}
-              variant="dangerGhost"
-              onPress={onClose}
-            />
+            <View style={styles.actionsRow}>
+              <Button
+                title={t('profile.cancel')}
+                variant="subtle"
+                style={styles.cancelButton}
+                onPress={onClose}
+              />
+              <Button
+                title={t('profile.save')}
+                onPress={handleSave}
+                style={styles.saveButton}
+              />
+            </View>
             {onDelete ? (
               <>
-                <View style={{ height: spacing.sm }} />
+                <View style={{ height: spacing.md }} />
                 <Button
                   title={t('timeline.deleteEvent')}
                   variant="dangerGhost"
@@ -127,5 +133,15 @@ const styles = StyleSheet.create({
   },
   actions: {
     marginTop: spacing.lg,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  cancelButton: {
+    flex: 1,
+  },
+  saveButton: {
+    flex: 2,
   },
 });

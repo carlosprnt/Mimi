@@ -77,6 +77,7 @@ export const Sheet: React.FC<SheetProps> = ({
       animationType="none"
       onRequestClose={onClose}
       statusBarTranslucent
+      presentationStyle="overFullScreen"
     >
       <View style={StyleSheet.absoluteFill}>
         <Animated.View style={[styles.backdrop, backdropStyle]}>
