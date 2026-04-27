@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
+  Extrapolation,
+  interpolate,
   useAnimatedScrollHandler,
+  useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
@@ -120,6 +123,34 @@ export const HomeScreen: React.FC = () => {
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
     },
+  });
+
+  // Hero stays in flow but visually retreats as the user scrolls so the
+  // cards below appear to advance over it. Subtle: scale 1 → 0.94,
+  // small upward translate, slight opacity fade.
+  const heroAnimStyle = useAnimatedStyle(() => {
+    const v = scrollY.value;
+    return {
+      transform: [
+        {
+          scale: interpolate(
+            v,
+            [0, 220],
+            [1, 0.94],
+            Extrapolation.CLAMP,
+          ),
+        },
+        {
+          translateY: interpolate(
+            v,
+            [0, 220],
+            [0, -10],
+            Extrapolation.CLAMP,
+          ),
+        },
+      ],
+      opacity: interpolate(v, [0, 220, 320], [1, 0.85, 0.65], Extrapolation.CLAMP),
+    };
   });
 
   useEffect(() => {
@@ -484,14 +515,14 @@ export const HomeScreen: React.FC = () => {
         ) : null}
 
         {isToday && recommendation ? (
-          <View style={styles.heroWrap}>
+          <Animated.View style={[styles.heroWrap, heroAnimStyle]}>
             <HomeHero
               recommendation={recommendation}
               iconName={heroIcon(recommendation)}
               remainingLabel={remainingLabel}
               onTarget={onTarget}
             />
-          </View>
+          </Animated.View>
         ) : null}
 
         {!isToday && timeline.length === 0 ? (
