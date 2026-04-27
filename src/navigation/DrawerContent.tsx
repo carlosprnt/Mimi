@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dimensions, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import {
   CommonActions,
   DrawerActions,
@@ -19,11 +19,12 @@ import { signOut as supabaseSignOut } from '@/services/auth';
 import { ageLabel } from '@/logic/age';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
-import { DRAWER_SCALE_TO } from './DrawerSceneWrapper';
+import {
+  DRAWER_TOP,
+  DRAWER_BOTTOM_MARGIN,
+  DRAWER_LEFT_MARGIN,
+} from './DrawerSceneWrapper';
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
-const PANEL_VERTICAL_INSET =
-  (SCREEN_HEIGHT * (1 - DRAWER_SCALE_TO)) / 2;
 const PANEL_RADIUS = 32;
 
 type RouteName = 'Home' | 'History' | 'Profile';
@@ -319,8 +320,9 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
 const styles = StyleSheet.create({
   outer: {
     flex: 1,
-    paddingVertical: PANEL_VERTICAL_INSET,
-    paddingLeft: 4,
+    paddingTop: DRAWER_TOP,
+    paddingBottom: DRAWER_BOTTOM_MARGIN,
+    paddingLeft: DRAWER_LEFT_MARGIN,
   },
   panel: {
     flex: 1,

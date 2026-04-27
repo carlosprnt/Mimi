@@ -10,7 +10,11 @@ import { BlurView } from 'expo-blur';
 import { colors } from '@/theme';
 
 export const DRAWER_WIDTH = 320;
-export const DRAWER_SCALE_TO = 0.8;
+// Layout when the drawer is fully open. Both the menu panel and the
+// scaled dashboard hug these edges of the device.
+export const DRAWER_TOP = 100;
+export const DRAWER_BOTTOM_MARGIN = 4;
+export const DRAWER_LEFT_MARGIN = 4;
 export const DRAWER_GAP = 4;
 const RADIUS = 32;
 
@@ -18,13 +22,21 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const progress = useDrawerProgress();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
 
-  // Dashboard, scaled to DRAWER_SCALE_TO with center origin, has its left
-  // edge at width * (1 - DRAWER_SCALE_TO) / 2. Translate so that left edge
-  // sits DRAWER_GAP pixels to the right of the menu panel's right edge.
+  // Match the dashboard's visible Y range to [DRAWER_TOP, height -
+  // DRAWER_BOTTOM_MARGIN] by picking a uniform scale derived from the
+  // device height. This also gives a constant translateY of
+  // (DRAWER_TOP - (DRAWER_TOP + DRAWER_BOTTOM_MARGIN) / 2) = 48 px.
+  const visibleHeight = height - DRAWER_TOP - DRAWER_BOTTOM_MARGIN;
+  const scaleTo = visibleHeight / height;
+  const translateYTarget = (DRAWER_TOP - DRAWER_BOTTOM_MARGIN) / 2;
+
+  // Land the dashboard's left edge DRAWER_GAP pixels past the menu panel
+  // (the panel itself sits inside its drawer container at x = 0; its
+  // right edge is at DRAWER_WIDTH).
   const translateXTarget =
-    DRAWER_WIDTH + DRAWER_GAP - (width * (1 - DRAWER_SCALE_TO)) / 2;
+    DRAWER_WIDTH + DRAWER_GAP - (width * (1 - scaleTo)) / 2;
 
   const sceneStyle = useAnimatedStyle(() => {
     const p = progress.value;
@@ -39,10 +51,18 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
           ),
         },
         {
+          translateY: interpolate(
+            p,
+            [0, 1],
+            [0, translateYTarget],
+            Extrapolation.CLAMP,
+          ),
+        },
+        {
           scale: interpolate(
             p,
             [0, 1],
-            [1, DRAWER_SCALE_TO],
+            [1, scaleTo],
             Extrapolation.CLAMP,
           ),
         },
