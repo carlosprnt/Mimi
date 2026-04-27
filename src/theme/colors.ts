@@ -7,8 +7,8 @@ export const colors = {
   },
   night: {
     top: '#14235A',
-    mid: '#0B1436',
-    bottom: '#070B1F',
+    mid: '#080F2A',
+    bottom: '#020410',
     card: '#131B3A',
     cardEdge: '#1F2E66',
   },
