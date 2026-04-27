@@ -37,3 +37,5 @@ export { HomeHero } from './HomeHero';
 export { ShimmerText } from './ShimmerText';
 export { EmptyDay } from './EmptyDay';
 export { MoonIllustration } from './MoonIllustration';
+export { MoonPhaseGlyph } from './MoonPhaseGlyph';
+export { SleepingZzz } from './SleepingZzz';
