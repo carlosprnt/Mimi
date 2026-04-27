@@ -1,15 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Sheet } from './Sheet';
 import { WheelPicker, WHEEL_ITEM_HEIGHT, WHEEL_VISIBLE_COUNT } from './WheelPicker';
 import { colors, spacing } from '@/theme';
 import { startOfDay } from '@/logic/format';
 import { t } from '@/i18n';
 import { lightImpact } from '@/utils/haptics';
 
-interface TimeWheelSheetProps {
-  visible: boolean;
+interface TimeWheelViewProps {
   initial: Date;
   use24h?: boolean;
   rangeBefore?: number;
@@ -52,8 +50,12 @@ const formatDateLabel = (d: Date, today: Date): string => {
 
 const pad2 = (n: number): string => (n < 10 ? `0${n}` : String(n));
 
-export const TimeWheelSheet: React.FC<TimeWheelSheetProps> = ({
-  visible,
+/**
+ * The wheel picker UI without a Sheet wrapper. Designed to be embedded
+ * inside an existing Sheet (avoids RN Modal nesting, which crashes on
+ * iOS with new arch + Reanimated 4).
+ */
+export const TimeWheelView: React.FC<TimeWheelViewProps> = ({
   initial,
   use24h = true,
   rangeBefore = 30,
@@ -78,12 +80,10 @@ export const TimeWheelSheet: React.FC<TimeWheelSheetProps> = ({
   const [minute, setMinute] = useState(initial.getMinutes());
 
   useEffect(() => {
-    if (visible) {
-      setDayIndex(initialDayIndex);
-      setHour(initial.getHours());
-      setMinute(initial.getMinutes());
-    }
-  }, [visible, initial, initialDayIndex]);
+    setDayIndex(initialDayIndex);
+    setHour(initial.getHours());
+    setMinute(initial.getMinutes());
+  }, [initial, initialDayIndex]);
 
   const dateItems = useMemo(
     () =>
@@ -125,18 +125,26 @@ export const TimeWheelSheet: React.FC<TimeWheelSheetProps> = ({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose}>
+    <View>
       <View style={styles.headerBar}>
         <Pressable
           onPress={onClose}
-          style={({ pressed }) => [styles.btn, styles.btnGhost, pressed && styles.btnPressed]}
+          style={({ pressed }) => [
+            styles.btn,
+            styles.btnGhost,
+            pressed && styles.btnPressed,
+          ]}
           hitSlop={8}
         >
           <Ionicons name="close" size={20} color={colors.text.secondary} />
         </Pressable>
         <Pressable
           onPress={handleConfirm}
-          style={({ pressed }) => [styles.btn, styles.btnPrimary, pressed && styles.btnPressed]}
+          style={({ pressed }) => [
+            styles.btn,
+            styles.btnPrimary,
+            pressed && styles.btnPressed,
+          ]}
           hitSlop={8}
         >
           <Ionicons name="checkmark" size={22} color={colors.pure.white} />
@@ -169,7 +177,7 @@ export const TimeWheelSheet: React.FC<TimeWheelSheetProps> = ({
           />
         </View>
       </View>
-    </Sheet>
+    </View>
   );
 };
 

@@ -28,7 +28,7 @@ export { ActionMenu } from './ActionMenu';
 export type { ActionMenuItem } from './ActionMenu';
 export { PointEventSheet } from './PointEventSheet';
 export { TimeHero } from './TimeHero';
-export { TimeWheelSheet } from './TimeWheelSheet';
+export { TimeWheelView } from './TimeWheelView';
 export { WheelPicker } from './WheelPicker';
 export { ProgressBar } from './ProgressBar';
 export { StatCard } from './StatCard';

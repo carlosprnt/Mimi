@@ -4,7 +4,7 @@ import { Sheet } from './Sheet';
 import { Text } from './Text';
 import { Button } from './Button';
 import { TimeHero } from './TimeHero';
-import { TimeWheelSheet } from './TimeWheelSheet';
+import { TimeWheelView } from './TimeWheelView';
 import { spacing } from '@/theme';
 import { useBabyStore } from '@/state/babyStore';
 import { t } from '@/i18n';
@@ -105,54 +105,55 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
   };
 
   return (
-    <>
-      <Sheet visible={visible && picker === null} onClose={onClose}>
-        <Text variant="title" style={styles.title}>
-          {resolvedTitle}
-        </Text>
+    <Sheet visible={visible} onClose={onClose}>
+      {picker === null ? (
+        <>
+          <Text variant="title" style={styles.title}>
+            {resolvedTitle}
+          </Text>
 
-        <TimeHero
-          primary={heroPrimary}
-          secondary={heroSecondary}
-          isRange={isRange}
+          <TimeHero
+            primary={heroPrimary}
+            secondary={heroSecondary}
+            isRange={isRange}
+            use24h={use24h}
+            onPressPrimary={onPressPrimary}
+            onPressSecondary={onPressSecondary}
+          />
+
+          <View style={styles.actions}>
+            <Button
+              title={t('profile.save')}
+              onPress={handleSave}
+              disabled={!canSave()}
+            />
+            <View style={{ height: spacing.sm }} />
+            <Button
+              title={t('profile.cancel')}
+              variant="ghost"
+              onPress={onClose}
+            />
+            {onDelete ? (
+              <>
+                <View style={{ height: spacing.sm }} />
+                <Button
+                  title={t('timeline.deleteEvent')}
+                  variant="dangerGhost"
+                  onPress={onDelete}
+                />
+              </>
+            ) : null}
+          </View>
+        </>
+      ) : (
+        <TimeWheelView
+          initial={pickerInitial}
           use24h={use24h}
-          onPressPrimary={onPressPrimary}
-          onPressSecondary={onPressSecondary}
+          onClose={() => setPicker(null)}
+          onConfirm={onPickerConfirm}
         />
-
-        <View style={styles.actions}>
-          <Button
-            title={t('profile.save')}
-            onPress={handleSave}
-            disabled={!canSave()}
-          />
-          <View style={{ height: spacing.sm }} />
-          <Button
-            title={t('profile.cancel')}
-            variant="ghost"
-            onPress={onClose}
-          />
-          {onDelete ? (
-            <>
-              <View style={{ height: spacing.sm }} />
-              <Button
-                title={t('timeline.deleteEvent')}
-                variant="dangerGhost"
-                onPress={onDelete}
-              />
-            </>
-          ) : null}
-        </View>
-      </Sheet>
-
-      <TimeWheelSheet
-        visible={visible && picker !== null}
-        initial={pickerInitial}
-        use24h={use24h}
-        onClose={() => setPicker(null)}
-        onConfirm={onPickerConfirm}
-      />
-    </>
+      )}
+    </Sheet>
   );
 };
 
