@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     }),
   },
   sheetSurface: {
-    backgroundColor: colors.bg.elevated,
+    backgroundColor: colors.night.bottom,
   },
   sheetFrosted: {
     backgroundColor: 'transparent',
