@@ -26,6 +26,8 @@ interface DayCalendarProps {
 
 const DAY_CELL_WIDTH = 44;
 const DAY_CELL_GAP = 6;
+const STICKY_TODAY_RIGHT = spacing.lg;
+const STICKY_TODAY_GUTTER = 8;
 
 const dayNumberFormatter = new Intl.DateTimeFormat(undefined, {
   day: '2-digit',
@@ -38,8 +40,7 @@ const formatDayNumber = (d: Date) => dayNumberFormatter.format(d);
 const formatWeekday = (d: Date) =>
   weekdayFormatter.format(d).replace('.', '').toUpperCase();
 
-export const dayKey = (d: Date): string =>
-  startOfDay(d).toISOString();
+export const dayKey = (d: Date): string => startOfDay(d).toISOString();
 
 export const DayCalendar: React.FC<DayCalendarProps> = ({
   selectedDate,
@@ -52,29 +53,42 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
   const scrollRef = useRef<ScrollView>(null);
   const cellScale = useSharedValue(1);
 
+  const today = useMemo(() => startOfDay(now), [now]);
+
+  // Days behind today (today itself is rendered as a sticky overlay).
   const days = useMemo(() => {
     const result: Date[] = [];
-    const today = startOfDay(now);
-    for (let i = daysBack; i >= 0; i--) {
+    for (let i = daysBack; i >= 1; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       result.push(d);
     }
     return result;
-  }, [daysBack, now]);
+  }, [daysBack, today]);
+
+  const isTodaySelected = isSameDay(selectedDate, today);
 
   const selectedIndex = useMemo(
-    () => days.findIndex((d) => isSameDay(d, selectedDate)),
-    [days, selectedDate],
+    () =>
+      isTodaySelected
+        ? -1
+        : days.findIndex((d) => isSameDay(d, selectedDate)),
+    [days, selectedDate, isTodaySelected],
   );
 
   useEffect(() => {
-    if (selectedIndex < 0) return;
-    const idx = selectedIndex;
+    if (selectedIndex < 0) {
+      // Selected date is today (sticky cell) — scroll to far right so the
+      // most recent past dates sit next to the pinned today pill.
+      const id = setTimeout(() => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      }, 50);
+      return () => clearTimeout(id);
+    }
     const cellSpan = DAY_CELL_WIDTH + DAY_CELL_GAP;
     const offset = Math.max(
       0,
-      idx * cellSpan - width / 2 + DAY_CELL_WIDTH / 2 + spacing.lg,
+      selectedIndex * cellSpan - width / 2 + DAY_CELL_WIDTH / 2 + spacing.lg,
     );
     const id = setTimeout(() => {
       scrollRef.current?.scrollTo({ x: offset, animated: true });
@@ -100,61 +114,95 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
   }));
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.content}
-      onScrollBeginDrag={handleScrollStart}
-      onMomentumScrollBegin={handleScrollStart}
-      onScrollEndDrag={handleScrollEnd}
-      onMomentumScrollEnd={handleScrollEnd}
-    >
-      {days.map((d) => {
-        const isSelected = isSameDay(d, selectedDate);
-        const hasData = daysWithData ? daysWithData.has(dayKey(d)) : true;
+    <View style={styles.wrap}>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingRight:
+              spacing.lg + DAY_CELL_WIDTH + STICKY_TODAY_GUTTER,
+          },
+        ]}
+        onScrollBeginDrag={handleScrollStart}
+        onMomentumScrollBegin={handleScrollStart}
+        onScrollEndDrag={handleScrollEnd}
+        onMomentumScrollEnd={handleScrollEnd}
+      >
+        {days.map((d) => {
+          const isSelected = isSameDay(d, selectedDate);
+          const hasData = daysWithData ? daysWithData.has(dayKey(d)) : true;
+          const textOpacity = isSelected ? 1 : hasData ? 0.7 : 0.3;
 
-        let textOpacity = 1;
-        if (!isSelected) {
-          textOpacity = hasData ? 0.7 : 0.3;
-        }
+          return (
+            <Animated.View key={d.toISOString()} style={cellAnim}>
+              <Pressable
+                onPress={() => onSelect(d)}
+                style={({ pressed }) => [
+                  styles.cell,
+                  isSelected && styles.cellSelected,
+                  pressed && !isSelected && styles.cellPressed,
+                ]}
+              >
+                <Text
+                  variant="title"
+                  tone="primary"
+                  style={[styles.dayNumber, { opacity: textOpacity }]}
+                >
+                  {formatDayNumber(d)}
+                </Text>
+                <Text
+                  variant="eyebrow"
+                  tone={isSelected ? 'accent' : 'primary'}
+                  style={[styles.weekday, { opacity: textOpacity }]}
+                >
+                  {formatWeekday(d)}
+                </Text>
+                {hasData && !isSelected ? (
+                  <View style={styles.dot} />
+                ) : null}
+              </Pressable>
+            </Animated.View>
+          );
+        })}
+      </ScrollView>
 
-        return (
-          <Animated.View key={d.toISOString()} style={cellAnim}>
-            <Pressable
-              onPress={() => onSelect(d)}
-              style={({ pressed }) => [
-                styles.cell,
-                isSelected && styles.cellSelected,
-                pressed && !isSelected && styles.cellPressed,
-              ]}
-            >
-              <Text
-                variant="title"
-                tone="primary"
-                style={[styles.dayNumber, { opacity: textOpacity }]}
-              >
-                {formatDayNumber(d)}
-              </Text>
-              <Text
-                variant="eyebrow"
-                tone={isSelected ? 'accent' : 'primary'}
-                style={[styles.weekday, { opacity: textOpacity }]}
-              >
-                {formatWeekday(d)}
-              </Text>
-              {hasData && !isSelected ? (
-                <View style={styles.dot} />
-              ) : null}
-            </Pressable>
-          </Animated.View>
-        );
-      })}
-    </ScrollView>
+      <View pointerEvents="box-none" style={styles.stickyWrap}>
+        <Pressable
+          onPress={() => onSelect(today)}
+          style={({ pressed }) => [
+            styles.cell,
+            styles.stickyCell,
+            isTodaySelected && styles.cellSelected,
+            pressed && !isTodaySelected && styles.cellPressed,
+          ]}
+        >
+          <Text
+            variant="title"
+            tone="primary"
+            style={styles.dayNumber}
+          >
+            {formatDayNumber(today)}
+          </Text>
+          <Text
+            variant="eyebrow"
+            tone={isTodaySelected ? 'accent' : 'primary'}
+            style={styles.weekday}
+          >
+            {formatWeekday(today)}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  wrap: {
+    position: 'relative',
+  },
   content: {
     paddingHorizontal: spacing.lg,
     gap: DAY_CELL_GAP,
@@ -192,5 +240,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent.base,
     position: 'absolute',
     bottom: 3,
+  },
+  stickyWrap: {
+    position: 'absolute',
+    right: STICKY_TODAY_RIGHT,
+    top: spacing.sm,
+    bottom: spacing.sm,
+    justifyContent: 'center',
+  },
+  stickyCell: {
+    backgroundColor: 'rgba(11, 20, 54, 0.78)',
   },
 });
