@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import {
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,6 +13,8 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing } from '@/theme';
 import { Text } from './Text';
 import { isSameDay, startOfDay } from '@/logic/format';
@@ -96,17 +99,45 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
     return () => clearTimeout(id);
   }, [selectedIndex, width]);
 
-  const handleScrollStart = () => {
+  // Track whether momentum kicked in. iOS/Android fire onScrollEndDrag
+  // when the finger lifts; momentum (the inertial fling) starts and ends
+  // separately. We only want to bring the scale back to 1 when motion
+  // truly stops — either when momentum ends, or, if there was no fling,
+  // when onScrollEndDrag fires and no momentum follows.
+  const inMomentumRef = useRef(false);
+  const dragEndedAtRef = useRef(0);
+
+  const animateDown = () => {
     cellScale.value = withTiming(0.9, {
       duration: 160,
       easing: Easing.out(Easing.quad),
     });
   };
-  const handleScrollEnd = () => {
+  const animateUp = () => {
     cellScale.value = withTiming(1, {
-      duration: 120,
+      duration: 160,
       easing: Easing.out(Easing.cubic),
     });
+  };
+
+  const handleScrollBeginDrag = () => {
+    inMomentumRef.current = false;
+    animateDown();
+  };
+  const handleMomentumScrollBegin = () => {
+    inMomentumRef.current = true;
+  };
+  const handleScrollEndDrag = () => {
+    dragEndedAtRef.current = Date.now();
+    // Give RN a frame to fire onMomentumScrollBegin if a fling is
+    // happening; if it doesn't, scale back up here.
+    setTimeout(() => {
+      if (!inMomentumRef.current) animateUp();
+    }, 80);
+  };
+  const handleMomentumScrollEnd = () => {
+    inMomentumRef.current = false;
+    animateUp();
   };
 
   const cellAnim = useAnimatedStyle(() => ({
@@ -126,10 +157,10 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
               spacing.lg + DAY_CELL_WIDTH + STICKY_TODAY_GUTTER,
           },
         ]}
-        onScrollBeginDrag={handleScrollStart}
-        onMomentumScrollBegin={handleScrollStart}
-        onScrollEndDrag={handleScrollEnd}
-        onMomentumScrollEnd={handleScrollEnd}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onScrollEndDrag={handleScrollEndDrag}
+        onMomentumScrollBegin={handleMomentumScrollBegin}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
       >
         {days.map((d) => {
           const isSelected = isSameDay(d, selectedDate);
@@ -170,20 +201,34 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
       </ScrollView>
 
       <View pointerEvents="box-none" style={styles.stickyWrap}>
+        <LinearGradient
+          colors={[
+            'rgba(7, 11, 31, 0)',
+            'rgba(7, 11, 31, 0.55)',
+            'rgba(7, 11, 31, 0.85)',
+          ]}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          locations={[0, 0.55, 1]}
+          pointerEvents="none"
+          style={styles.stickyFeather}
+        />
         <Pressable
           onPress={() => onSelect(today)}
           style={({ pressed }) => [
             styles.cell,
             styles.stickyCell,
-            isTodaySelected && styles.cellSelected,
+            isTodaySelected && styles.stickyCellSelected,
             pressed && !isTodaySelected && styles.cellPressed,
           ]}
         >
-          <Text
-            variant="title"
-            tone="primary"
-            style={styles.dayNumber}
-          >
+          <BlurView
+            intensity={Platform.OS === 'ios' ? 30 : 18}
+            tint="dark"
+            style={[StyleSheet.absoluteFill, styles.stickyBlur]}
+          />
+          <View pointerEvents="none" style={styles.stickyTint} />
+          <Text variant="title" tone="primary" style={styles.dayNumber}>
             {formatDayNumber(today)}
           </Text>
           <Text
@@ -248,7 +293,26 @@ const styles = StyleSheet.create({
     bottom: spacing.sm,
     justifyContent: 'center',
   },
+  stickyFeather: {
+    position: 'absolute',
+    left: -56,
+    width: 56,
+    top: 0,
+    bottom: 0,
+  },
   stickyCell: {
-    backgroundColor: 'rgba(11, 20, 54, 0.78)',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.10)',
+  },
+  stickyCellSelected: {
+    borderColor: 'rgba(168, 165, 230, 0.45)',
+  },
+  stickyBlur: {
+    borderRadius: 14,
+  },
+  stickyTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(11, 20, 54, 0.4)',
   },
 });
