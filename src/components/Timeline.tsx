@@ -54,11 +54,15 @@ const iconFor = (
   }
 };
 
-const labelFor = (kind: TimelineKind): string => {
+const labelFor = (
+  kind: TimelineKind,
+  segment?: 'start' | 'resumed',
+): string => {
   switch (kind) {
     case 'wake':
       return t('timeline.wake');
     case 'bedtime':
+      if (segment === 'start') return t('timeline.bedtimeStart');
       return t('timeline.bedtime');
     case 'nap':
       return t('timeline.nap');
@@ -418,7 +422,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                   }
                   style={styles.title}
                 >
-                  {labelFor(event.kind)}
+                  {labelFor(event.kind, event.segment)}
                 </Text>
                 {rightDuration ? (
                   <Text

@@ -102,6 +102,7 @@ export const en = {
     wake: 'Wake',
     nap: 'Nap',
     bedtime: 'Night sleep',
+    bedtimeStart: 'Night sleep starts',
     feeding: 'Feeding',
     diaper: 'Diaper change',
     nightWake: 'Night waking',

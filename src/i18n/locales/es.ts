@@ -104,6 +104,7 @@ export const es: Translations = {
     wake: 'Despertar',
     nap: 'Siesta',
     bedtime: 'Sueño nocturno',
+    bedtimeStart: 'Inicio de sueño nocturno',
     feeding: 'Toma',
     diaper: 'Cambio de pañal',
     nightWake: 'Despertar nocturno',

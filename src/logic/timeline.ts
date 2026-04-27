@@ -32,6 +32,12 @@ export interface TimelineEvent {
   overnightChain?: boolean;
   captionKey?: 'yesterday' | 'noNightData';
   microNap?: boolean;
+  /** When set on a `bedtime` row, distinguishes the visual segment:
+   *  - 'start'   → "Inicio de sueño nocturno" (anchor at session start)
+   *  - 'resumed' → "Sueño nocturno" (continuation after a night wake)
+   *  Only applied when the night session has at least one night-wake
+   *  event; otherwise a single bedtime row is emitted with no segment. */
+  segment?: 'start' | 'resumed';
   /** For suggested events: 'high' for the next predicted event, 'low' for
    *  predictions further down the chain (each one inherits its anchor's
    *  uncertainty). */
@@ -102,6 +108,19 @@ export function buildTimeline(
     const nightEndMs = new Date(lastNightEndedThatDay.endedAt!).getTime();
     const startedYesterday = nightStartMs < dayStartMs;
 
+    const wakesInRange = careEvents
+      .filter((ev) => ev.kind === 'nightWake')
+      .filter((ev) => {
+        const t = new Date(ev.at).getTime();
+        return t > nightStartMs && t < nightEndMs;
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.at).getTime() - new Date(b.at).getTime(),
+      );
+
+    const split = wakesInRange.length > 0;
+
     events.push({
       id: `prev-bedtime-${lastNightEndedThatDay.id}`,
       kind: 'bedtime',
@@ -110,25 +129,41 @@ export function buildTimeline(
       at: new Date(nightStartMs),
       overnightChain: true,
       captionKey: startedYesterday ? 'yesterday' : undefined,
+      segment: split ? 'start' : undefined,
     });
 
-    for (const ev of careEvents) {
-      if (ev.kind !== 'nightWake') continue;
+    for (const ev of wakesInRange) {
       const t = new Date(ev.at).getTime();
-      if (t > nightStartMs && t < nightEndMs) {
-        events.push({
-          id: `care-${ev.id}`,
-          kind: ev.kind,
-          status: 'real',
-          careEventId: ev.id,
-          at: new Date(ev.at),
-          to: ev.endedAt ? new Date(ev.endedAt) : undefined,
-          durationMs: ev.endedAt
-            ? new Date(ev.endedAt).getTime() - t
-            : undefined,
-          overnightChain: true,
-        });
-        usedCareEventIds.add(ev.id);
+      events.push({
+        id: `care-${ev.id}`,
+        kind: 'nightWake',
+        status: 'real',
+        careEventId: ev.id,
+        at: new Date(ev.at),
+        to: ev.endedAt ? new Date(ev.endedAt) : undefined,
+        durationMs: ev.endedAt
+          ? new Date(ev.endedAt).getTime() - t
+          : undefined,
+        overnightChain: true,
+      });
+      usedCareEventIds.add(ev.id);
+
+      // After each night wake that has an end time, emit the resumed
+      // bedtime continuation. The visual treatment is restful again
+      // (violet rail + bedtime icon + "Sueño nocturno" label).
+      if (ev.endedAt) {
+        const resumedAtMs = new Date(ev.endedAt).getTime();
+        if (resumedAtMs < nightEndMs) {
+          events.push({
+            id: `resumed-${ev.id}`,
+            kind: 'bedtime',
+            status: 'real',
+            sessionId: lastNightEndedThatDay.id,
+            at: new Date(resumedAtMs),
+            overnightChain: true,
+            segment: 'resumed',
+          });
+        }
       }
     }
 
@@ -181,13 +216,79 @@ export function buildTimeline(
   const active = sessions.find((s) => !s.endedAt);
 
   if (isToday && active) {
-    events.push({
-      id: `active-${active.id}`,
-      kind: active.kind === 'night' ? 'bedtime' : 'nap',
-      status: 'active',
-      sessionId: active.id,
-      from: new Date(active.startedAt),
-    });
+    if (active.kind === 'night') {
+      const activeStartMs = new Date(active.startedAt).getTime();
+      const activeWakes = careEvents
+        .filter((ev) => ev.kind === 'nightWake')
+        .filter((ev) => {
+          const t = new Date(ev.at).getTime();
+          return t > activeStartMs && t <= now.getTime();
+        })
+        .sort(
+          (a, b) =>
+            new Date(a.at).getTime() - new Date(b.at).getTime(),
+        );
+
+      if (activeWakes.length > 0) {
+        // Split layout: start anchor + each wake + active continuation.
+        events.push({
+          id: `active-start-${active.id}`,
+          kind: 'bedtime',
+          status: 'real',
+          sessionId: active.id,
+          at: new Date(activeStartMs),
+          segment: 'start',
+        });
+
+        for (const ev of activeWakes) {
+          const t = new Date(ev.at).getTime();
+          events.push({
+            id: `care-${ev.id}`,
+            kind: 'nightWake',
+            status: 'real',
+            careEventId: ev.id,
+            at: new Date(ev.at),
+            to: ev.endedAt ? new Date(ev.endedAt) : undefined,
+            durationMs: ev.endedAt
+              ? new Date(ev.endedAt).getTime() - t
+              : undefined,
+          });
+          usedCareEventIds.add(ev.id);
+        }
+
+        const lastEnded = [...activeWakes]
+          .reverse()
+          .find((ev) => !!ev.endedAt);
+        const resumeFromMs = lastEnded
+          ? new Date(lastEnded.endedAt!).getTime()
+          : activeStartMs;
+
+        events.push({
+          id: `active-${active.id}`,
+          kind: 'bedtime',
+          status: 'active',
+          sessionId: active.id,
+          from: new Date(resumeFromMs),
+          segment: 'resumed',
+        });
+      } else {
+        events.push({
+          id: `active-${active.id}`,
+          kind: 'bedtime',
+          status: 'active',
+          sessionId: active.id,
+          from: new Date(active.startedAt),
+        });
+      }
+    } else {
+      events.push({
+        id: `active-${active.id}`,
+        kind: 'nap',
+        status: 'active',
+        sessionId: active.id,
+        from: new Date(active.startedAt),
+      });
+    }
   }
 
   const months = ageInMonths(baby, now);
@@ -256,7 +357,7 @@ export function buildTimeline(
     if (t >= dayStartMs && t < dayEndMs) {
       events.push({
         id: `care-${ev.id}`,
-        kind: ev.kind,
+        kind: 'nightWake',
         status: 'real',
         careEventId: ev.id,
         at: new Date(ev.at),
