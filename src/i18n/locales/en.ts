@@ -14,6 +14,7 @@ export const en = {
     menu: 'Menu',
   },
   drawer: {
+    wordmark: 'Sleep app',
     children: 'Children',
     addChild: 'Add child',
     noChildren: 'No children yet',

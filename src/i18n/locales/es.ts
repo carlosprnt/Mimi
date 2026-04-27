@@ -16,6 +16,7 @@ export const es: Translations = {
     menu: 'Menú',
   },
   drawer: {
+    wordmark: 'App de sueño',
     children: 'Niños',
     addChild: 'Añadir niño',
     noChildren: 'Aún no hay niños',

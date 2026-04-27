@@ -96,14 +96,15 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
         />
         <DrawerContentScrollView
           {...props}
+          style={styles.scroll}
           contentContainerStyle={[
             styles.scrollContent,
             { paddingTop: Math.max(insets.top, spacing.xl) },
           ]}
         >
         <View style={styles.header}>
-          <Text variant="wordmark" tone="primary" style={styles.logo}>
-            MIMI
+          <Text variant="title" tone="primary" style={styles.wordmark}>
+            {t('drawer.wordmark')}
           </Text>
         </View>
 
@@ -221,53 +222,60 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
             </Pressable>
           );
         })}
+        </DrawerContentScrollView>
 
-        <View style={styles.accountDivider} />
-
-        <Text variant="eyebrow" tone="tertiary" style={styles.accountEyebrow}>
-          {t('drawer.account')}
-        </Text>
-
-        <View style={styles.accountRow}>
-          <Ionicons
-            name="person-outline"
-            size={20}
-            color={colors.text.secondary}
-            style={styles.iconLead}
-          />
-          <View style={styles.accountInfo}>
-            <Text variant="body" tone="secondary" numberOfLines={1}>
-              {t('drawer.accountLocal')}
-            </Text>
-            <Text
-              variant="footnote"
-              tone="tertiary"
-              numberOfLines={1}
-              style={styles.accountCaption}
-            >
-              {t('drawer.accountLocalCaption')}
-            </Text>
-          </View>
-        </View>
-
-        <Pressable
-          onPress={() => setSignOutOpen(true)}
-          style={({ pressed }) => [
-            styles.signOutRow,
-            pressed && styles.pressed,
+        <View
+          style={[
+            styles.accountFooter,
+            { paddingBottom: Math.max(insets.bottom, spacing.lg) },
           ]}
         >
-          <Ionicons
-            name="log-out-outline"
-            size={20}
-            color={colors.danger.base}
-            style={styles.iconLead}
-          />
-          <Text variant="body" tone="danger">
-            {t('drawer.signOut')}
+          <View style={styles.accountDivider} />
+
+          <Text variant="eyebrow" tone="tertiary" style={styles.accountEyebrow}>
+            {t('drawer.account')}
           </Text>
-        </Pressable>
-      </DrawerContentScrollView>
+
+          <View style={styles.accountRow}>
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color={colors.text.secondary}
+              style={styles.iconLead}
+            />
+            <View style={styles.accountInfo}>
+              <Text variant="body" tone="secondary" numberOfLines={1}>
+                {t('drawer.accountLocal')}
+              </Text>
+              <Text
+                variant="footnote"
+                tone="tertiary"
+                numberOfLines={1}
+                style={styles.accountCaption}
+              >
+                {t('drawer.accountLocalCaption')}
+              </Text>
+            </View>
+          </View>
+
+          <Pressable
+            onPress={() => setSignOutOpen(true)}
+            style={({ pressed }) => [
+              styles.signOutRow,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Ionicons
+              name="log-out-outline"
+              size={20}
+              color={colors.danger.base}
+              style={styles.iconLead}
+            />
+            <Text variant="body" tone="danger">
+              {t('drawer.signOut')}
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <Sheet
@@ -312,8 +320,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.night.bottom,
     overflow: 'hidden',
   },
+  scroll: {
+    flex: 1,
+  },
   scrollContent: {
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.lg,
+  },
+  accountFooter: {
+    paddingTop: 0,
   },
   header: {
     flexDirection: 'row',
@@ -322,9 +336,10 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
     gap: spacing.sm,
   },
-  logo: {
+  wordmark: {
     fontSize: 20,
-    letterSpacing: 4,
+    letterSpacing: 0,
+    fontFamily: fonts.medium,
   },
   childList: {
     paddingHorizontal: spacing.md,
