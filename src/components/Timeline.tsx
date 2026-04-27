@@ -399,15 +399,6 @@ export const Timeline: React.FC<TimelineProps> = ({
             </View>
 
             <View style={[styles.content, { opacity: rowOpacity }]}>
-              {event.status === 'suggested' ? (
-                <Text
-                  variant="eyebrow"
-                  tone="tertiary"
-                  style={styles.suggestedEyebrow}
-                >
-                  {t('timeline.suggestedEyebrow')}
-                </Text>
-              ) : null}
               <View style={styles.titleRow}>
                 <Text
                   variant="body"
@@ -584,9 +575,6 @@ const styles = StyleSheet.create({
   },
   caption: {
     marginTop: 2,
-  },
-  suggestedEyebrow: {
-    marginBottom: 2,
   },
   pressed: {
     opacity: 0.5,

@@ -14,7 +14,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { colors, fonts, spacing } from '@/theme';
 import { Text } from './Text';
 import { isSameDay, startOfDay } from '@/logic/format';
@@ -201,18 +200,6 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
       </ScrollView>
 
       <View pointerEvents="box-none" style={styles.stickyWrap}>
-        <LinearGradient
-          colors={[
-            'rgba(7, 11, 31, 0)',
-            'rgba(7, 11, 31, 0.55)',
-            'rgba(7, 11, 31, 0.85)',
-          ]}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          locations={[0, 0.55, 1]}
-          pointerEvents="none"
-          style={styles.stickyFeather}
-        />
         <Pressable
           onPress={() => onSelect(today)}
           style={({ pressed }) => [
@@ -292,13 +279,6 @@ const styles = StyleSheet.create({
     top: spacing.sm,
     bottom: spacing.sm,
     justifyContent: 'center',
-  },
-  stickyFeather: {
-    position: 'absolute',
-    left: -56,
-    width: 56,
-    top: 0,
-    bottom: 0,
   },
   stickyCell: {
     overflow: 'hidden',
