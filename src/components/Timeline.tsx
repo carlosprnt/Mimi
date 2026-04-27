@@ -57,6 +57,7 @@ const iconFor = (
 const labelFor = (
   kind: TimelineKind,
   segment?: 'start' | 'resumed',
+  overnightChain?: boolean,
 ): string => {
   switch (kind) {
     case 'wake':
@@ -71,7 +72,12 @@ const labelFor = (
     case 'diaper':
       return t('timeline.diaper');
     case 'nightWake':
-      return t('timeline.nightWake');
+      // Only call it "Despertar nocturno" when the wake actually
+      // happened during a night sleep. Wake interruptions outside the
+      // overnight chain (e.g. during a nap) read as plain "Despertar".
+      return overnightChain
+        ? t('timeline.nightWake')
+        : t('timeline.wake');
   }
 };
 
@@ -460,7 +466,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                   }
                   style={styles.title}
                 >
-                  {labelFor(event.kind, event.segment)}
+                  {labelFor(event.kind, event.segment, event.overnightChain)}
                 </Text>
                 {rightDuration ? (
                   <Text

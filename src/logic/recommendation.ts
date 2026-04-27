@@ -720,15 +720,22 @@ export function computeRecommendation(
     };
   }
 
-  // 7. UPCOMING + nap
+  // 7. UPCOMING + nap (or bedtime if the predicted nap would land past
+  // the bedtime threshold — in that case the suggestion is really for
+  // bedtime, not another nap).
   const napFrom = new Date(lastEnd.getTime() + wakeWin.minMs);
   const napTo = new Date(lastEnd.getTime() + wakeWin.maxMs);
+  const bedtimeStartTime = floatToTime(now, bedtime.earliest);
+  const refersToBedtime =
+    napFrom.getTime() >= bedtimeStartTime.getTime();
   return {
     root: 'UPCOMING',
-    kind: 'nap',
+    kind: refersToBedtime ? 'night' : 'nap',
     confidence: napConfidence,
-    state: 'countdown',
-    eyebrow: t('recommendation.nextNapIn'),
+    state: refersToBedtime ? 'bedtime' : 'countdown',
+    eyebrow: refersToBedtime
+      ? t('recommendation.bedtimeWindow')
+      : t('recommendation.nextNapIn'),
     primary: `${formatClock(napFrom)} – ${formatClock(napTo)}`,
     supporting: t('recommendation.nextNapClockSupporting', {
       duration: `${formatShortDuration(untilMin)} – ${formatShortDuration(untilMax)}`,

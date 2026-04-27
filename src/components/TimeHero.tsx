@@ -45,7 +45,7 @@ export const TimeHero: React.FC<TimeHeroProps> = ({
   onPressSecondary,
   placeholder,
 }) => {
-  const ph = placeholder ?? t('timeline.setTime');
+  const ph = '00:00';
 
   const dateScope = primary
     ? formatDateScope(primary)
@@ -142,10 +142,7 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   timePlaceholder: {
-    fontSize: 20,
-    lineHeight: 26,
     color: colors.text.tertiary,
-    letterSpacing: 0,
   },
   dash: {
     fontFamily: fonts.regular,

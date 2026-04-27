@@ -4,50 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { WheelPicker, WHEEL_ITEM_HEIGHT, WHEEL_VISIBLE_COUNT } from './WheelPicker';
 import { colors, spacing } from '@/theme';
-import { startOfDay } from '@/logic/format';
-import { t } from '@/i18n';
 import { lightImpact } from '@/utils/haptics';
 
 interface TimeWheelViewProps {
   initial: Date;
   use24h?: boolean;
-  rangeBefore?: number;
-  rangeAfter?: number;
   onClose: () => void;
   onConfirm: (value: Date) => void;
 }
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-const buildDates = (around: Date, before: number, after: number): Date[] => {
-  const base = startOfDay(around);
-  const out: Date[] = [];
-  for (let i = -before; i <= after; i++) {
-    const d = new Date(base);
-    d.setDate(d.getDate() + i);
-    out.push(d);
-  }
-  return out;
-};
-
-const dayDiff = (a: Date, b: Date): number =>
-  Math.round(
-    (startOfDay(a).getTime() - startOfDay(b).getTime()) / DAY_MS,
-  );
-
-const formatDateLabel = (d: Date, today: Date): string => {
-  const diff = dayDiff(d, today);
-  if (diff === 0) return t('date.today').toLocaleLowerCase();
-  if (diff === -1) return t('date.yesterday').toLocaleLowerCase();
-  return d
-    .toLocaleDateString(undefined, {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-    })
-    .replace('.', '')
-    .replace(',', '');
-};
 
 const pad2 = (n: number): string => (n < 10 ? `0${n}` : String(n));
 
@@ -116,7 +80,7 @@ const NativeIOSPicker: React.FC<TimeWheelViewProps> = ({
       <View style={styles.nativePickerWrap}>
         <DateTimePicker
           value={value}
-          mode="datetime"
+          mode="time"
           display="spinner"
           themeVariant="dark"
           textColor={colors.text.primary}
@@ -135,41 +99,16 @@ const NativeIOSPicker: React.FC<TimeWheelViewProps> = ({
 const CustomWheelPicker: React.FC<TimeWheelViewProps> = ({
   initial,
   use24h = true,
-  rangeBefore = 30,
-  rangeAfter = 7,
   onClose,
   onConfirm,
 }) => {
-  const today = useMemo(() => startOfDay(new Date()), []);
-  const dates = useMemo(
-    () => buildDates(today, rangeBefore, rangeAfter),
-    [today, rangeBefore, rangeAfter],
-  );
-
-  const initialDayIndex = useMemo(() => {
-    const target = startOfDay(initial).getTime();
-    const idx = dates.findIndex((d) => d.getTime() === target);
-    return idx >= 0 ? idx : rangeBefore;
-  }, [dates, initial, rangeBefore]);
-
-  const [dayIndex, setDayIndex] = useState(initialDayIndex);
   const [hour, setHour] = useState(initial.getHours());
   const [minute, setMinute] = useState(initial.getMinutes());
 
   useEffect(() => {
-    setDayIndex(initialDayIndex);
     setHour(initial.getHours());
     setMinute(initial.getMinutes());
-  }, [initial, initialDayIndex]);
-
-  const dateItems = useMemo(
-    () =>
-      dates.map((d, i) => ({
-        key: i,
-        label: formatDateLabel(d, today),
-      })),
-    [dates, today],
-  );
+  }, [initial]);
 
   const hourItems = useMemo(() => {
     if (use24h) {
@@ -194,8 +133,7 @@ const CustomWheelPicker: React.FC<TimeWheelViewProps> = ({
   );
 
   const handleConfirm = () => {
-    const day = dates[dayIndex] ?? dates[rangeBefore];
-    const out = new Date(day);
+    const out = new Date(initial);
     out.setHours(hour, minute, 0, 0);
     lightImpact();
     onConfirm(out);
@@ -232,24 +170,17 @@ const CustomWheelPicker: React.FC<TimeWheelViewProps> = ({
         <View style={styles.lens} pointerEvents="none" />
         <View style={styles.columns}>
           <WheelPicker
-            items={dateItems}
-            selectedIndex={dayIndex}
-            onChange={setDayIndex}
-            width={150}
-            align="right"
-          />
-          <WheelPicker
             items={hourItems}
             selectedIndex={hour}
             onChange={setHour}
-            width={64}
+            width={80}
             align="center"
           />
           <WheelPicker
             items={minuteItems}
             selectedIndex={minute}
             onChange={setMinute}
-            width={64}
+            width={80}
             align="center"
           />
         </View>
