@@ -27,6 +27,7 @@ import {
   HomeHero,
   dayKey,
   PointEventSheet,
+  TimeWheelView,
 } from '@/components';
 import { buildTimeline, TimelineEvent } from '@/logic/timeline';
 import { CareEvent, CareEventKind } from '@/logic/careEvents';
@@ -103,6 +104,10 @@ export const HomeScreen: React.FC = () => {
     initial: Date;
     initialEnd?: Date;
     careEventId: string | null;
+  } | null>(null);
+  const [addBedtime, setAddBedtime] = useState<{
+    wakeCareEventId: string | null;
+    initial: Date;
   } | null>(null);
 
   const scrollY = useSharedValue(0);
@@ -204,6 +209,27 @@ export const HomeScreen: React.FC = () => {
   const hasWakeEvent = timeline.some((e) => e.kind === 'wake');
 
   const onPressTimelineEvent = (event: TimelineEvent) => {
+    if (event.placeholder === 'addBedtime') {
+      // Default: 21:00 of the day before the morning wake.
+      const wake = timeline.find(
+        (e) => e.kind === 'wake' && e.status === 'real' && !!e.careEventId,
+      );
+      const ref = wake?.at ?? new Date(now);
+      const initial = new Date(ref);
+      initial.setDate(initial.getDate() - 1);
+      initial.setHours(21, 0, 0, 0);
+      setAddBedtime({ wakeCareEventId: wake?.careEventId ?? null, initial });
+      return;
+    }
+    if (event.placeholder === 'addNightWake') {
+      setPointEvent({
+        kind: 'nightWake',
+        title: t('timeline.addNightWake'),
+        initial: new Date(now),
+        careEventId: null,
+      });
+      return;
+    }
     if (event.status === 'active' && event.sessionId) {
       setEditing({
         kind: 'activeStart',
@@ -340,6 +366,37 @@ export const HomeScreen: React.FC = () => {
     if (!pointEvent?.careEventId) return;
     removeCareEvent(baby.id, pointEvent.careEventId);
     setPointEvent(null);
+  };
+
+  // Materialize the missing night session: from the chosen bedtime
+  // up to the registered morning wake. The morningWake care event is
+  // removed because it's now embedded in the session as endedAt.
+  const onConfirmAddBedtime = (bedtime: Date) => {
+    if (!addBedtime) return;
+    const wake = careEvents.find(
+      (e) =>
+        e.kind === 'morningWake' && e.id === addBedtime.wakeCareEventId,
+    );
+    if (!wake) {
+      setAddBedtime(null);
+      return;
+    }
+    const wakeAt = new Date(wake.at);
+    if (bedtime.getTime() >= wakeAt.getTime()) {
+      // The picked bedtime would be after the wake — pull it back to
+      // the previous evening (21:00) as a sane fallback.
+      bedtime = new Date(wakeAt);
+      bedtime.setDate(bedtime.getDate() - 1);
+      bedtime.setHours(21, 0, 0, 0);
+    }
+    addSession(baby.id, {
+      id: makeId(),
+      startedAt: bedtime.toISOString(),
+      endedAt: wakeAt.toISOString(),
+      kind: 'night',
+    });
+    removeCareEvent(baby.id, wake.id);
+    setAddBedtime(null);
   };
 
   const onDeleteEditing = () => {
@@ -573,6 +630,23 @@ export const HomeScreen: React.FC = () => {
         onSave={onSavePointEvent}
         onDelete={pointEvent?.careEventId ? onDeletePointEvent : undefined}
       />
+
+      <Sheet
+        visible={addBedtime !== null}
+        onClose={() => setAddBedtime(null)}
+      >
+        <Text variant="title" style={styles.sheetTitle}>
+          {t('timeline.addBedtimeData')}
+        </Text>
+        {addBedtime ? (
+          <TimeWheelView
+            initial={addBedtime.initial}
+            use24h={use24h}
+            onClose={() => setAddBedtime(null)}
+            onConfirm={onConfirmAddBedtime}
+          />
+        ) : null}
+      </Sheet>
     </Screen>
   );
 };

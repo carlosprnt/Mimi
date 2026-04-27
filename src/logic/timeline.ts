@@ -38,6 +38,10 @@ export interface TimelineEvent {
    *  Only applied when the night session has at least one night-wake
    *  event; otherwise a single bedtime row is emitted with no segment. */
   segment?: 'start' | 'resumed';
+  /** Tappable placeholder rows that prompt the parent to fill in
+   *  missing pieces of the night chain. Rendered with a dashed
+   *  accent dot and an accent label, no time on the right. */
+  placeholder?: 'addBedtime' | 'addNightWake';
   /** For suggested events: 'high' for the next predicted event, 'low' for
    *  predictions further down the chain (each one inherits its anchor's
    *  uncertainty). */
@@ -210,7 +214,6 @@ export function buildTimeline(
       status: 'real',
       careEventId: morningWakeAnchor.id,
       at: new Date(morningWakeAnchor.at),
-      captionKey: 'noNightData',
     });
     usedCareEventIds.add(morningWakeAnchor.id);
   }
@@ -413,5 +416,52 @@ export function buildTimeline(
 
   events.sort((a, b) => eventPosition(a) - eventPosition(b));
 
-  return events;
+  // Insert tappable placeholders that prompt the parent to fill in the
+  // missing pieces of the overnight chain.
+  const enriched: TimelineEvent[] = [];
+  const hasOvernightBedtime = events.some(
+    (e) =>
+      e.kind === 'bedtime' &&
+      e.status === 'real' &&
+      e.overnightChain &&
+      e.segment !== 'resumed',
+  );
+  const morningWakeIdx = events.findIndex(
+    (e) =>
+      e.kind === 'wake' &&
+      e.status === 'real' &&
+      !!e.careEventId &&
+      !hasOvernightBedtime,
+  );
+  const closingWakeIdx = events.findIndex(
+    (e) =>
+      e.kind === 'wake' &&
+      e.status === 'real' &&
+      e.overnightChain,
+  );
+
+  if (morningWakeIdx >= 0) {
+    enriched.push({
+      id: 'placeholder-add-bedtime',
+      kind: 'bedtime',
+      status: 'suggested',
+      placeholder: 'addBedtime',
+      overnightChain: true,
+    });
+  }
+
+  for (let i = 0; i < events.length; i++) {
+    if (i === closingWakeIdx && hasOvernightBedtime) {
+      enriched.push({
+        id: 'placeholder-add-night-wake',
+        kind: 'nightWake',
+        status: 'suggested',
+        placeholder: 'addNightWake',
+        overnightChain: true,
+      });
+    }
+    enriched.push(events[i]);
+  }
+
+  return enriched;
 }

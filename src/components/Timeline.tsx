@@ -285,6 +285,46 @@ export const Timeline: React.FC<TimelineProps> = ({
       {events.map((event, index) => {
         const isFirst = index === 0;
         const isLast = index === events.length - 1;
+
+        // Tappable placeholder rows (e.g. "Añadir datos de la noche",
+        // "Añadir despertar nocturno"). Render with a dashed accent dot
+        // and an accent label, no time on the right.
+        if (event.placeholder) {
+          return (
+            <Pressable
+              key={event.id}
+              onPress={() => onPressEvent?.(event)}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && styles.pressed,
+              ]}
+            >
+              <View style={styles.rail}>
+                <SolidLine hidden={isFirst} variant="overnight" />
+                <View style={styles.dotContainer}>
+                  <View style={[styles.dot, styles.dotPlaceholder]}>
+                    <Ionicons
+                      name="add"
+                      size={14}
+                      color={colors.accent.base}
+                    />
+                  </View>
+                </View>
+                <SolidLine hidden={isLast} variant="overnight" />
+              </View>
+              <View style={styles.content}>
+                <View style={styles.titleRow}>
+                  <Text variant="body" tone="accent" style={styles.title}>
+                    {event.placeholder === 'addBedtime'
+                      ? t('timeline.addBedtimeData')
+                      : t('timeline.addNightWakePlaceholder')}
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
+          );
+        }
+
         const dc = dotColors(event.status, event.kind, event.confidence);
         const subtitle = formatSubtitle(event, use24h);
         const rightDuration = formatRightDuration(event, now);
@@ -549,6 +589,12 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
+  },
+  dotPlaceholder: {
+    backgroundColor: 'transparent',
+    borderColor: colors.accent.base,
+    borderStyle: 'dashed',
+    borderWidth: 1.5,
   },
   nightWakeBar: {
     width: 12,

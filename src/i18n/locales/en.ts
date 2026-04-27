@@ -123,6 +123,8 @@ export const en = {
     editMorningWake: 'Edit wake time',
     morningWake: 'Wake up',
     morningWakeNoNight: 'No night data',
+    addBedtimeData: 'Add bedtime',
+    addNightWakePlaceholder: 'Add night waking',
     nightWakeAwakeFor: 'Awake · {duration}',
     microNapTag: 'Short nap',
     startTime: 'Start',
