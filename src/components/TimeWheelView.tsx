@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { WheelPicker, WHEEL_ITEM_HEIGHT, WHEEL_VISIBLE_COUNT } from './WheelPicker';
 import { colors, spacing } from '@/theme';
 import { startOfDay } from '@/logic/format';
@@ -54,8 +55,84 @@ const pad2 = (n: number): string => (n < 10 ? `0${n}` : String(n));
  * The wheel picker UI without a Sheet wrapper. Designed to be embedded
  * inside an existing Sheet (avoids RN Modal nesting, which crashes on
  * iOS with new arch + Reanimated 4).
+ *
+ * iOS uses the native DateTimePicker in spinner mode — three native
+ * columns (day · hour · minute), perfectly aligned, no jitter, with
+ * proper haptics from the system. Android falls back to the custom
+ * wheel implementation since native datetime spinner isn't supported
+ * inline on that platform.
  */
-export const TimeWheelView: React.FC<TimeWheelViewProps> = ({
+export const TimeWheelView: React.FC<TimeWheelViewProps> = (props) => {
+  if (Platform.OS === 'ios') {
+    return <NativeIOSPicker {...props} />;
+  }
+  return <CustomWheelPicker {...props} />;
+};
+
+const NativeIOSPicker: React.FC<TimeWheelViewProps> = ({
+  initial,
+  use24h = true,
+  onClose,
+  onConfirm,
+}) => {
+  const [value, setValue] = useState<Date>(initial);
+
+  useEffect(() => {
+    setValue(initial);
+  }, [initial]);
+
+  const handleConfirm = () => {
+    lightImpact();
+    onConfirm(value);
+  };
+
+  return (
+    <View>
+      <View style={styles.headerBar}>
+        <Pressable
+          onPress={onClose}
+          style={({ pressed }) => [
+            styles.btn,
+            styles.btnGhost,
+            pressed && styles.btnPressed,
+          ]}
+          hitSlop={8}
+        >
+          <Ionicons name="close" size={20} color={colors.text.secondary} />
+        </Pressable>
+        <Pressable
+          onPress={handleConfirm}
+          style={({ pressed }) => [
+            styles.btn,
+            styles.btnPrimary,
+            pressed && styles.btnPressed,
+          ]}
+          hitSlop={8}
+        >
+          <Ionicons name="checkmark" size={22} color={colors.pure.white} />
+        </Pressable>
+      </View>
+
+      <View style={styles.nativePickerWrap}>
+        <DateTimePicker
+          value={value}
+          mode="datetime"
+          display="spinner"
+          themeVariant="dark"
+          textColor={colors.text.primary}
+          locale={undefined}
+          is24Hour={use24h}
+          onChange={(_, d) => {
+            if (d) setValue(d);
+          }}
+          style={styles.nativePicker}
+        />
+      </View>
+    </View>
+  );
+};
+
+const CustomWheelPicker: React.FC<TimeWheelViewProps> = ({
   initial,
   use24h = true,
   rangeBefore = 30,
@@ -231,5 +308,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: spacing.sm,
+  },
+  nativePickerWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: spacing.lg,
+  },
+  nativePicker: {
+    width: '100%',
+    height: 200,
   },
 });
