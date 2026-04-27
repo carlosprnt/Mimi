@@ -11,7 +11,8 @@ import { ActionMenu, type ActionMenuItem } from '@/components/ActionMenu';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import { useAuthStore } from '@/state/authStore';
 import { useBabyStore } from '@/state/babyStore';
-import { useGoogleSignIn } from '@/services/googleAuth';
+import { signInWithGoogle } from '@/services/auth';
+import { listBabies } from '@/services/babies';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
@@ -20,62 +21,63 @@ export const WelcomeScreen: React.FC = () => {
   const setDraft = useOnboardingDraft((s) => s.set);
   const startedAt = useOnboardingDraft((s) => s.startedAt);
   const [signInOpen, setSignInOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!startedAt) setDraft({ startedAt: new Date().toISOString() });
   }, [startedAt, setDraft]);
 
-  const { ready: googleReady, signIn: signInWithGoogle } = useGoogleSignIn();
   const authedUser = useAuthStore((s) => s.user);
-  const babiesCount = useBabyStore((s) => s.babies.length);
+  const setBabies = useBabyStore((s) => s.setBabies);
   const isFocused = useIsFocused();
 
-  // Welcome reacts to Google auth like a "sign in" entry point:
-  // - babies on this device → straight to Root.
-  // - no babies on this device → tell the parent and force them to
-  //   complete onboarding. Without a backend (Phase B) we can't tell
-  //   if the *Google account* has data; we only know what's local.
-  // Guarded by useIsFocused so the same auth event doesn't double-fire
-  // if the parent triggered Google from a different screen.
+  // After Google OAuth completes the auth store flips to signed-in.
+  // - The session bootstrap hook already pulled babies from Supabase
+  //   into the local store. If any exist, jump to Root.
+  // - Otherwise show an honest alert: this Google account has no babies
+  //   yet on the backend, so we can't skip onboarding.
   useEffect(() => {
     if (!isFocused || !authedUser) return;
     setSignInOpen(false);
-    if (babiesCount > 0) {
-      navigation.dispatch(
-        CommonActions.reset({ index: 0, routes: [{ name: 'Root' }] }),
+    (async () => {
+      const remote = await listBabies(authedUser.id);
+      if (remote.length > 0) {
+        setBabies(remote);
+        navigation.dispatch(
+          CommonActions.reset({ index: 0, routes: [{ name: 'Root' }] }),
+        );
+        return;
+      }
+      Alert.alert(
+        'Sin datos en tu cuenta',
+        `Hola ${authedUser.name ?? authedUser.email ?? ''}. Esta cuenta no tiene bebés guardados todavía. Completa el onboarding para empezar.`,
+        [
+          {
+            text: 'Continuar',
+            onPress: () => navigation.navigate('OnboardingDob'),
+          },
+        ],
       );
-      return;
-    }
-    Alert.alert(
-      'Sin datos en este dispositivo',
-      `Hola ${authedUser.name ?? authedUser.email ?? ''}. No encontramos un bebé guardado aquí. Completa el onboarding para empezar.`,
-      [
-        {
-          text: 'Continuar',
-          onPress: () => navigation.navigate('OnboardingDob'),
-        },
-      ],
-    );
-  }, [isFocused, authedUser, babiesCount, navigation]);
+    })();
+  }, [isFocused, authedUser, navigation, setBabies]);
 
   const onApple = () => {
     setSignInOpen(false);
     Alert.alert(
       'Apple',
-      'Apple Sign-In requiere un dev build. Estará disponible cuando arranquemos Phase B.',
+      'Apple Sign-In requiere un dev build. Llega después.',
     );
   };
 
   const onGoogle = async () => {
-    if (!googleReady) {
-      Alert.alert(
-        'Google',
-        'Falta configurar EXPO_PUBLIC_GOOGLE_*_CLIENT_ID en .env. Mira la guía.',
-      );
-      return;
-    }
+    if (busy) return;
     setSignInOpen(false);
-    await signInWithGoogle();
+    setBusy(true);
+    const result = await signInWithGoogle();
+    setBusy(false);
+    if (!result.ok && result.reason !== 'cancelled') {
+      Alert.alert('Google', result.message ?? 'No se pudo iniciar sesión.');
+    }
   };
 
   const signInItems: ActionMenuItem[] = [

@@ -11,7 +11,13 @@ import {
   DMSans_700Bold,
 } from '@expo-google-fonts/dm-sans';
 import { RootNavigator } from '@/navigation/RootNavigator';
+import { useSessionBootstrap } from '@/hooks/useSessionBootstrap';
 import { colors } from '@/theme';
+
+const SessionBootstrap: React.FC = () => {
+  useSessionBootstrap();
+  return null;
+};
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -26,6 +32,7 @@ export default function App() {
       <SafeAreaProvider>
         <View style={styles.root}>
           <StatusBar style="light" />
+          <SessionBootstrap />
           {fontsLoaded ? <RootNavigator /> : null}
         </View>
       </SafeAreaProvider>

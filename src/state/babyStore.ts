@@ -16,6 +16,8 @@ interface BabyState {
   preferences: Preferences;
   hydrated: boolean;
   addBaby: (baby: Omit<Baby, 'id'>) => Baby;
+  addBabyWithId: (baby: Baby) => Baby;
+  setBabies: (babies: Baby[]) => void;
   updateBaby: (id: string, patch: Partial<Omit<Baby, 'id'>>) => void;
   removeBaby: (id: string) => void;
   setActiveBabyId: (id: string | null) => void;
@@ -45,6 +47,24 @@ export const useBabyStore = create<BabyState>()(
         }));
         return baby;
       },
+      addBabyWithId: (baby) => {
+        set((state) => ({
+          babies: state.babies.some((b) => b.id === baby.id)
+            ? state.babies.map((b) => (b.id === baby.id ? baby : b))
+            : [...state.babies, baby],
+          activeBabyId: state.activeBabyId ?? baby.id,
+        }));
+        return baby;
+      },
+      setBabies: (next) =>
+        set((state) => ({
+          babies: next,
+          activeBabyId:
+            state.activeBabyId &&
+            next.some((b) => b.id === state.activeBabyId)
+              ? state.activeBabyId
+              : (next[0]?.id ?? null),
+        })),
       updateBaby: (id, patch) =>
         set((state) => ({
           babies: state.babies.map((b) =>

@@ -17,6 +17,7 @@ import { useSleepStore } from '@/state/sleepStore';
 import { useCareEventStore } from '@/state/careEventStore';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import { useAuthStore } from '@/state/authStore';
+import { signOut as supabaseSignOut } from '@/services/auth';
 import { ageLabel } from '@/logic/age';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
@@ -67,6 +68,7 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
 
   const handleSignOut = () => {
     setSignOutOpen(false);
+    void supabaseSignOut();
     resetSleep();
     resetCareEvents();
     clearOnboardingDraft();
