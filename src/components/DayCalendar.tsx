@@ -2,16 +2,19 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import {
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   View,
   useWindowDimensions,
 } from 'react-native';
 import Animated, {
   Easing,
+  Extrapolation,
+  interpolate,
+  useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { colors, fonts, spacing } from '@/theme';
@@ -28,6 +31,7 @@ interface DayCalendarProps {
 
 const DAY_CELL_WIDTH = 44;
 const DAY_CELL_GAP = 6;
+const SCROLL_GAP_BUMP = 4;
 const STICKY_TODAY_RIGHT = spacing.lg;
 const STICKY_TODAY_GUTTER = 8;
 
@@ -44,6 +48,101 @@ const formatWeekday = (d: Date) =>
 
 export const dayKey = (d: Date): string => startOfDay(d).toISOString();
 
+const Cell: React.FC<{
+  index: number;
+  total: number;
+  date: Date;
+  isSelected: boolean;
+  hasData: boolean;
+  onPress: () => void;
+  scrollX: SharedValue<number>;
+  active: SharedValue<number>;
+  fadeBoundaryRight: number;
+  scrollViewWidth: number;
+}> = ({
+  index,
+  total,
+  date,
+  isSelected,
+  hasData,
+  onPress,
+  scrollX,
+  active,
+  fadeBoundaryRight,
+  scrollViewWidth,
+}) => {
+  const baseSpan = DAY_CELL_WIDTH + DAY_CELL_GAP;
+
+  const animStyle = useAnimatedStyle(() => {
+    const a = active.value;
+    const extraGap = a * SCROLL_GAP_BUMP;
+    // The cell's right-edge X in screen coords (before transform). The
+    // ScrollView's contentOffset.x slides the strip left as the user
+    // scrolls right; cells with x close to the fade boundary get
+    // attenuated.
+    const cellSpan = baseSpan + extraGap;
+    const cellLeftInContent = spacing.lg + index * cellSpan;
+    const cellRightInContent = cellLeftInContent + DAY_CELL_WIDTH;
+    const cellRightOnScreen = cellRightInContent - scrollX.value;
+    // Once a cell's right edge crosses fadeBoundaryRight, it begins to
+    // disappear; by the time it's behind the sticky cell entirely,
+    // opacity 0.
+    const opacity = interpolate(
+      cellRightOnScreen,
+      [
+        fadeBoundaryRight - DAY_CELL_WIDTH,
+        fadeBoundaryRight + DAY_CELL_WIDTH * 0.2,
+      ],
+      [1, 0],
+      Extrapolation.CLAMP,
+    );
+    return {
+      opacity,
+      marginRight: index === total - 1 ? 0 : extraGap,
+      transform: [
+        {
+          scale: interpolate(a, [0, 1], [1, 0.9], Extrapolation.CLAMP),
+        },
+      ],
+    };
+  });
+
+  return (
+    <Animated.View style={animStyle}>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.cell,
+          isSelected && styles.cellSelected,
+          pressed && !isSelected && styles.cellPressed,
+        ]}
+      >
+        <Text
+          variant="title"
+          tone="primary"
+          style={[
+            styles.dayNumber,
+            { opacity: isSelected ? 1 : hasData ? 0.7 : 0.3 },
+          ]}
+        >
+          {formatDayNumber(date)}
+        </Text>
+        <Text
+          variant="eyebrow"
+          tone={isSelected ? 'accent' : 'primary'}
+          style={[
+            styles.weekday,
+            { opacity: isSelected ? 1 : hasData ? 0.7 : 0.3 },
+          ]}
+        >
+          {formatWeekday(date)}
+        </Text>
+        {hasData && !isSelected ? <View style={styles.dot} /> : null}
+      </Pressable>
+    </Animated.View>
+  );
+};
+
 export const DayCalendar: React.FC<DayCalendarProps> = ({
   selectedDate,
   onSelect,
@@ -52,12 +151,12 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
   daysWithData,
 }) => {
   const { width } = useWindowDimensions();
-  const scrollRef = useRef<ScrollView>(null);
-  const cellScale = useSharedValue(1);
+  const scrollRef = useRef<Animated.ScrollView>(null);
+  const scrollX = useSharedValue(0);
+  const active = useSharedValue(0);
 
   const today = useMemo(() => startOfDay(now), [now]);
 
-  // Days behind today (today itself is rendered as a sticky overlay).
   const days = useMemo(() => {
     const result: Date[] = [];
     for (let i = daysBack; i >= 1; i--) {
@@ -80,8 +179,6 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
 
   useEffect(() => {
     if (selectedIndex < 0) {
-      // Selected date is today (sticky cell) — scroll to far right so the
-      // most recent past dates sit next to the pinned today pill.
       const id = setTimeout(() => {
         scrollRef.current?.scrollToEnd({ animated: true });
       }, 50);
@@ -98,26 +195,26 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
     return () => clearTimeout(id);
   }, [selectedIndex, width]);
 
-  // Track whether momentum kicked in. iOS/Android fire onScrollEndDrag
-  // when the finger lifts; momentum (the inertial fling) starts and ends
-  // separately. We only want to bring the scale back to 1 when motion
-  // truly stops — either when momentum ends, or, if there was no fling,
-  // when onScrollEndDrag fires and no momentum follows.
   const inMomentumRef = useRef(false);
-  const dragEndedAtRef = useRef(0);
 
   const animateDown = () => {
-    cellScale.value = withTiming(0.9, {
+    active.value = withTiming(1, {
       duration: 160,
       easing: Easing.out(Easing.quad),
     });
   };
   const animateUp = () => {
-    cellScale.value = withTiming(1, {
+    active.value = withTiming(0, {
       duration: 160,
       easing: Easing.out(Easing.cubic),
     });
   };
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (e) => {
+      scrollX.value = e.contentOffset.x;
+    },
+  });
 
   const handleScrollBeginDrag = () => {
     inMomentumRef.current = false;
@@ -127,9 +224,6 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
     inMomentumRef.current = true;
   };
   const handleScrollEndDrag = () => {
-    dragEndedAtRef.current = Date.now();
-    // Give RN a frame to fire onMomentumScrollBegin if a fling is
-    // happening; if it doesn't, scale back up here.
     setTimeout(() => {
       if (!inMomentumRef.current) animateUp();
     }, 80);
@@ -139,13 +233,14 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
     animateUp();
   };
 
-  const cellAnim = useAnimatedStyle(() => ({
-    transform: [{ scale: cellScale.value }],
-  }));
+  // The sticky today cell sits at right: STICKY_TODAY_RIGHT and is
+  // DAY_CELL_WIDTH wide. So its left edge in screen coords is at
+  // (width - STICKY_TODAY_RIGHT - DAY_CELL_WIDTH).
+  const fadeBoundaryRight = width - STICKY_TODAY_RIGHT - DAY_CELL_WIDTH;
 
   return (
     <View style={styles.wrap}>
-      <ScrollView
+      <Animated.ScrollView
         ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -156,48 +251,29 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
               spacing.lg + DAY_CELL_WIDTH + STICKY_TODAY_GUTTER,
           },
         ]}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         onScrollBeginDrag={handleScrollBeginDrag}
         onScrollEndDrag={handleScrollEndDrag}
         onMomentumScrollBegin={handleMomentumScrollBegin}
         onMomentumScrollEnd={handleMomentumScrollEnd}
       >
-        {days.map((d) => {
-          const isSelected = isSameDay(d, selectedDate);
-          const hasData = daysWithData ? daysWithData.has(dayKey(d)) : true;
-          const textOpacity = isSelected ? 1 : hasData ? 0.7 : 0.3;
-
-          return (
-            <Animated.View key={d.toISOString()} style={cellAnim}>
-              <Pressable
-                onPress={() => onSelect(d)}
-                style={({ pressed }) => [
-                  styles.cell,
-                  isSelected && styles.cellSelected,
-                  pressed && !isSelected && styles.cellPressed,
-                ]}
-              >
-                <Text
-                  variant="title"
-                  tone="primary"
-                  style={[styles.dayNumber, { opacity: textOpacity }]}
-                >
-                  {formatDayNumber(d)}
-                </Text>
-                <Text
-                  variant="eyebrow"
-                  tone={isSelected ? 'accent' : 'primary'}
-                  style={[styles.weekday, { opacity: textOpacity }]}
-                >
-                  {formatWeekday(d)}
-                </Text>
-                {hasData && !isSelected ? (
-                  <View style={styles.dot} />
-                ) : null}
-              </Pressable>
-            </Animated.View>
-          );
-        })}
-      </ScrollView>
+        {days.map((d, i) => (
+          <Cell
+            key={d.toISOString()}
+            index={i}
+            total={days.length}
+            date={d}
+            isSelected={isSameDay(d, selectedDate)}
+            hasData={daysWithData ? daysWithData.has(dayKey(d)) : true}
+            onPress={() => onSelect(d)}
+            scrollX={scrollX}
+            active={active}
+            fadeBoundaryRight={fadeBoundaryRight}
+            scrollViewWidth={width}
+          />
+        ))}
+      </Animated.ScrollView>
 
       <View pointerEvents="box-none" style={styles.stickyWrap}>
         <Pressable

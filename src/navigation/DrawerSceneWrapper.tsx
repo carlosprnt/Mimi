@@ -59,15 +59,11 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
           ),
         },
         {
-          scale: interpolate(
-            p,
-            [0, 1],
-            [1, scaleTo],
-            Extrapolation.CLAMP,
-          ),
+          scale: interpolate(p, [0, 1], [1, scaleTo], Extrapolation.CLAMP),
         },
       ],
       borderRadius: interpolate(p, [0, 1], [0, RADIUS], Extrapolation.CLAMP),
+      borderWidth: interpolate(p, [0, 1], [0, 1], Extrapolation.CLAMP),
     };
   });
 
@@ -97,5 +93,6 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     backgroundColor: colors.bg.base,
+    borderColor: 'rgba(168, 165, 230, 0.18)',
   },
 });

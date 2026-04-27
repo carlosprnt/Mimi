@@ -113,6 +113,7 @@ export const HomeScreen: React.FC = () => {
   const [suggestionInfo, setSuggestionInfo] = useState<TimelineEvent | null>(
     null,
   );
+  const [hidePreviousNight, setHidePreviousNight] = useState(true);
 
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler({
@@ -498,13 +499,24 @@ export const HomeScreen: React.FC = () => {
         ) : (
           <>
             <Card variant="bordered" tone="night" style={styles.planCard}>
-              <Text
-                variant="eyebrow"
-                tone="tertiary"
-                style={styles.planEyebrow}
-              >
-                {t('home.plan')}
-              </Text>
+              <View style={styles.planHeader}>
+                <Text variant="eyebrow" tone="tertiary">
+                  {t('home.plan')}
+                </Text>
+                {isToday ? (
+                  <Pressable
+                    onPress={() => setHidePreviousNight((v) => !v)}
+                    hitSlop={8}
+                    style={({ pressed }) => pressed && styles.addWakePressed}
+                  >
+                    <Text variant="footnote" tone="accent">
+                      {hidePreviousNight
+                        ? t('timeline.viewPreviousNight')
+                        : t('timeline.hidePreviousNight')}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
               {isToday && !hasWakeEvent && active?.kind !== 'night' ? (
                 <Pressable
                   onPress={onPressAddWake}
@@ -526,6 +538,7 @@ export const HomeScreen: React.FC = () => {
                 use24h={use24h}
                 now={now}
                 onPressEvent={onPressTimelineEvent}
+                hidePreviousNight={isToday && hidePreviousNight}
               />
               {isToday && !hasWakeEvent && active?.kind === 'night' ? (
                 <Pressable
@@ -708,6 +721,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   planEyebrow: {
+    marginBottom: spacing.md,
+  },
+  planHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: spacing.md,
   },
   addWakeRow: {

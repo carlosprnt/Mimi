@@ -31,6 +31,10 @@ interface TimelineProps {
   use24h?: boolean;
   now?: Date;
   onPressEvent?: (event: TimelineEvent) => void;
+  /** When true, the previous-night portion (everything before the
+   *  morning wake) is hidden. Controlled by HomeScreen via the
+   *  "Ver / Ocultar noche anterior" toggle on the plan card header. */
+  hidePreviousNight?: boolean;
 }
 
 const iconFor = (
@@ -281,60 +285,23 @@ export const Timeline: React.FC<TimelineProps> = ({
   use24h = true,
   now = new Date(),
   onPressEvent,
+  hidePreviousNight = false,
 }) => {
-  // Collapse the previous-night portion of the timeline once the day
-  // is well underway: when the parent has logged ≥2 naps, or it's past
-  // 16:00. The collapsed segment is everything before the morning wake;
-  // a tappable header restores it.
+  // The collapse state is owned by HomeScreen (rendered as a tiny
+  // text toggle on the plan card header); we just respect it here.
   const morningWakeIdx = events.findIndex(
     (e) => e.kind === 'wake' && e.status === 'real',
   );
-  const completedNapCount = events.filter(
-    (e) => e.kind === 'nap' && e.status === 'real',
-  ).length;
-  const collapsible =
-    morningWakeIdx > 0 &&
-    (completedNapCount >= 2 || now.getHours() >= 16);
-  const [expanded, setExpanded] = React.useState(false);
   const visibleEvents =
-    collapsible && !expanded ? events.slice(morningWakeIdx) : events;
+    hidePreviousNight && morningWakeIdx > 0
+      ? events.slice(morningWakeIdx)
+      : events;
   const nextMilestoneIndex = visibleEvents.findIndex(
     (e) => e.status === 'suggested' || e.status === 'active',
   );
 
   return (
     <View style={styles.wrap}>
-      {collapsible ? (
-        <Pressable
-          onPress={() => setExpanded((v) => !v)}
-          style={({ pressed }) => [
-            styles.row,
-            pressed && styles.pressed,
-          ]}
-          hitSlop={8}
-        >
-          <View style={styles.rail}>
-            <SolidLine hidden />
-            <View style={styles.dotContainer}>
-              <View style={[styles.dot, styles.dotPlaceholder]}>
-                <Ionicons
-                  name="ellipsis-horizontal"
-                  size={12}
-                  color={colors.accent.base}
-                />
-              </View>
-            </View>
-            <SolidLine hidden />
-          </View>
-          <View style={styles.content}>
-            <Text variant="body" tone="accent">
-              {expanded
-                ? t('timeline.hidePreviousNight')
-                : t('timeline.viewPreviousNight')}
-            </Text>
-          </View>
-        </Pressable>
-      ) : null}
       {visibleEvents.map((event, index) => {
         const isFirst = index === 0;
         const isLast = index === visibleEvents.length - 1;
