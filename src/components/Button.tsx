@@ -117,7 +117,11 @@ const styles = StyleSheet.create({
 const variantStyle: Record<Variant, ViewStyle> = {
   primary: { backgroundColor: colors.accent.base },
   ghost: { backgroundColor: 'transparent' },
-  subtle: { backgroundColor: colors.bg.elevated },
+  subtle: {
+    backgroundColor: 'rgba(168, 165, 230, 0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(168, 165, 230, 0.22)',
+  },
   outline: {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderWidth: 1,
@@ -134,7 +138,7 @@ const variantStyle: Record<Variant, ViewStyle> = {
 const pressedStyle: Record<Variant, ViewStyle> = {
   primary: { backgroundColor: colors.accent.pressed, transform: [{ scale: 0.995 }] },
   ghost: { opacity: 0.6 },
-  subtle: { backgroundColor: colors.border.hairline },
+  subtle: { backgroundColor: 'rgba(168, 165, 230, 0.18)' },
   outline: { backgroundColor: 'rgba(255, 255, 255, 0.14)' },
   destructive: { backgroundColor: 'rgba(226, 107, 98, 0.22)' },
   dangerGhost: { opacity: 0.6 },

@@ -80,7 +80,13 @@ export const Sheet: React.FC<SheetProps> = ({
       presentationStyle="overFullScreen"
     >
       <View style={StyleSheet.absoluteFill}>
-        <Animated.View style={[styles.backdrop, backdropStyle]}>
+        <Animated.View
+          style={[
+            styles.backdrop,
+            isFrosted && styles.backdropFrosted,
+            backdropStyle,
+          ]}
+        >
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         </Animated.View>
         <Animated.View
@@ -93,14 +99,15 @@ export const Sheet: React.FC<SheetProps> = ({
           {isFrosted ? (
             <>
               <BlurView
-                intensity={Platform.OS === 'ios' ? 80 : 40}
-                tint="dark"
+                intensity={Platform.OS === 'ios' ? 90 : 50}
+                tint="systemUltraThinMaterialDark"
+                experimentalBlurMethod="dimezisBlurView"
                 style={StyleSheet.absoluteFill}
               />
               <View
                 style={[
                   StyleSheet.absoluteFill,
-                  { backgroundColor: 'rgba(7, 11, 31, 0.32)' },
+                  { backgroundColor: 'rgba(7, 11, 31, 0.18)' },
                 ]}
               />
             </>
@@ -121,6 +128,9 @@ const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.bg.overlay,
+  },
+  backdropFrosted: {
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
   },
   sheet: {
     position: 'absolute',
