@@ -92,14 +92,14 @@ export const Sheet: React.FC<SheetProps> = ({
           {isFrosted ? (
             <>
               <BlurView
-                intensity={Platform.OS === 'ios' ? 60 : 32}
+                intensity={Platform.OS === 'ios' ? 80 : 40}
                 tint="dark"
                 style={StyleSheet.absoluteFill}
               />
               <View
                 style={[
                   StyleSheet.absoluteFill,
-                  { backgroundColor: 'rgba(7, 11, 31, 0.78)' },
+                  { backgroundColor: 'rgba(7, 11, 31, 0.32)' },
                 ]}
               />
             </>

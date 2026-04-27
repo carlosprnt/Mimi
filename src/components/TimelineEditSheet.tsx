@@ -105,7 +105,7 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose}>
+    <Sheet visible={visible} onClose={onClose} variant="frosted">
       {picker === null ? (
         <>
           <Text variant="title" style={styles.title}>

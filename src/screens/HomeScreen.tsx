@@ -647,6 +647,7 @@ export const HomeScreen: React.FC = () => {
       <Sheet
         visible={addBedtime !== null}
         onClose={() => setAddBedtime(null)}
+        variant="frosted"
       >
         <Text variant="title" style={styles.sheetTitle}>
           {t('timeline.addBedtimeData')}
