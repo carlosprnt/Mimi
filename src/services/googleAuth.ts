@@ -52,9 +52,16 @@ interface UseGoogleSignInResult {
 }
 
 export const useGoogleSignIn = (): UseGoogleSignInResult => {
-  const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
-  const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
   const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+  // Fall back to the web client when platform-specific ones aren't set.
+  // expo-auth-session validates these strictly on iOS / Android, so without
+  // a fallback the screen render-crashes when only the web client is in
+  // .env. Using the web client for Expo Go OAuth (proxy via auth.expo.io)
+  // is the documented workaround.
+  const iosClientId =
+    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || webClientId;
+  const androidClientId =
+    process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || webClientId;
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId,
