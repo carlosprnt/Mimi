@@ -417,15 +417,21 @@ export const Timeline: React.FC<TimelineProps> = ({
                       />
                     </>
                   ) : null}
-                  {isInterruption ? (
-                    <View style={styles.nightWakeBar} />
-                  ) : (
-                    <Ionicons
-                      name={iconFor(event.kind, event.status)}
-                      size={14}
-                      color={isNext ? colors.pure.white : dc.icon}
-                    />
-                  )}
+                  <Ionicons
+                    name={
+                      isInterruption
+                        ? 'flash'
+                        : iconFor(event.kind, event.status)
+                    }
+                    size={14}
+                    color={
+                      isInterruption
+                        ? colors.danger.base
+                        : isNext
+                          ? colors.pure.white
+                          : dc.icon
+                    }
+                  />
                 </View>
               </View>
               <SolidLine
@@ -595,12 +601,6 @@ const styles = StyleSheet.create({
     borderColor: colors.accent.base,
     borderStyle: 'dashed',
     borderWidth: 1.5,
-  },
-  nightWakeBar: {
-    width: 12,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: colors.danger.base,
   },
   content: {
     flex: 1,

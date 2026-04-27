@@ -153,9 +153,13 @@ export const HomeScreen: React.FC = () => {
 
   if (!baby) return null;
 
+  const onTarget =
+    !!recommendation?.progress &&
+    recommendation.progress.expectedMs > 0 &&
+    recommendation.progress.elapsedMs >= recommendation.progress.expectedMs;
   const remainingLabel =
     recommendation?.progress && recommendation.progress.expectedMs > 0
-      ? recommendation.progress.elapsedMs >= recommendation.progress.expectedMs
+      ? onTarget
         ? t('home.onTarget')
         : t('home.remainingDuration', {
             duration: formatDuration(
@@ -476,6 +480,7 @@ export const HomeScreen: React.FC = () => {
               recommendation={recommendation}
               iconName={heroIcon(recommendation)}
               remainingLabel={remainingLabel}
+              onTarget={onTarget}
             />
           </View>
         ) : null}
@@ -594,7 +599,7 @@ export const HomeScreen: React.FC = () => {
           <View style={{ height: spacing.md }} />
           <Button
             title={t('common.notYet')}
-            variant="ghost"
+            variant="dangerGhost"
             onPress={() => setConfirmEnd(false)}
           />
         </View>

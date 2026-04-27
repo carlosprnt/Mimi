@@ -27,11 +27,14 @@ interface HomeHeroProps {
   recommendation: Recommendation;
   iconName: keyof typeof Ionicons.glyphMap;
   remainingLabel?: string;
+  onTarget?: boolean;
 }
 
 const GLOW_SIZE = 280;
 
-const HeroGlow: React.FC = () => {
+const HeroGlow: React.FC<{ tint?: 'violet' | 'success' }> = ({
+  tint = 'violet',
+}) => {
   const opacity = useSharedValue(0.55);
 
   useEffect(() => {
@@ -47,12 +50,27 @@ const HeroGlow: React.FC = () => {
 
   const animStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
+  const stops =
+    tint === 'success'
+      ? [
+          { offset: '0', color: '#E8FFEB', opacity: '0.42' },
+          { offset: '0.4', color: '#6FCE8C', opacity: '0.18' },
+          { offset: '0.75', color: '#6FCE8C', opacity: '0.05' },
+          { offset: '1', color: '#6FCE8C', opacity: '0' },
+        ]
+      : [
+          { offset: '0', color: '#D8C8FF', opacity: '0.32' },
+          { offset: '0.4', color: '#A8A5E6', opacity: '0.14' },
+          { offset: '0.75', color: '#A8A5E6', opacity: '0.04' },
+          { offset: '1', color: '#A8A5E6', opacity: '0' },
+        ];
+
   return (
     <Animated.View pointerEvents="none" style={[styles.glow, animStyle]}>
       <Svg width={GLOW_SIZE} height={GLOW_SIZE}>
         <Defs>
           <RadialGradient
-            id="hero-glow"
+            id={`hero-glow-${tint}`}
             cx={GLOW_SIZE / 2}
             cy={GLOW_SIZE / 2}
             rx={GLOW_SIZE / 2}
@@ -61,17 +79,21 @@ const HeroGlow: React.FC = () => {
             fy={GLOW_SIZE / 2}
             gradientUnits="userSpaceOnUse"
           >
-            <Stop offset="0" stopColor="#D8C8FF" stopOpacity="0.32" />
-            <Stop offset="0.4" stopColor="#A8A5E6" stopOpacity="0.14" />
-            <Stop offset="0.75" stopColor="#A8A5E6" stopOpacity="0.04" />
-            <Stop offset="1" stopColor="#A8A5E6" stopOpacity="0" />
+            {stops.map((s) => (
+              <Stop
+                key={s.offset}
+                offset={s.offset}
+                stopColor={s.color}
+                stopOpacity={s.opacity}
+              />
+            ))}
           </RadialGradient>
         </Defs>
         <Circle
           cx={GLOW_SIZE / 2}
           cy={GLOW_SIZE / 2}
           r={GLOW_SIZE / 2}
-          fill="url(#hero-glow)"
+          fill={`url(#hero-glow-${tint})`}
         />
       </Svg>
     </Animated.View>
@@ -82,6 +104,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
   recommendation,
   iconName,
   remainingLabel,
+  onTarget,
 }) => {
   const isSleeping = recommendation.root === 'SLEEPING';
   const progress = recommendation.progress;
@@ -98,7 +121,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
       emphasis="frosted"
       style={styles.card}
     >
-      <HeroGlow />
+      <HeroGlow tint={onTarget ? 'success' : 'violet'} />
       <View style={styles.iconWrap}>
         <Ionicons name={iconName} size={26} color="#F4F1FF" />
       </View>
@@ -131,11 +154,28 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
 
       {showProgress ? (
         <View style={styles.progressWrap}>
-          <ProgressBar value={progressValue} />
+          <ProgressBar value={progressValue} accent={onTarget ? 'success' : 'violet'} />
           {remainingLabel ? (
-            <Text variant="footnote" tone="secondary" style={styles.remaining}>
-              {remainingLabel}
-            </Text>
+            <View style={styles.remainingRow}>
+              {onTarget ? (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={14}
+                  color={colors.success.base}
+                  style={styles.remainingIcon}
+                />
+              ) : null}
+              <Text
+                variant="footnote"
+                tone={onTarget ? undefined : 'secondary'}
+                style={[
+                  styles.remaining,
+                  onTarget ? styles.remainingSuccess : null,
+                ]}
+              >
+                {remainingLabel}
+              </Text>
+            </View>
           ) : null}
         </View>
       ) : null}
@@ -184,8 +224,18 @@ const styles = StyleSheet.create({
   progressWrap: {
     marginTop: spacing.lg,
   },
-  remaining: {
+  remainingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: spacing.sm,
+    gap: 6,
+  },
+  remainingIcon: {
+    marginTop: 1,
+  },
+  remaining: {},
+  remainingSuccess: {
+    color: colors.success.base,
   },
   context: {
     marginTop: spacing.md,

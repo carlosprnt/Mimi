@@ -92,7 +92,7 @@ export const PointEventSheet: React.FC<PointEventSheetProps> = ({
             <View style={{ height: spacing.sm }} />
             <Button
               title={t('profile.cancel')}
-              variant="ghost"
+              variant="dangerGhost"
               onPress={onClose}
             />
             {onDelete ? (

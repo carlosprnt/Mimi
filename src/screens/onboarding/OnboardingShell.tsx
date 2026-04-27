@@ -70,7 +70,7 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
         {secondaryTitle && onSecondary ? (
           <>
             <View style={{ height: spacing.sm }} />
-            <Button title={secondaryTitle} onPress={onSecondary} variant="ghost" />
+            <Button title={secondaryTitle} onPress={onSecondary} variant="dangerGhost" />
           </>
         ) : null}
       </View>

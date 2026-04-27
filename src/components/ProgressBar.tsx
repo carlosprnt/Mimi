@@ -12,12 +12,14 @@ interface ProgressBarProps {
   value: number;
   style?: ViewStyle;
   height?: number;
+  accent?: 'violet' | 'success';
 }
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   value,
   style,
   height = 24,
+  accent = 'violet',
 }) => {
   const clamped = Math.max(0, Math.min(1, value));
   const progress = useSharedValue(clamped);
@@ -48,7 +50,11 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         style={[styles.fillWrap, { borderRadius: radius }, fillStyle]}
       >
         <LinearGradient
-          colors={['#D7D2FF', colors.accent.base, colors.accent.pressed]}
+          colors={
+            accent === 'success'
+              ? ['#C8FFD2', colors.success.base, '#48B26C']
+              : ['#D7D2FF', colors.accent.base, colors.accent.pressed]
+          }
           locations={[0, 0.55, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}

@@ -130,7 +130,7 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
             <View style={{ height: spacing.sm }} />
             <Button
               title={t('profile.cancel')}
-              variant="ghost"
+              variant="dangerGhost"
               onPress={onClose}
             />
             {onDelete ? (

@@ -16,9 +16,9 @@ export const typography = {
   },
   title: {
     fontFamily: fonts.medium,
-    fontSize: 28,
-    lineHeight: 34,
-    letterSpacing: -0.4,
+    fontSize: 22,
+    lineHeight: 28,
+    letterSpacing: -0.3,
   },
   headline: {
     fontFamily: fonts.medium,

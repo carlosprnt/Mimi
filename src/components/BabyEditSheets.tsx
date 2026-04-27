@@ -68,7 +68,7 @@ export const NameEditSheet: React.FC<NameSheetProps> = ({
           <View style={{ height: spacing.sm }} />
           <Button
             title={t('profile.cancel')}
-            variant="ghost"
+            variant="dangerGhost"
             onPress={onClose}
           />
         </View>
@@ -122,7 +122,7 @@ export const DobEditSheet: React.FC<DobSheetProps> = ({
           disabled={value.getTime() === initial.getTime()}
         />
         <View style={{ height: spacing.sm }} />
-        <Button title={t('profile.cancel')} variant="ghost" onPress={onClose} />
+        <Button title={t('profile.cancel')} variant="dangerGhost" onPress={onClose} />
       </View>
     </Sheet>
   );
@@ -196,7 +196,7 @@ export const PrematurityEditSheet: React.FC<PrematuritySheetProps> = ({
           disabled={selected === (initial ?? 0)}
         />
         <View style={{ height: spacing.sm }} />
-        <Button title={t('profile.cancel')} variant="ghost" onPress={onClose} />
+        <Button title={t('profile.cancel')} variant="dangerGhost" onPress={onClose} />
       </View>
     </Sheet>
   );
@@ -230,7 +230,7 @@ export const DeleteChildSheet: React.FC<DeleteSheetProps> = ({
           onPress={onConfirm}
         />
         <View style={{ height: spacing.sm }} />
-        <Button title={t('profile.cancel')} variant="ghost" onPress={onClose} />
+        <Button title={t('profile.cancel')} variant="dangerGhost" onPress={onClose} />
       </View>
     </Sheet>
   );

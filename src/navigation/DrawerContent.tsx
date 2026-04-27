@@ -308,7 +308,7 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
         <View style={styles.signOutSheetGap} />
         <Button
           title={t('common.no')}
-          variant="ghost"
+          variant="dangerGhost"
           onPress={() => setSignOutOpen(false)}
         />
       </Sheet>

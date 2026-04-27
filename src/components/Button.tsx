@@ -79,7 +79,7 @@ export const Button: React.FC<ButtonProps> = ({
         <ActivityIndicator color={spinnerColor(variant)} />
       ) : (
         <View style={styles.inner}>
-          <Text variant="headline" tone={labelTone(variant)} style={styles.label}>
+          <Text variant="body" tone={labelTone(variant)} style={styles.label}>
             {title}
           </Text>
         </View>
