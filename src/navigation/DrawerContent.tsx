@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import {
   CommonActions,
   DrawerActions,
@@ -45,6 +45,7 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
   const authedUser = useAuthStore((s) => s.user);
 
   const [signOutOpen, setSignOutOpen] = useState(false);
+  const [accountExpanded, setAccountExpanded] = useState(false);
 
   const selectBaby = (id: string) => {
     setActiveBabyId(id);
@@ -95,7 +96,7 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
     <View style={styles.outer}>
       <View style={styles.panel}>
         <LinearGradient
-          colors={[colors.night.top, colors.night.mid, colors.night.bottom]}
+          colors={['#020205', '#040611', colors.night.bottom]}
           locations={[0, 0.55, 1]}
           style={StyleSheet.absoluteFill}
         />
@@ -241,49 +242,69 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
             {t('drawer.account')}
           </Text>
 
-          <View style={styles.accountRow}>
-            <Ionicons
-              name={authedUser ? 'person-circle-outline' : 'person-outline'}
-              size={20}
-              color={colors.text.secondary}
-              style={styles.iconLead}
-            />
-            <View style={styles.accountInfo}>
-              <Text variant="body" tone="secondary" numberOfLines={1}>
-                {authedUser?.name ?? authedUser?.email ?? t('drawer.accountLocal')}
-              </Text>
-              <Text
-                variant="footnote"
-                tone="tertiary"
-                numberOfLines={1}
-                style={styles.accountCaption}
-              >
-                {authedUser
-                  ? authedUser.provider === 'google'
-                    ? 'Google'
-                    : 'Apple'
-                  : t('drawer.accountLocalCaption')}
-              </Text>
-            </View>
-          </View>
-
           <Pressable
-            onPress={() => setSignOutOpen(true)}
+            onPress={() => setAccountExpanded((v) => !v)}
             style={({ pressed }) => [
-              styles.signOutRow,
+              styles.accountRow,
               pressed && styles.pressed,
             ]}
+            hitSlop={4}
           >
-            <Ionicons
-              name="log-out-outline"
-              size={20}
-              color={colors.danger.base}
-              style={styles.iconLead}
-            />
-            <Text variant="body" tone="danger">
-              {t('drawer.signOut')}
-            </Text>
+            <View style={styles.accountInfo}>
+              <Text variant="body" tone="primary" numberOfLines={1}>
+                {authedUser?.email ?? t('drawer.accountLocal')}
+              </Text>
+              {!authedUser ? (
+                <Text
+                  variant="footnote"
+                  tone="tertiary"
+                  numberOfLines={1}
+                  style={styles.accountCaption}
+                >
+                  {t('drawer.accountLocalCaption')}
+                </Text>
+              ) : null}
+            </View>
+            {authedUser?.picture ? (
+              <Image
+                source={{ uri: authedUser.picture }}
+                style={styles.accountAvatar}
+              />
+            ) : (
+              <View style={styles.accountAvatar}>
+                <Text
+                  variant="body"
+                  tone="onAccent"
+                  style={styles.accountInitials}
+                >
+                  {(authedUser?.name ?? authedUser?.email ?? '·')
+                    .trim()
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </Text>
+              </View>
+            )}
           </Pressable>
+
+          {accountExpanded && authedUser ? (
+            <Pressable
+              onPress={() => setSignOutOpen(true)}
+              style={({ pressed }) => [
+                styles.signOutRow,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Ionicons
+                name="log-out-outline"
+                size={20}
+                color={colors.danger.base}
+                style={styles.iconLead}
+              />
+              <Text variant="body" tone="danger">
+                {t('drawer.signOut')}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
 
@@ -472,6 +493,19 @@ const styles = StyleSheet.create({
   },
   accountCaption: {
     marginTop: 2,
+  },
+  accountAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.accent.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  accountInitials: {
+    fontFamily: fonts.semibold,
+    fontSize: 13,
   },
   signOutRow: {
     flexDirection: 'row',
