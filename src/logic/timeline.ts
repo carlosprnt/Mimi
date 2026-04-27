@@ -123,8 +123,6 @@ export function buildTimeline(
           new Date(a.at).getTime() - new Date(b.at).getTime(),
       );
 
-    const split = wakesInRange.length > 0;
-
     // Net night sleep duration: gross span minus the time the baby was
     // awake during recorded night wakes that fell inside this night.
     const grossMs = nightEndMs - nightStartMs;
@@ -136,23 +134,20 @@ export function buildTimeline(
     }, 0);
     const netNightMs = Math.max(0, grossMs - wakeMsTotal);
 
+    // ONE bedtime row for the night start, marked overnightChain. The
+    // night wakes appear between this row and the morning wake; no
+    // "resumed" pieces in between (those proved redundant).
     events.push({
       id: `prev-bedtime-${lastNightEndedThatDay.id}`,
       kind: 'bedtime',
       status: 'real',
       sessionId: lastNightEndedThatDay.id,
       at: new Date(nightStartMs),
-      // The total night sleep lives on the final piece of the night so
-      // it sits near the morning wake. For a single-row (un-split)
-      // night that's this row; for a split night the duration is set
-      // on the last "resumed" segment further down.
-      durationMs: split ? undefined : netNightMs,
+      durationMs: netNightMs,
       overnightChain: true,
       captionKey: startedYesterday ? 'yesterday' : undefined,
-      segment: split ? 'start' : undefined,
     });
 
-    let lastBedtimePieceIndex = events.length - 1;
     for (const ev of wakesInRange) {
       const t = new Date(ev.at).getTime();
       events.push({
@@ -168,35 +163,6 @@ export function buildTimeline(
         overnightChain: true,
       });
       usedCareEventIds.add(ev.id);
-
-      // After each night wake that has an end time, emit the resumed
-      // bedtime continuation. The visual treatment is restful again
-      // (violet rail + bedtime icon + "Sueño nocturno" label).
-      if (ev.endedAt) {
-        const resumedAtMs = new Date(ev.endedAt).getTime();
-        if (resumedAtMs < nightEndMs) {
-          events.push({
-            id: `resumed-${ev.id}`,
-            kind: 'bedtime',
-            status: 'real',
-            sessionId: lastNightEndedThatDay.id,
-            at: new Date(resumedAtMs),
-            overnightChain: true,
-            segment: 'resumed',
-          });
-          lastBedtimePieceIndex = events.length - 1;
-        }
-      }
-    }
-
-    // Attach the net night-sleep total to the final bedtime piece (the
-    // last "resumed" segment if the night had wakes; otherwise the
-    // single start row already carries it).
-    if (split) {
-      events[lastBedtimePieceIndex] = {
-        ...events[lastBedtimePieceIndex],
-        durationMs: netNightMs,
-      };
     }
 
     events.push({
@@ -260,56 +226,31 @@ export function buildTimeline(
             new Date(a.at).getTime() - new Date(b.at).getTime(),
         );
 
-      if (activeWakes.length > 0) {
-        // Split layout: start anchor + each wake + active continuation.
+      // ONE bedtime row marked active. Night wakes sit below in
+      // chronological order. No "resumed" piece — the active dot is on
+      // the bedtime row itself, with the live elapsed time on the right.
+      events.push({
+        id: `active-${active.id}`,
+        kind: 'bedtime',
+        status: 'active',
+        sessionId: active.id,
+        from: new Date(active.startedAt),
+      });
+
+      for (const ev of activeWakes) {
+        const t = new Date(ev.at).getTime();
         events.push({
-          id: `active-start-${active.id}`,
-          kind: 'bedtime',
+          id: `care-${ev.id}`,
+          kind: 'nightWake',
           status: 'real',
-          sessionId: active.id,
-          at: new Date(activeStartMs),
-          segment: 'start',
+          careEventId: ev.id,
+          at: new Date(ev.at),
+          to: ev.endedAt ? new Date(ev.endedAt) : undefined,
+          durationMs: ev.endedAt
+            ? new Date(ev.endedAt).getTime() - t
+            : undefined,
         });
-
-        for (const ev of activeWakes) {
-          const t = new Date(ev.at).getTime();
-          events.push({
-            id: `care-${ev.id}`,
-            kind: 'nightWake',
-            status: 'real',
-            careEventId: ev.id,
-            at: new Date(ev.at),
-            to: ev.endedAt ? new Date(ev.endedAt) : undefined,
-            durationMs: ev.endedAt
-              ? new Date(ev.endedAt).getTime() - t
-              : undefined,
-          });
-          usedCareEventIds.add(ev.id);
-        }
-
-        const lastEnded = [...activeWakes]
-          .reverse()
-          .find((ev) => !!ev.endedAt);
-        const resumeFromMs = lastEnded
-          ? new Date(lastEnded.endedAt!).getTime()
-          : activeStartMs;
-
-        events.push({
-          id: `active-${active.id}`,
-          kind: 'bedtime',
-          status: 'active',
-          sessionId: active.id,
-          from: new Date(resumeFromMs),
-          segment: 'resumed',
-        });
-      } else {
-        events.push({
-          id: `active-${active.id}`,
-          kind: 'bedtime',
-          status: 'active',
-          sessionId: active.id,
-          from: new Date(active.startedAt),
-        });
+        usedCareEventIds.add(ev.id);
       }
     } else {
       events.push({
