@@ -183,6 +183,7 @@ export const en = {
       subtitle:
         'Mimi guides you with gentle sleep suggestions based on age and the day so far.',
       cta: 'Begin',
+      signIn: 'I already have an account',
     },
     name: {
       eyebrow: 'YOUR BABY',

@@ -29,6 +29,10 @@ interface OnboardingSceneProps {
     disabled?: boolean;
     loading?: boolean;
   };
+  secondaryCta?: {
+    label: string;
+    onPress: () => void;
+  };
   children?: React.ReactNode;
   illustrationSex?: 'girl' | 'boy';
   scrollable?: boolean;
@@ -42,6 +46,7 @@ export const OnboardingScene: React.FC<OnboardingSceneProps> = ({
   subtitle,
   onBack,
   cta,
+  secondaryCta,
   children,
   illustrationSex,
   scrollable = false,
@@ -115,19 +120,35 @@ export const OnboardingScene: React.FC<OnboardingSceneProps> = ({
           {children ? <View style={styles.children}>{children}</View> : null}
         </Body>
 
-        {cta ? (
+        {cta || secondaryCta ? (
           <View
             style={[
               styles.ctaWrap,
               { paddingBottom: Math.max(insets.bottom, spacing.lg) },
             ]}
           >
-            <Button
-              title={cta.label}
-              onPress={cta.onPress}
-              disabled={cta.disabled}
-              loading={cta.loading}
-            />
+            {cta ? (
+              <Button
+                title={cta.label}
+                onPress={cta.onPress}
+                disabled={cta.disabled}
+                loading={cta.loading}
+              />
+            ) : null}
+            {secondaryCta ? (
+              <Pressable
+                onPress={secondaryCta.onPress}
+                hitSlop={8}
+                style={({ pressed }) => [
+                  styles.secondary,
+                  pressed && styles.secondaryPressed,
+                ]}
+              >
+                <Text variant="footnote" tone="secondary">
+                  {secondaryCta.label}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         ) : null}
       </KeyboardAvoidingView>
@@ -180,5 +201,13 @@ const styles = StyleSheet.create({
   ctaWrap: {
     paddingHorizontal: screenGutter,
     paddingTop: spacing.md,
+  },
+  secondary: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    marginTop: spacing.xs,
+  },
+  secondaryPressed: {
+    opacity: 0.55,
   },
 });

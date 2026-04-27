@@ -185,6 +185,7 @@ export const es: Translations = {
       subtitle:
         'Mimi te acompaña con sugerencias suaves de sueño, según su edad y cómo va el día.',
       cta: 'Empezar',
+      signIn: 'Ya tengo cuenta',
     },
     name: {
       eyebrow: 'TU BEBÉ',
