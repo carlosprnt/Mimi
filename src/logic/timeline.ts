@@ -121,17 +121,34 @@ export function buildTimeline(
 
     const split = wakesInRange.length > 0;
 
+    // Net night sleep duration: gross span minus the time the baby was
+    // awake during recorded night wakes that fell inside this night.
+    const grossMs = nightEndMs - nightStartMs;
+    const wakeMsTotal = wakesInRange.reduce((acc, ev) => {
+      if (!ev.endedAt) return acc;
+      const t = new Date(ev.at).getTime();
+      const end = new Date(ev.endedAt).getTime();
+      return acc + Math.max(0, end - t);
+    }, 0);
+    const netNightMs = Math.max(0, grossMs - wakeMsTotal);
+
     events.push({
       id: `prev-bedtime-${lastNightEndedThatDay.id}`,
       kind: 'bedtime',
       status: 'real',
       sessionId: lastNightEndedThatDay.id,
       at: new Date(nightStartMs),
+      // The total night sleep lives on the final piece of the night so
+      // it sits near the morning wake. For a single-row (un-split)
+      // night that's this row; for a split night the duration is set
+      // on the last "resumed" segment further down.
+      durationMs: split ? undefined : netNightMs,
       overnightChain: true,
       captionKey: startedYesterday ? 'yesterday' : undefined,
       segment: split ? 'start' : undefined,
     });
 
+    let lastBedtimePieceIndex = events.length - 1;
     for (const ev of wakesInRange) {
       const t = new Date(ev.at).getTime();
       events.push({
@@ -163,8 +180,19 @@ export function buildTimeline(
             overnightChain: true,
             segment: 'resumed',
           });
+          lastBedtimePieceIndex = events.length - 1;
         }
       }
+    }
+
+    // Attach the net night-sleep total to the final bedtime piece (the
+    // last "resumed" segment if the night had wakes; otherwise the
+    // single start row already carries it).
+    if (split) {
+      events[lastBedtimePieceIndex] = {
+        ...events[lastBedtimePieceIndex],
+        durationMs: netNightMs,
+      };
     }
 
     events.push({
@@ -298,15 +326,29 @@ export function buildTimeline(
   const bedtimeStart = floatToDate(dayStart, bedtime.earliest);
   const bedtimeEnd = floatToDate(dayStart, bedtime.latest);
 
-  if (isToday && !active) {
-    const lastKnownPoint =
-      events.length > 0
-        ? events[events.length - 1].to ?? events[events.length - 1].at ?? null
-        : null;
+  if (isToday) {
+    // Anchor the prediction chain. If there's an active session we
+    // project from its expected end (start + typical nap duration for a
+    // nap, or skip predictions entirely for an active night). Otherwise
+    // we anchor on the last completed event in the timeline so far.
+    let anchorMs: number | null = null;
+    let napsAccountedFor = dayNaps.length;
+    if (active) {
+      if (active.kind === 'nap') {
+        const startMs = new Date(active.startedAt).getTime();
+        anchorMs = startMs + TYPICAL_NAP_MS;
+        napsAccountedFor += 1;
+      }
+      // Active night → no daytime predictions.
+    } else if (events.length > 0) {
+      const last = events[events.length - 1];
+      const lastPoint = last.to ?? last.at ?? null;
+      anchorMs = lastPoint ? lastPoint.getTime() : null;
+    }
 
-    if (lastKnownPoint) {
-      const remaining = Math.max(0, expectedNaps - dayNaps.length);
-      let cursor = lastKnownPoint.getTime();
+    if (anchorMs !== null) {
+      const remaining = Math.max(0, expectedNaps - napsAccountedFor);
+      let cursor = anchorMs;
       for (let i = 0; i < remaining; i++) {
         const fromMs = cursor + wakeWin.minMs;
         const toMs = cursor + wakeWin.maxMs;
