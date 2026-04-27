@@ -172,9 +172,12 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
           onPress={goAddChild}
           style={({ pressed }) => [styles.addRow, pressed && styles.pressed]}
         >
-          <View style={styles.addIcon}>
-            <Ionicons name="add" size={20} color={colors.accent.base} />
-          </View>
+          <Ionicons
+            name="add"
+            size={20}
+            color={colors.accent.base}
+            style={styles.iconLead}
+          />
           <Text variant="body" tone="accent" style={styles.addLabel}>
             {t('drawer.addChild')}
           </Text>
@@ -194,15 +197,12 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
                 pressed && styles.pressed,
               ]}
             >
-              <View
-                style={[styles.navIconWrap, isActive && styles.navIconWrapActive]}
-              >
-                <Ionicons
-                  name={item.icon}
-                  size={18}
-                  color={isActive ? colors.accent.base : colors.text.secondary}
-                />
-              </View>
+              <Ionicons
+                name={item.icon}
+                size={20}
+                color={isActive ? colors.accent.base : colors.text.secondary}
+                style={styles.iconLead}
+              />
               <Text
                 variant="body"
                 tone={isActive ? 'primary' : 'secondary'}
@@ -229,13 +229,12 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
         </Text>
 
         <View style={styles.accountRow}>
-          <View style={styles.accountAvatar}>
-            <Ionicons
-              name="person-outline"
-              size={18}
-              color={colors.text.secondary}
-            />
-          </View>
+          <Ionicons
+            name="person-outline"
+            size={20}
+            color={colors.text.secondary}
+            style={styles.iconLead}
+          />
           <View style={styles.accountInfo}>
             <Text variant="body" tone="secondary" numberOfLines={1}>
               {t('drawer.accountLocal')}
@@ -258,13 +257,12 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
             pressed && styles.pressed,
           ]}
         >
-          <View style={styles.signOutIconWrap}>
-            <Ionicons
-              name="log-out-outline"
-              size={18}
-              color={colors.danger.base}
-            />
-          </View>
+          <Ionicons
+            name="log-out-outline"
+            size={20}
+            color={colors.danger.base}
+            style={styles.iconLead}
+          />
           <Text variant="body" tone="danger">
             {t('drawer.signOut')}
           </Text>
@@ -390,19 +388,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     gap: spacing.md,
   },
-  addIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(168, 165, 230, 0.45)',
-    backgroundColor: 'rgba(168, 165, 230, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   addLabel: {
     fontFamily: fonts.medium,
+  },
+  iconLead: {
+    width: 24,
+    textAlign: 'center',
   },
   divider: {
     height: 1,
@@ -422,17 +413,6 @@ const styles = StyleSheet.create({
   },
   navRowActive: {
     backgroundColor: 'rgba(168, 165, 230, 0.08)',
-  },
-  navIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navIconWrapActive: {
-    backgroundColor: 'rgba(168, 165, 230, 0.12)',
   },
   navRowLabelActive: {
     fontFamily: fonts.medium,
@@ -462,16 +442,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     gap: spacing.md,
   },
-  accountAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   accountInfo: {
     flex: 1,
   },
@@ -488,14 +458,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     minHeight: 48,
     gap: spacing.md,
-  },
-  signOutIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(226, 107, 98, 0.10)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   signOutSheetTitle: {
     marginTop: spacing.sm,

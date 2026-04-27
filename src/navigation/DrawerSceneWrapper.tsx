@@ -9,8 +9,8 @@ import { useDrawerProgress } from '@react-navigation/drawer';
 import { BlurView } from 'expo-blur';
 import { colors } from '@/theme';
 
-export const DRAWER_WIDTH = 280;
-export const DRAWER_SCALE_TO = 0.7;
+export const DRAWER_WIDTH = 320;
+export const DRAWER_SCALE_TO = 0.8;
 export const DRAWER_GAP = 4;
 const RADIUS = 32;
 
