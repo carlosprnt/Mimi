@@ -16,7 +16,7 @@ export const NameScreen: React.FC = () => {
   const trimmed = name.trim();
 
   const next = () =>
-    navigation.navigate('OnboardingDob', { name: trimmed, mode });
+    navigation.navigate('OnboardingDobLegacy', { name: trimmed, mode });
 
   return (
     <OnboardingShell

@@ -8,6 +8,7 @@ export interface Baby {
   name: string;
   dateOfBirth: string;
   prematureWeeks?: number;
+  sex?: 'girl' | 'boy';
 }
 
 export function ageInMonths(baby: Baby, now = new Date()): number {

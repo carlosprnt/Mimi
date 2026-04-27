@@ -7,6 +7,11 @@ import { HomeScreen } from '@/screens/HomeScreen';
 import { HistoryScreen } from '@/screens/HistoryScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { WelcomeScreen } from '@/screens/onboarding/WelcomeScreen';
+import { OnboardingDobScreen } from '@/screens/onboarding/OnboardingDobScreen';
+import { OnboardingAtTermScreen } from '@/screens/onboarding/OnboardingAtTermScreen';
+import { OnboardingDueDateScreen } from '@/screens/onboarding/OnboardingDueDateScreen';
+import { OnboardingIdentityScreen } from '@/screens/onboarding/OnboardingIdentityScreen';
+import { OnboardingSummaryScreen } from '@/screens/onboarding/OnboardingSummaryScreen';
 import { NameScreen } from '@/screens/onboarding/NameScreen';
 import { DobScreen } from '@/screens/onboarding/DobScreen';
 import { PrematurityScreen } from '@/screens/onboarding/PrematurityScreen';
@@ -93,8 +98,13 @@ export const RootNavigator: React.FC = () => {
         initialRouteName={hasBaby ? 'Root' : 'OnboardingWelcome'}
       >
         <Stack.Screen name="OnboardingWelcome" component={WelcomeScreen} />
+        <Stack.Screen name="OnboardingDob" component={OnboardingDobScreen} />
+        <Stack.Screen name="OnboardingAtTerm" component={OnboardingAtTermScreen} />
+        <Stack.Screen name="OnboardingDueDate" component={OnboardingDueDateScreen} />
+        <Stack.Screen name="OnboardingIdentity" component={OnboardingIdentityScreen} />
+        <Stack.Screen name="OnboardingSummary" component={OnboardingSummaryScreen} />
         <Stack.Screen name="OnboardingName" component={NameScreen} />
-        <Stack.Screen name="OnboardingDob" component={DobScreen} />
+        <Stack.Screen name="OnboardingDobLegacy" component={DobScreen} />
         <Stack.Screen name="OnboardingPrematurity" component={PrematurityScreen} />
         <Stack.Screen name="Root" component={RootDrawer} />
       </Stack.Navigator>

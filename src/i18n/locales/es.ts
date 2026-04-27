@@ -166,23 +166,71 @@ export const es: Translations = {
   },
   onboarding: {
     stepOf: 'Paso {step} de {total}',
+    common: {
+      continue: 'Continuar',
+      back: 'Atrás',
+    },
     welcome: {
-      title: 'Un acompañante tranquilo para el sueño de tu bebé.',
+      title: 'Tranquilidad para las noches de tu bebé.',
       subtitle:
-        'Mimi te sugiere con suavidad la próxima siesta o la hora de dormir, según la edad de tu bebé y el sueño registrado hoy.',
+        'Mimi te acompaña con sugerencias suaves de sueño, según su edad y cómo va el día.',
       cta: 'Empezar',
     },
     name: {
       eyebrow: 'TU BEBÉ',
       title: '¿Cómo se llama?',
-      subtitle: 'Solo el nombre. Mimi lo guarda en tu dispositivo.',
+      subtitle: 'Solo el nombre. Mimi lo guarda contigo.',
       placeholder: 'Nombre',
     },
     dob: {
       eyebrow: 'FECHA DE NACIMIENTO',
       title: '¿Cuándo nació?',
-      subtitle: 'Esto ayuda a Mimi a ajustar las sugerencias.',
+      subtitle: 'Esto ayuda a Mimi a calcular sus ventanas de sueño.',
       selectedDate: 'Fecha seleccionada',
+      tapToPick: 'Toca para elegir',
+    },
+    atTerm: {
+      eyebrow: 'EDAD CORREGIDA',
+      title: '¿Nació a término?',
+      subtitle:
+        'Si llegó antes, Mimi suaviza sus sugerencias durante las primeras semanas.',
+      yes: 'Sí, a término',
+      no: 'Nació antes',
+    },
+    dueDate: {
+      eyebrow: 'FECHA PREVISTA',
+      title: '¿Cuándo estaba previsto?',
+      subtitle: 'Mimi usará esta fecha para ajustar la edad corregida.',
+      birthRef: 'Nacimiento: {date}',
+    },
+    identity: {
+      eyebrow: 'TU BEBÉ',
+      title: '¿Cómo se llama?',
+      subtitle: 'Solo el nombre. Mimi lo guarda contigo.',
+      placeholder: 'Nombre',
+      sexLabel: 'Es una…',
+      girl: 'Niña',
+      boy: 'Niño',
+    },
+    summary: {
+      eyebrow: 'TODO LISTO',
+      title: 'Mimi ya tiene lo que necesita.',
+      subtitle:
+        'Crea tu cuenta para guardar el sueño de {name} entre tus dispositivos.',
+      disclaimer:
+        'Mimi ofrece orientación suave para acompañarte. No sustituye al pediatra.',
+      apple: 'Continuar con Apple',
+      google: 'Continuar con Google',
+      authComingSoon: 'Inicio de sesión próximamente',
+      rowDob: 'Fecha de nacimiento',
+      rowAtTerm: 'A término',
+      rowAtTermYes: 'Sí, a término',
+      rowAtTermNo: 'Nació antes',
+      rowDueDate: 'Fecha prevista',
+      rowName: 'Nombre',
+      rowSex: 'Sexo',
+      sexGirl: 'Niña',
+      sexBoy: 'Niño',
     },
     prematurity: {
       eyebrow: 'EDAD CORREGIDA',

@@ -11,7 +11,7 @@ import { t } from '@/i18n';
 
 export const DobScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, 'OnboardingDob'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'OnboardingDobLegacy'>>();
   const [dob, setDob] = useState<Date>(() => {
     const d = new Date();
     d.setMonth(d.getMonth() - 3);

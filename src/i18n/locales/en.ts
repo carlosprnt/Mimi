@@ -164,23 +164,71 @@ export const en = {
   },
   onboarding: {
     stepOf: 'Step {step} of {total}',
+    common: {
+      continue: 'Continue',
+      back: 'Back',
+    },
     welcome: {
-      title: "A calm companion for your baby's sleep.",
+      title: 'Calm nights for your baby.',
       subtitle:
-        "Mimi gently suggests the next nap or bedtime, based on your baby's age and the sleep already logged today.",
-      cta: 'Get started',
+        'Mimi guides you with gentle sleep suggestions based on age and the day so far.',
+      cta: 'Begin',
     },
     name: {
       eyebrow: 'YOUR BABY',
       title: "What's their name?",
-      subtitle: 'Just a first name. Mimi keeps this on your device.',
+      subtitle: 'Just a first name. Mimi keeps it with you.',
       placeholder: 'Name',
     },
     dob: {
       eyebrow: 'DATE OF BIRTH',
       title: 'When were they born?',
-      subtitle: 'This helps Mimi tailor nap and bedtime suggestions.',
+      subtitle: 'This helps Mimi calculate their sleep windows.',
       selectedDate: 'Selected date',
+      tapToPick: 'Tap to choose',
+    },
+    atTerm: {
+      eyebrow: 'CORRECTED AGE',
+      title: 'Was the baby born at term?',
+      subtitle:
+        'If they arrived early, Mimi softens its suggestions during the first weeks.',
+      yes: 'Yes, at term',
+      no: 'Born early',
+    },
+    dueDate: {
+      eyebrow: 'EXPECTED DATE',
+      title: 'When were they expected?',
+      subtitle: 'Mimi uses this date to adjust the corrected age.',
+      birthRef: 'Birth: {date}',
+    },
+    identity: {
+      eyebrow: 'YOUR BABY',
+      title: "What's their name?",
+      subtitle: 'Just a first name. Mimi keeps it with you.',
+      placeholder: 'Name',
+      sexLabel: 'They are a…',
+      girl: 'Girl',
+      boy: 'Boy',
+    },
+    summary: {
+      eyebrow: 'ALL SET',
+      title: 'Mimi has what it needs.',
+      subtitle:
+        'Create your account to keep {name}’s sleep across your devices.',
+      disclaimer:
+        'Mimi offers gentle guidance — not a replacement for your pediatrician.',
+      apple: 'Continue with Apple',
+      google: 'Continue with Google',
+      authComingSoon: 'Sign-in coming soon',
+      rowDob: 'Date of birth',
+      rowAtTerm: 'At term',
+      rowAtTermYes: 'Yes, at term',
+      rowAtTermNo: 'Born early',
+      rowDueDate: 'Expected date',
+      rowName: 'Name',
+      rowSex: 'Sex',
+      sexGirl: 'Girl',
+      sexBoy: 'Boy',
     },
     prematurity: {
       eyebrow: 'CORRECTED AGE',

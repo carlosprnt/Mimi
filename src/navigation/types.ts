@@ -9,7 +9,13 @@ export type DrawerParamList = {
 export type RootStackParamList = {
   Root: NavigatorScreenParams<DrawerParamList>;
   OnboardingWelcome: undefined;
+  OnboardingDob: undefined;
+  OnboardingAtTerm: undefined;
+  OnboardingDueDate: undefined;
+  OnboardingIdentity: undefined;
+  OnboardingSummary: undefined;
+  // Legacy routes kept for the addChild flow from the drawer.
   OnboardingName: { mode?: 'addChild' } | undefined;
-  OnboardingDob: { name: string; mode?: 'addChild' };
+  OnboardingDobLegacy: { name: string; mode?: 'addChild' };
   OnboardingPrematurity: { name: string; dob: string; mode?: 'addChild' };
 };
