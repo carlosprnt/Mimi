@@ -71,48 +71,50 @@ const labelFor = (kind: TimelineKind): string => {
   }
 };
 
-const formatEventTime = (event: TimelineEvent, use24h: boolean): string => {
+const formatSubtitle = (
+  event: TimelineEvent,
+  use24h: boolean,
+): string | null => {
+  if (event.captionKey === 'yesterday') {
+    if (event.at) {
+      return `${t('date.yesterday')} · ${formatClock(event.at, use24h)}`;
+    }
+    return t('date.yesterday');
+  }
+  if (event.captionKey === 'noNightData') {
+    return t('timeline.morningWakeNoNight');
+  }
   if (event.status === 'active' && event.from) {
     return t('timeline.activeFromTime', {
       time: formatClock(event.from, use24h),
     });
   }
-  if (event.at) return formatClock(event.at, use24h);
   if (event.from && event.to) {
     return `${formatClock(event.from, use24h)} – ${formatClock(event.to, use24h)}`;
   }
+  if (event.at) return formatClock(event.at, use24h);
   if (event.from) return formatClock(event.from, use24h);
-  return '';
+  return null;
 };
 
-const formatCaption = (
+const formatRightDuration = (
   event: TimelineEvent,
-  use24h: boolean,
   now: Date,
 ): string | null => {
-  if (event.captionKey === 'yesterday') return t('date.yesterday');
-  if (event.captionKey === 'noNightData') return t('timeline.morningWakeNoNight');
-  if (event.kind === 'nightWake' && event.durationMs != null) {
-    return t('timeline.nightWakeAwakeFor', {
-      duration: formatDuration(event.durationMs),
-    });
-  }
-  if (event.microNap && event.durationMs != null) {
-    return t('timeline.microNapTag', {
-      duration: formatDuration(event.durationMs),
-    });
-  }
   if (event.status === 'active' && event.from) {
-    const elapsed = now.getTime() - event.from.getTime();
-    return t('timeline.activeSleeping', {
-      duration: formatDuration(elapsed),
-    });
+    return formatDuration(now.getTime() - event.from.getTime());
+  }
+  if (event.kind === 'nightWake' && event.durationMs != null) {
+    return formatDuration(event.durationMs);
   }
   if (event.status === 'real' && event.durationMs != null) {
     return formatDuration(event.durationMs);
   }
-  // Suggested rows carry the SUGERIDO eyebrow above the title row;
-  // no caption — keeps predictions airy.
+  return null;
+};
+
+const formatExtraCaption = (event: TimelineEvent): string | null => {
+  if (event.microNap) return t('timeline.microNapTag');
   return null;
 };
 
@@ -280,8 +282,9 @@ export const Timeline: React.FC<TimelineProps> = ({
         const isFirst = index === 0;
         const isLast = index === events.length - 1;
         const dc = dotColors(event.status, event.kind, event.confidence);
-        const timeText = formatEventTime(event, use24h);
-        const caption = formatCaption(event, use24h, now);
+        const subtitle = formatSubtitle(event, use24h);
+        const rightDuration = formatRightDuration(event, now);
+        const extraCaption = formatExtraCaption(event);
         const editable =
           onPressEvent !== undefined &&
           ((event.status === 'real' &&
@@ -409,29 +412,53 @@ export const Timeline: React.FC<TimelineProps> = ({
                       ? event.confidence === 'low'
                         ? 'tertiary'
                         : 'secondary'
-                      : 'primary'
+                      : event.kind === 'nightWake' && event.status === 'real'
+                        ? 'danger'
+                        : 'primary'
                   }
                   style={styles.title}
                 >
                   {labelFor(event.kind)}
                 </Text>
+                {rightDuration ? (
+                  <Text
+                    variant="body"
+                    tone={
+                      event.kind === 'nightWake' && event.status === 'real'
+                        ? 'danger'
+                        : 'primary'
+                    }
+                    tabular
+                  >
+                    {rightDuration}
+                  </Text>
+                ) : null}
+              </View>
+              {subtitle ? (
                 <Text
-                  variant="body"
+                  variant="footnote"
                   tone={
                     event.status === 'suggested'
                       ? event.confidence === 'low'
                         ? 'tertiary'
                         : 'secondary'
-                      : 'primary'
+                      : event.kind === 'nightWake' && event.status === 'real'
+                        ? 'danger'
+                        : 'tertiary'
                   }
                   tabular
+                  style={styles.subtitle}
                 >
-                  {timeText}
+                  {subtitle}
                 </Text>
-              </View>
-              {caption ? (
-                <Text variant="footnote" tone="tertiary" style={styles.caption}>
-                  {caption}
+              ) : null}
+              {extraCaption ? (
+                <Text
+                  variant="footnote"
+                  tone="tertiary"
+                  style={styles.caption}
+                >
+                  {extraCaption}
                 </Text>
               ) : null}
             </View>
@@ -547,6 +574,9 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
+  },
+  subtitle: {
+    marginTop: 2,
   },
   caption: {
     marginTop: 2,
