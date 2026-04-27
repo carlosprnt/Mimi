@@ -43,6 +43,11 @@ export const signInWithGoogle = async (): Promise<SignInResult> => {
     };
   }
   const redirectTo = buildRedirectTo();
+  // Log so we can see the EXACT redirect URI being sent. In Expo Go this
+  // is an `exp://...` URL that must be whitelisted in Supabase →
+  // Authentication → URL Configuration → Redirect URLs.
+  // eslint-disable-next-line no-console
+  console.log('[auth] redirectTo →', redirectTo);
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
