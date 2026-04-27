@@ -418,7 +418,6 @@ export function buildTimeline(
 
   // Insert tappable placeholders that prompt the parent to fill in the
   // missing pieces of the overnight chain.
-  const enriched: TimelineEvent[] = [];
   const hasOvernightBedtime = events.some(
     (e) =>
       e.kind === 'bedtime' &&
@@ -433,12 +432,23 @@ export function buildTimeline(
       !!e.careEventId &&
       !hasOvernightBedtime,
   );
-  const closingWakeIdx = events.findIndex(
-    (e) =>
-      e.kind === 'wake' &&
-      e.status === 'real' &&
-      e.overnightChain,
-  );
+  // Where to insert the addNightWake placeholder: right after the last
+  // event that's still part of the overnight chain (last resumed bedtime
+  // piece, or last real night-wake, or the prev-bedtime if neither),
+  // and right before the closing morning wake.
+  let closingWakeIdx = -1;
+  let lastInNightIdx = -1;
+  for (let i = 0; i < events.length; i++) {
+    const e = events[i];
+    if (!e.overnightChain) continue;
+    if (e.kind === 'wake' && e.status === 'real') {
+      closingWakeIdx = i;
+    } else if (e.status === 'real') {
+      lastInNightIdx = i;
+    }
+  }
+
+  const enriched: TimelineEvent[] = [];
 
   if (morningWakeIdx >= 0) {
     enriched.push({
@@ -450,8 +460,15 @@ export function buildTimeline(
     });
   }
 
+  const placeholderInsertIdx =
+    hasOvernightBedtime && closingWakeIdx >= 0
+      ? lastInNightIdx >= 0
+        ? lastInNightIdx + 1
+        : closingWakeIdx
+      : -1;
+
   for (let i = 0; i < events.length; i++) {
-    if (i === closingWakeIdx && hasOvernightBedtime) {
+    if (i === placeholderInsertIdx) {
       enriched.push({
         id: 'placeholder-add-night-wake',
         kind: 'nightWake',
