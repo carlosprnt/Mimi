@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dimensions, Pressable, StyleSheet, View } from 'react-native';
+import {
+  CommonActions,
+  DrawerActions,
+} from '@react-navigation/native';
 import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
@@ -7,8 +11,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text } from '@/components';
+import { Text, Sheet, Button } from '@/components';
 import { useBabyStore } from '@/state/babyStore';
+import { useSleepStore } from '@/state/sleepStore';
+import { useCareEventStore } from '@/state/careEventStore';
+import { useOnboardingDraft } from '@/state/onboardingDraft';
 import { ageLabel } from '@/logic/age';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
@@ -32,6 +39,12 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
   const babies = useBabyStore((s) => s.babies);
   const activeBabyId = useBabyStore((s) => s.activeBabyId);
   const setActiveBabyId = useBabyStore((s) => s.setActiveBabyId);
+  const resetBabies = useBabyStore((s) => s.reset);
+  const resetSleep = useSleepStore((s) => s.resetAll);
+  const resetCareEvents = useCareEventStore((s) => s.resetAll);
+  const clearOnboardingDraft = useOnboardingDraft((s) => s.clear);
+
+  const [signOutOpen, setSignOutOpen] = useState(false);
 
   const selectBaby = (id: string) => {
     setActiveBabyId(id);
@@ -47,6 +60,22 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
 
   const goTo = (route: RouteName) => {
     props.navigation.navigate(route);
+  };
+
+  const handleSignOut = () => {
+    setSignOutOpen(false);
+    resetSleep();
+    resetCareEvents();
+    clearOnboardingDraft();
+    resetBabies();
+    props.navigation.dispatch(DrawerActions.closeDrawer());
+    const parent = props.navigation.getParent();
+    parent?.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'OnboardingWelcome' }],
+      }),
+    );
   };
 
   const currentRoute = props.state.routeNames[props.state.index];
@@ -192,8 +221,83 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
             </Pressable>
           );
         })}
+
+        <View style={styles.accountDivider} />
+
+        <Text variant="eyebrow" tone="tertiary" style={styles.accountEyebrow}>
+          {t('drawer.account')}
+        </Text>
+
+        <View style={styles.accountRow}>
+          <View style={styles.accountAvatar}>
+            <Ionicons
+              name="person-outline"
+              size={18}
+              color={colors.text.secondary}
+            />
+          </View>
+          <View style={styles.accountInfo}>
+            <Text variant="body" tone="secondary" numberOfLines={1}>
+              {t('drawer.accountLocal')}
+            </Text>
+            <Text
+              variant="footnote"
+              tone="tertiary"
+              numberOfLines={1}
+              style={styles.accountCaption}
+            >
+              {t('drawer.accountLocalCaption')}
+            </Text>
+          </View>
+        </View>
+
+        <Pressable
+          onPress={() => setSignOutOpen(true)}
+          style={({ pressed }) => [
+            styles.signOutRow,
+            pressed && styles.pressed,
+          ]}
+        >
+          <View style={styles.signOutIconWrap}>
+            <Ionicons
+              name="log-out-outline"
+              size={18}
+              color={colors.danger.base}
+            />
+          </View>
+          <Text variant="body" tone="danger">
+            {t('drawer.signOut')}
+          </Text>
+        </Pressable>
       </DrawerContentScrollView>
       </View>
+
+      <Sheet
+        visible={signOutOpen}
+        onClose={() => setSignOutOpen(false)}
+      >
+        <Text variant="title" style={styles.signOutSheetTitle}>
+          {t('drawer.signOutConfirmTitle')}
+        </Text>
+        <Text
+          variant="callout"
+          tone="secondary"
+          style={styles.signOutSheetBody}
+        >
+          {t('drawer.signOutConfirmBody')}
+        </Text>
+        <Button
+          title={t('drawer.signOutConfirmCta')}
+          variant="destructive"
+          onPress={handleSignOut}
+        />
+        <View style={styles.signOutSheetGap} />
+        <Button
+          title={t('common.no')}
+          variant="ghost"
+          onPress={() => setSignOutOpen(false)}
+        />
+      </Sheet>
     </View>
   );
 };
@@ -339,5 +443,71 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.6,
+  },
+  accountDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    marginTop: spacing.xl,
+    marginBottom: spacing.lg,
+    marginHorizontal: spacing.lg,
+  },
+  accountEyebrow: {
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    gap: spacing.md,
+  },
+  accountAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  accountInfo: {
+    flex: 1,
+  },
+  accountCaption: {
+    marginTop: 2,
+  },
+  signOutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginHorizontal: spacing.sm,
+    marginTop: spacing.xs,
+    borderRadius: 12,
+    minHeight: 48,
+    gap: spacing.md,
+  },
+  signOutIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(226, 107, 98, 0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signOutSheetTitle: {
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  signOutSheetBody: {
+    marginBottom: spacing.xl,
+    textAlign: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  signOutSheetGap: {
+    height: spacing.sm,
   },
 });

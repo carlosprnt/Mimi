@@ -24,6 +24,7 @@ interface SleepState {
   removeSession: (babyId: string, id: string) => void;
   clearAll: (babyId: string) => void;
   dropBaby: (babyId: string) => void;
+  resetAll: () => void;
 }
 
 const sessionsFor = (state: SleepState, babyId: string): SleepSession[] =>
@@ -103,6 +104,7 @@ export const useSleepStore = create<SleepState>()(
           delete next[babyId];
           return { sessionsByBaby: next };
         }),
+      resetAll: () => set({ sessionsByBaby: {} }),
     }),
     {
       name: 'mimi-sleep',

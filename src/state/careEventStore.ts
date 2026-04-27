@@ -15,6 +15,7 @@ interface CareEventState {
   ) => void;
   removeCareEvent: (babyId: string, id: string) => void;
   dropBaby: (babyId: string) => void;
+  resetAll: () => void;
 }
 
 const eventsFor = (state: CareEventState, babyId: string): CareEvent[] =>
@@ -53,6 +54,7 @@ export const useCareEventStore = create<CareEventState>()(
           delete next[babyId];
           return { eventsByBaby: next };
         }),
+      resetAll: () => set({ eventsByBaby: {} }),
     }),
     {
       name: 'mimi-care-events',

@@ -19,6 +19,14 @@ export const es: Translations = {
     children: 'Niños',
     addChild: 'Añadir niño',
     noChildren: 'Aún no hay niños',
+    account: 'CUENTA',
+    accountLocal: 'Solo local',
+    accountLocalCaption: 'Guardado en este dispositivo',
+    signOut: 'Cerrar sesión',
+    signOutConfirmTitle: '¿Cerrar sesión?',
+    signOutConfirmBody:
+      'Se borrarán los datos de Mimi en este dispositivo.',
+    signOutConfirmCta: 'Sí, cerrar sesión',
   },
   home: {
     today: 'RESUMEN DE HOY',

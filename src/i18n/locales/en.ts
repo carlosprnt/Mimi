@@ -17,6 +17,14 @@ export const en = {
     children: 'Children',
     addChild: 'Add child',
     noChildren: 'No children yet',
+    account: 'ACCOUNT',
+    accountLocal: 'Local only',
+    accountLocalCaption: 'Saved on this device',
+    signOut: 'Sign out',
+    signOutConfirmTitle: 'Sign out?',
+    signOutConfirmBody:
+      'All Mimi data on this device will be cleared.',
+    signOutConfirmCta: 'Yes, sign out',
   },
   home: {
     today: 'TODAY’S SUMMARY',
