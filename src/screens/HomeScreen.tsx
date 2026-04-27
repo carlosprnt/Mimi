@@ -274,6 +274,15 @@ export const HomeScreen: React.FC = () => {
 
   const onPressMore = () => setActionMenuOpen(true);
 
+  const onPressActiveQuickAction = () => {
+    setPointEvent({
+      kind: 'nightWake',
+      title: t('timeline.addNightWake'),
+      initial: new Date(now),
+      careEventId: null,
+    });
+  };
+
   const openPointEvent = (kind: CareEventKind, title: string) => {
     setActionMenuOpen(false);
     setTimeout(() => {
@@ -426,7 +435,7 @@ export const HomeScreen: React.FC = () => {
               >
                 {t('home.plan')}
               </Text>
-              {isToday && !hasWakeEvent ? (
+              {isToday && !hasWakeEvent && active?.kind !== 'night' ? (
                 <Pressable
                   onPress={onPressAddWake}
                   style={({ pressed }) => [
@@ -448,6 +457,22 @@ export const HomeScreen: React.FC = () => {
                 now={now}
                 onPressEvent={onPressTimelineEvent}
               />
+              {isToday && !hasWakeEvent && active?.kind === 'night' ? (
+                <Pressable
+                  onPress={onPressAddWake}
+                  style={({ pressed }) => [
+                    styles.addWakeRowBottom,
+                    pressed && styles.addWakePressed,
+                  ]}
+                >
+                  <View style={styles.addWakeIcon}>
+                    <Ionicons name="sunny-outline" size={14} color={colors.accent.base} />
+                  </View>
+                  <Text variant="body" tone="accent">
+                    {t('timeline.addWake')}
+                  </Text>
+                </Pressable>
+              ) : null}
             </Card>
 
             <Card variant="bordered" tone="night" style={styles.todayCard}>
@@ -492,8 +517,11 @@ export const HomeScreen: React.FC = () => {
           title={active ? t('home.endSleep') : t('home.startSleep')}
           onPress={onPressAction}
           variant={active ? 'destructive' : 'outline'}
-          onPressMore={onPressMore}
-          moreLabel={t('home.moreActions')}
+          onPressMore={active ? onPressActiveQuickAction : onPressMore}
+          moreLabel={
+            active ? t('timeline.addNightWake') : t('home.moreActions')
+          }
+          moreIcon={active ? 'flash' : 'ellipsis-horizontal'}
         />
       ) : null}
 
@@ -591,6 +619,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     gap: spacing.md,
     marginBottom: spacing.sm,
+  },
+  addWakeRowBottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    gap: spacing.md,
+    marginTop: spacing.sm,
   },
   addWakePressed: {
     opacity: 0.6,

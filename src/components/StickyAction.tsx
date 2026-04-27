@@ -26,6 +26,7 @@ interface StickyActionProps {
   variant?: 'primary' | 'subtle' | 'outline' | 'destructive';
   onPressMore?: () => void;
   moreLabel?: string;
+  moreIcon?: keyof typeof Ionicons.glyphMap;
 }
 
 const HALO_HEIGHT = 80;
@@ -84,6 +85,7 @@ export const StickyAction: React.FC<StickyActionProps> = ({
   variant = 'primary',
   onPressMore,
   moreLabel,
+  moreIcon = 'ellipsis-horizontal',
 }) => {
   const insets = useSafeAreaInsets();
   const showHalo = variant === 'outline';
@@ -117,11 +119,7 @@ export const StickyAction: React.FC<StickyActionProps> = ({
               tint="dark"
               style={StyleSheet.absoluteFill}
             />
-            <Ionicons
-              name="ellipsis-horizontal"
-              size={22}
-              color={colors.pure.white}
-            />
+            <Ionicons name={moreIcon} size={22} color={colors.pure.white} />
           </Pressable>
         ) : null}
       </View>
