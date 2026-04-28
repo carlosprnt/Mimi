@@ -26,10 +26,10 @@ import { MenuPanel } from './MenuPanel';
 
 const SCENE_RADIUS = 28;
 const CLOSE_VELOCITY = 600;
-const SCALE_MIN = 0.95;
+const SCALE_MIN = 0.9;
 const ANIM_DURATION = 380;
 const EASING_OUT = Easing.out(Easing.cubic);
-const SCENE_GAP = 40; // distance from last menu item to top of scene
+const SCENE_GAP = 32; // distance from last menu item to top of scene
 const GRABBER_TOP = 40; // distance from scene's top to the drag pill
 const FALLBACK_REVEAL_RATIO = 0.62;
 

@@ -161,7 +161,7 @@ const BabyTile: React.FC<{
       </View>
       <Text
         tone="primary"
-        style={styles.tileName}
+        style={styles.babyName}
         numberOfLines={1}
       >
         {baby.name}
@@ -200,11 +200,12 @@ const NavTile: React.FC<{
     onPress={onPress}
     style={({ pressed }) => [
       styles.tile,
+      styles.navTile,
       isActive && styles.tileActive,
       pressed && styles.pressed,
     ]}
   >
-    <View style={styles.tileTopRow}>
+    <View style={styles.navTileTopRow}>
       <Ionicons
         name={icon}
         size={22}
@@ -240,6 +241,12 @@ const styles = StyleSheet.create({
     minHeight: 120,
     justifyContent: 'space-between',
   },
+  navTile: {
+    minHeight: 88,
+  },
+  navTileTopRow: {
+    marginBottom: spacing.sm,
+  },
   tileActive: {
     borderColor: TILE_BORDER_ACTIVE,
     backgroundColor: TILE_BG_ACTIVE,
@@ -263,6 +270,9 @@ const styles = StyleSheet.create({
   tileAvatarLetter: { fontFamily: fonts.semibold },
   tileEdit: { fontFamily: fonts.medium },
   tileName: {
+    fontFamily: fonts.medium,
+  },
+  babyName: {
     fontFamily: fonts.medium,
     fontSize: 20,
     lineHeight: 24,
