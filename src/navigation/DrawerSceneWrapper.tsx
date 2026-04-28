@@ -202,7 +202,6 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
       >
         <MenuPanel
           activeRoute={route.name as 'Home' | 'History' | 'Profile'}
-          navigation={navigation}
           onContentHeight={setMenuHeight}
         />
       </Animated.View>
@@ -221,7 +220,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg.base,
   },
   menuOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
   },
   grabberWrap: {
     position: 'absolute',

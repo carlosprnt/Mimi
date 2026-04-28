@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View, LayoutChangeEvent } from 'react-native';
-import { DrawerActions } from '@react-navigation/native';
+import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,7 +13,6 @@ type RouteName = 'Home' | 'History' | 'Profile';
 
 interface MenuPanelProps {
   activeRoute: RouteName;
-  navigation: any;
   onContentHeight?: (height: number) => void;
 }
 
@@ -25,9 +24,9 @@ const TILE_BG_ACTIVE = 'rgba(40, 40, 100, 0.55)';
 
 export const MenuPanel: React.FC<MenuPanelProps> = ({
   activeRoute,
-  navigation,
   onContentHeight,
 }) => {
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const babies = useBabyStore((s) => s.babies);
   const activeBabyId = useBabyStore((s) => s.activeBabyId);
@@ -41,18 +40,22 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   };
 
   const editBaby = (id: string) => {
+    // eslint-disable-next-line no-console
+    console.log('[MenuPanel] editBaby', id);
     navigation.getParent()?.navigate('BabyEdit', { babyId: id });
     closeDrawer();
   };
 
   const goAddBaby = () => {
+    // eslint-disable-next-line no-console
+    console.log('[MenuPanel] goAddBaby');
     navigation.getParent()?.navigate('OnboardingName', { mode: 'addChild' });
     closeDrawer();
   };
 
   const goTo = (route: RouteName) => {
     // eslint-disable-next-line no-console
-    console.log('[MenuPanel] goTo', route, !!navigation);
+    console.log('[MenuPanel] goTo', route, 'parent?', !!navigation.getParent());
     navigation.navigate(route);
     closeDrawer();
   };
@@ -71,7 +74,7 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   };
 
   return (
-    <View style={styles.outer}>
+    <View style={styles.outer} onLayout={handleLayout}>
       <View pointerEvents="none" style={StyleSheet.absoluteFill}>
         <LinearGradient
           colors={['#020205', '#040611', colors.night.bottom]}
@@ -85,7 +88,6 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
           styles.content,
           { paddingTop: insets.top + spacing.md },
         ]}
-        onLayout={handleLayout}
       >
         {rows.map((row, rIdx) => (
           <View key={`row-${rIdx}`} style={styles.row}>
@@ -225,7 +227,9 @@ const NavTile: React.FC<{
 );
 
 const styles = StyleSheet.create({
-  outer: { ...StyleSheet.absoluteFillObject },
+  outer: {
+    overflow: 'hidden',
+  },
   content: {
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
