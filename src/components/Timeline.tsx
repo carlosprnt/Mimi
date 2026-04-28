@@ -173,9 +173,9 @@ const dotColors = (
   };
 };
 
-const RAIL_WIDTH = 36;
-const DOT_SIZE = 28;
-const GLOW_SIZE = 64;
+const RAIL_WIDTH = 44;
+const DOT_SIZE = 40;
+const GLOW_SIZE = 80;
 const DASH_HEIGHT = 4;
 const DASH_COUNT = 5;
 const OVERNIGHT_OPACITY = 0.5;
@@ -320,12 +320,11 @@ export const Timeline: React.FC<TimelineProps> = ({
               ]}
             >
               <View style={styles.rail}>
-                <SolidLine hidden={isFirst} variant="overnight" />
                 <View style={styles.dotContainer}>
                   <View style={[styles.dot, styles.dotPlaceholder]}>
                     <Ionicons
                       name="add"
-                      size={14}
+                      size={16}
                       color={colors.accent.base}
                     />
                   </View>
@@ -402,14 +401,6 @@ export const Timeline: React.FC<TimelineProps> = ({
         const row = (
           <>
             <View style={styles.rail}>
-              <SolidLine
-                hidden={isFirst}
-                variant={railVariant(
-                  isInterruption,
-                  aboveSuggested,
-                  aboveOvernight,
-                )}
-              />
               <View style={styles.dotContainer}>
                 {isNext ? <PulsingGlow /> : null}
                 <View
@@ -444,7 +435,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                         ? 'flash'
                         : iconFor(event.kind, event.status)
                     }
-                    size={14}
+                    size={20}
                     color={
                       isInterruption
                         ? colors.danger.base
@@ -558,7 +549,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    minHeight: 60,
+    minHeight: 80,
   },
   rail: {
     width: RAIL_WIDTH,
@@ -626,8 +617,8 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingLeft: spacing.md,
-    paddingVertical: spacing.sm,
-    justifyContent: 'center',
+    paddingTop: spacing.sm + 2,
+    paddingBottom: spacing.sm,
   },
   titleRow: {
     flexDirection: 'row',

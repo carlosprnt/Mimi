@@ -42,17 +42,26 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
 
   const editBaby = (id: string) => {
     closeDrawer();
-    navigation.getParent()?.navigate('BabyEdit', { babyId: id });
+    setTimeout(
+      () => navigation.getParent()?.navigate('BabyEdit', { babyId: id }),
+      60,
+    );
   };
 
   const goAddBaby = () => {
     closeDrawer();
-    navigation.getParent()?.navigate('OnboardingName', { mode: 'addChild' });
+    setTimeout(
+      () =>
+        navigation.getParent()?.navigate('OnboardingName', { mode: 'addChild' }),
+      60,
+    );
   };
 
   const goTo = (route: RouteName) => {
-    navigation.navigate(route);
     closeDrawer();
+    // Defer navigation slightly so the drawer-close animation begins
+    // first; the new screen mounts already in the closed state.
+    setTimeout(() => navigation.navigate(route), 60);
   };
 
   const tiles: Array<{ kind: 'baby'; id: string } | { kind: 'add' }> = [

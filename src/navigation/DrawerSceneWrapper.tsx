@@ -26,6 +26,7 @@ import { MenuPanel } from './MenuPanel';
 
 const SCENE_RADIUS = 28;
 const CLOSE_VELOCITY = 600;
+const OPEN_VELOCITY = 600;
 const SCALE_MIN = 0.9;
 const ANIM_DURATION = 380;
 const EASING_OUT = Easing.out(Easing.cubic);
@@ -129,19 +130,27 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
     navigation.dispatch(DrawerActions.closeDrawer());
   };
 
+  const openDrawer = () => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  };
+
   const pan = Gesture.Pan()
-    .enabled(isDrawerOpen)
-    .activeOffsetY(-12)
-    .failOffsetY(12)
+    .activeOffsetY([-12, 12])
     .onChange((e) => {
       const next = dragY.value + e.changeY;
-      dragY.value = Math.min(0, next);
+      // While closed, only allow downward drag to peek-open. While
+      // open, only allow upward drag to peek-close.
+      dragY.value = isDrawerOpen ? Math.min(0, next) : Math.max(0, next);
     })
     .onEnd((e) => {
-      const fast = e.velocityY < -CLOSE_VELOCITY;
-      const movedUp = dragY.value < -reveal * 0.22;
-      if (fast || movedUp) {
-        runOnJS(closeDrawer)();
+      if (isDrawerOpen) {
+        const fast = e.velocityY < -CLOSE_VELOCITY;
+        const movedUp = dragY.value < -reveal * 0.22;
+        if (fast || movedUp) runOnJS(closeDrawer)();
+      } else {
+        const fast = e.velocityY > OPEN_VELOCITY;
+        const movedDown = dragY.value > reveal * 0.18;
+        if (fast || movedDown) runOnJS(openDrawer)();
       }
       dragY.value = withSpring(0, { damping: 18, stiffness: 220 });
     });
