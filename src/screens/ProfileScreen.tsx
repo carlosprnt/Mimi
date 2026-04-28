@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import {
@@ -11,14 +11,15 @@ import {
   Text,
   Button,
   Sheet,
+  SignOutIcon,
 } from '@/components';
-import { colors, spacing, screenGutter } from '@/theme';
+import { colors, fonts, spacing, screenGutter } from '@/theme';
 import { useBabyStore } from '@/state/babyStore';
 import { useSleepStore } from '@/state/sleepStore';
 import { useCareEventStore } from '@/state/careEventStore';
 import { useAuthStore } from '@/state/authStore';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
-import { deleteAccount } from '@/services/auth';
+import { deleteAccount, signOut as supabaseSignOut } from '@/services/auth';
 import { DrawerParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
@@ -33,8 +34,25 @@ export const ProfileScreen: React.FC = () => {
   const signOutAuth = useAuthStore((s) => s.signOut);
   const clearOnboardingDraft = useOnboardingDraft((s) => s.clear);
 
+  const authedUser = useAuthStore((s) => s.user);
+
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [signOutOpen, setSignOutOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const onConfirmSignOut = () => {
+    setSignOutOpen(false);
+    void supabaseSignOut();
+    clearOnboardingDraft();
+    signOutAuth();
+    const parent = navigation.getParent();
+    parent?.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'OnboardingWelcome' }],
+      }),
+    );
+  };
 
   const onConfirmDelete = async () => {
     if (deleting) return;
@@ -118,6 +136,53 @@ export const ProfileScreen: React.FC = () => {
           </View>
         </Card>
 
+        <SectionLabel label={t('drawer.account')} />
+        <Card padded={false} tone="night" style={styles.card}>
+          <View style={styles.accountInner}>
+            <View style={styles.accountTop}>
+              {authedUser?.picture ? (
+                <Image source={{ uri: authedUser.picture }} style={styles.accountAvatar} />
+              ) : (
+                <View style={styles.accountAvatar}>
+                  <Text variant="body" tone="onAccent" style={styles.accountInitials}>
+                    {(authedUser?.name ?? authedUser?.email ?? '·')
+                      .trim()
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.accountInfo}>
+                <Text variant="body" tone="primary" numberOfLines={1}>
+                  {authedUser?.email ?? t('drawer.accountLocal')}
+                </Text>
+                {!authedUser ? (
+                  <Text variant="footnote" tone="tertiary" numberOfLines={1}>
+                    {t('drawer.accountLocalCaption')}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+            {authedUser ? (
+              <>
+                <View style={styles.accountDivider} />
+                <Pressable
+                  onPress={() => setSignOutOpen(true)}
+                  style={({ pressed }) => [
+                    styles.signOutRow,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <SignOutIcon size={18} />
+                  <Text variant="body" tone="danger">
+                    {t('drawer.signOut')}
+                  </Text>
+                </Pressable>
+              </>
+            ) : null}
+          </View>
+        </Card>
+
         <SectionLabel label={t('profile.about')} />
         <Card padded={false} tone="night" style={styles.card}>
           <View style={styles.inner}>
@@ -141,6 +206,26 @@ export const ProfileScreen: React.FC = () => {
           style={styles.deleteAccount}
         />
       </ScrollView>
+
+      <Sheet visible={signOutOpen} onClose={() => setSignOutOpen(false)}>
+        <Text variant="title" align="center" style={styles.sheetTitle}>
+          {t('drawer.signOutConfirmTitle')}
+        </Text>
+        <Text variant="callout" tone="secondary" align="center" style={styles.sheetBody}>
+          {t('drawer.signOutConfirmBody')}
+        </Text>
+        <Button
+          title={t('drawer.signOutConfirmCta')}
+          variant="destructive"
+          onPress={onConfirmSignOut}
+        />
+        <View style={styles.sheetGap} />
+        <Button
+          title={t('common.no')}
+          variant="dangerGhost"
+          onPress={() => setSignOutOpen(false)}
+        />
+      </Sheet>
 
       <Sheet visible={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <Text variant="title" align="center" style={styles.sheetTitle}>
@@ -202,4 +287,39 @@ const styles = StyleSheet.create({
   sheetGap: {
     height: spacing.sm,
   },
+  accountInner: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  accountTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  accountAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.accent.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  accountInitials: {
+    fontFamily: fonts.semibold,
+    fontSize: 13,
+  },
+  accountInfo: { flex: 1 },
+  accountDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    marginVertical: spacing.sm,
+  },
+  signOutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+    gap: spacing.md,
+  },
+  pressed: { opacity: 0.6 },
 });
