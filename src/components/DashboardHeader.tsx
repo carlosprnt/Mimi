@@ -151,7 +151,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         >
           <Animated.View style={[styles.btn, btnAnim]}>
             <Animated.View style={iconAnim}>
-              <Ionicons name="menu" size={22} color={colors.pure.white} />
+              <Ionicons name="grid-outline" size={20} color={colors.pure.white} />
             </Animated.View>
           </Animated.View>
         </Pressable>

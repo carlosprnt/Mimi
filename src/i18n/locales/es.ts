@@ -20,6 +20,7 @@ export const es: Translations = {
     wordmark: 'App de sueño',
     children: 'Niños',
     addChild: 'Añadir bebé',
+    addChildHint: 'Nuevo perfil',
     edit: 'Editar',
     noChildren: 'Aún no hay niños',
     account: 'CUENTA',

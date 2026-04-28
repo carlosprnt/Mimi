@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
-import {
-  CommonActions,
-  DrawerActions,
-} from '@react-navigation/native';
+import { CommonActions, DrawerActions } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,18 +15,12 @@ import { t } from '@/i18n';
 
 type RouteName = 'Home' | 'History' | 'Profile';
 
-interface NavItem {
-  route: RouteName;
-  label: string;
-  icon: keyof typeof Ionicons.glyphMap;
-}
-
 interface MenuPanelProps {
-  // The currently rendered scene's name, used to highlight the active row.
   activeRoute: RouteName;
-  // navigation prop from the host scene, used to navigate / close drawer.
   navigation: any;
 }
+
+const BOX_RADIUS = 22;
 
 export const MenuPanel: React.FC<MenuPanelProps> = ({
   activeRoute,
@@ -44,7 +35,6 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   const authedUser = useAuthStore((s) => s.user);
 
   const [signOutOpen, setSignOutOpen] = useState(false);
-  const [accountExpanded, setAccountExpanded] = useState(false);
 
   const closeDrawer = () => navigation.dispatch(DrawerActions.closeDrawer());
 
@@ -58,7 +48,7 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
     navigation.getParent()?.navigate('BabyEdit', { babyId: id });
   };
 
-  const goAddChild = () => {
+  const goAddBaby = () => {
     closeDrawer();
     navigation.getParent()?.navigate('OnboardingName', { mode: 'addChild' });
   };
@@ -83,11 +73,16 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
     );
   };
 
-  const navItems: NavItem[] = [
-    { route: 'Home', label: t('nav.home'), icon: 'home-outline' },
-    { route: 'History', label: t('nav.history'), icon: 'pie-chart-outline' },
-    { route: 'Profile', label: t('nav.settings'), icon: 'settings-outline' },
+  // Pair babies into rows of two; the slot after the last baby is the
+  // "add baby" tile so the grid always reads naturally.
+  const tiles: Array<{ kind: 'baby'; id: string } | { kind: 'add' }> = [
+    ...babies.map((b) => ({ kind: 'baby' as const, id: b.id })),
+    { kind: 'add' as const },
   ];
+  const rows: Array<Array<typeof tiles[number]>> = [];
+  for (let i = 0; i < tiles.length; i += 2) {
+    rows.push(tiles.slice(i, i + 2));
+  }
 
   return (
     <View style={styles.outer} pointerEvents="box-none">
@@ -100,188 +95,103 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
       <View
         style={[
           styles.content,
-          { paddingTop: insets.top + spacing.sm },
+          { paddingTop: insets.top + spacing.md },
         ]}
       >
-        {babies.length === 0 ? (
-          <View style={styles.emptyRow}>
-            <Text variant="callout" tone="tertiary">
-              {t('drawer.noChildren')}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.childList}>
-            {babies.map((baby) => {
-              const isActive = baby.id === activeBabyId;
-              const showDot = isActive && babies.length > 1;
+        {rows.map((row, rIdx) => (
+          <View key={`row-${rIdx}`} style={styles.row}>
+            {row.map((tile, cIdx) => {
+              const key = tile.kind === 'baby' ? `b-${tile.id}` : `add-${cIdx}`;
               return (
-                <View key={baby.id} style={styles.childChip}>
-                  <Pressable
-                    onPress={() => selectBaby(baby.id)}
-                    style={({ pressed }) => [
-                      styles.childMain,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <View style={styles.avatar}>
-                      <Text
-                        variant="body"
-                        tone="secondary"
-                        style={styles.avatarLetter}
-                      >
-                        {baby.name.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                    <View style={styles.childInfo}>
-                      <Text
-                        variant="body"
-                        tone={isActive ? 'primary' : 'secondary'}
-                        style={isActive ? styles.childNameActive : undefined}
-                        numberOfLines={1}
-                      >
-                        {baby.name}
-                      </Text>
-                      <Text
-                        variant="footnote"
-                        tone="tertiary"
-                        style={styles.childAge}
-                        numberOfLines={1}
-                      >
-                        {ageLabel(baby)}
-                      </Text>
-                    </View>
-                    {showDot ? <View style={styles.activeDot} /> : null}
-                  </Pressable>
-                  <Pressable
-                    onPress={() => editBaby(baby.id)}
-                    hitSlop={8}
-                    style={({ pressed }) => [
-                      styles.editBtn,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <Text variant="footnote" tone="accent" style={styles.editLabel}>
-                      {t('drawer.edit')}
-                    </Text>
-                  </Pressable>
+                <View key={key} style={styles.col}>
+                  {tile.kind === 'baby' ? (
+                    <BabyTile
+                      babyId={tile.id}
+                      isActive={tile.id === activeBabyId}
+                      onSelect={() => selectBaby(tile.id)}
+                      onEdit={() => editBaby(tile.id)}
+                    />
+                  ) : (
+                    <AddTile onPress={goAddBaby} />
+                  )}
                 </View>
               );
             })}
+            {row.length === 1 ? <View style={styles.col} /> : null}
           </View>
-        )}
+        ))}
 
-        <Pressable
-          onPress={goAddChild}
-          style={({ pressed }) => [styles.addRow, pressed && styles.pressed]}
-        >
-          <View style={styles.addAvatar}>
-            <Ionicons name="add" size={20} color={colors.accent.base} />
+        <View style={styles.row}>
+          <View style={styles.col}>
+            <NavTile
+              icon="pie-chart-outline"
+              label={t('nav.history')}
+              isActive={activeRoute === 'History'}
+              onPress={() => goTo('History')}
+            />
           </View>
-          <Text variant="body" tone="accent" style={styles.addLabel}>
-            {t('drawer.addChild')}
-          </Text>
-        </Pressable>
-
-        <View style={styles.divider} />
-
-        {navItems.map((item) => {
-          const isActive = activeRoute === item.route;
-          return (
-            <Pressable
-              key={item.route}
-              onPress={() => goTo(item.route)}
-              style={({ pressed }) => [
-                styles.navRow,
-                isActive && styles.navRowActive,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Ionicons
-                name={item.icon}
-                size={20}
-                color={isActive ? colors.accent.base : colors.text.secondary}
-                style={styles.iconLead}
-              />
-              <Text
-                variant="body"
-                tone={isActive ? 'primary' : 'secondary'}
-                style={isActive ? styles.navRowLabelActive : undefined}
-              >
-                {item.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+          <View style={styles.col}>
+            <NavTile
+              icon="settings-outline"
+              label={t('nav.settings')}
+              isActive={activeRoute === 'Profile'}
+              onPress={() => goTo('Profile')}
+            />
+          </View>
+        </View>
 
         <View style={styles.flex} />
 
-        <View style={[styles.account, { marginBottom: insets.bottom + spacing.xs }]}>
-          <Text variant="eyebrow" tone="tertiary" style={styles.accountEyebrow}>
-            {t('drawer.account')}
-          </Text>
-
-          <Pressable
-            onPress={() => setAccountExpanded((v) => !v)}
-            style={({ pressed }) => [
-              styles.accountRow,
-              pressed && styles.pressed,
-            ]}
-            hitSlop={4}
-          >
-            <View style={styles.accountInfo}>
-              <Text variant="body" tone="primary" numberOfLines={1}>
-                {authedUser?.email ?? t('drawer.accountLocal')}
-              </Text>
-              {!authedUser ? (
-                <Text
-                  variant="footnote"
-                  tone="tertiary"
-                  numberOfLines={1}
-                  style={styles.accountCaption}
-                >
-                  {t('drawer.accountLocalCaption')}
+        <View style={[styles.accountWrap, { marginBottom: insets.bottom + spacing.xs }]}>
+          <View style={styles.accountBox}>
+            <View style={styles.accountTop}>
+              {authedUser?.picture ? (
+                <Image source={{ uri: authedUser.picture }} style={styles.accountAvatar} />
+              ) : (
+                <View style={styles.accountAvatar}>
+                  <Text
+                    variant="body"
+                    tone="onAccent"
+                    style={styles.accountInitials}
+                  >
+                    {(authedUser?.name ?? authedUser?.email ?? '·')
+                      .trim()
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.accountInfo}>
+                <Text variant="footnote" tone="tertiary" style={styles.accountEyebrow}>
+                  {t('drawer.account')}
                 </Text>
-              ) : null}
-            </View>
-            {authedUser?.picture ? (
-              <Image source={{ uri: authedUser.picture }} style={styles.accountAvatar} />
-            ) : (
-              <View style={styles.accountAvatar}>
-                <Text
-                  variant="body"
-                  tone="onAccent"
-                  style={styles.accountInitials}
-                >
-                  {(authedUser?.name ?? authedUser?.email ?? '·')
-                    .trim()
-                    .slice(0, 2)
-                    .toUpperCase()}
+                <Text variant="body" tone="primary" numberOfLines={1}>
+                  {authedUser?.email ?? t('drawer.accountLocal')}
                 </Text>
               </View>
-            )}
-          </Pressable>
-
-          {accountExpanded && authedUser ? (
-            <Pressable
-              onPress={() => setSignOutOpen(true)}
-              style={({ pressed }) => [
-                styles.signOutRow,
-                pressed && styles.pressed,
-              ]}
-            >
-              <SignOutIcon size={20} />
-              <Text variant="body" tone="danger">
-                {t('drawer.signOut')}
-              </Text>
-            </Pressable>
-          ) : null}
+            </View>
+            {authedUser ? (
+              <>
+                <View style={styles.accountDivider} />
+                <Pressable
+                  onPress={() => setSignOutOpen(true)}
+                  style={({ pressed }) => [
+                    styles.signOutRow,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <SignOutIcon size={18} />
+                  <Text variant="body" tone="danger">
+                    {t('drawer.signOut')}
+                  </Text>
+                </Pressable>
+              </>
+            ) : null}
+          </View>
         </View>
       </View>
 
-      <Sheet
-        visible={signOutOpen}
-        onClose={() => setSignOutOpen(false)}
-      >
+      <Sheet visible={signOutOpen} onClose={() => setSignOutOpen(false)}>
         <Text variant="title" style={styles.signOutSheetTitle}>
           {t('drawer.signOutConfirmTitle')}
         </Text>
@@ -308,30 +218,131 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   );
 };
 
+const BabyTile: React.FC<{
+  babyId: string;
+  isActive: boolean;
+  onSelect: () => void;
+  onEdit: () => void;
+}> = ({ babyId, isActive, onSelect, onEdit }) => {
+  const baby = useBabyStore((s) => s.babies.find((b) => b.id === babyId));
+  if (!baby) return null;
+  return (
+    <Pressable
+      onPress={onSelect}
+      style={({ pressed }) => [
+        styles.tile,
+        isActive && styles.tileActive,
+        pressed && styles.pressed,
+      ]}
+    >
+      <View style={styles.tileTopRow}>
+        <View style={styles.tileAvatar}>
+          <Text variant="body" tone="secondary" style={styles.tileAvatarLetter}>
+            {baby.name.charAt(0).toUpperCase()}
+          </Text>
+        </View>
+        <Pressable hitSlop={8} onPress={onEdit}>
+          <Text variant="footnote" tone="accent" style={styles.tileEdit}>
+            {t('drawer.edit')}
+          </Text>
+        </Pressable>
+      </View>
+      <Text variant="body" tone="primary" style={styles.tileName} numberOfLines={1}>
+        {baby.name}
+      </Text>
+      <Text variant="footnote" tone="tertiary" numberOfLines={1}>
+        {ageLabel(baby)}
+      </Text>
+    </Pressable>
+  );
+};
+
+const AddTile: React.FC<{ onPress: () => void }> = ({ onPress }) => (
+  <Pressable
+    onPress={onPress}
+    style={({ pressed }) => [
+      styles.tile,
+      styles.addTile,
+      pressed && styles.pressed,
+    ]}
+  >
+    <View style={styles.tileTopRow}>
+      <View style={styles.addAvatar}>
+        <Ionicons name="add" size={20} color={colors.accent.base} />
+      </View>
+    </View>
+    <Text variant="body" tone="accent" style={styles.tileName}>
+      {t('drawer.addChild')}
+    </Text>
+    <Text variant="footnote" tone="tertiary" numberOfLines={1}>
+      {t('drawer.addChildHint')}
+    </Text>
+  </Pressable>
+);
+
+const NavTile: React.FC<{
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  isActive: boolean;
+  onPress: () => void;
+}> = ({ icon, label, isActive, onPress }) => (
+  <Pressable
+    onPress={onPress}
+    style={({ pressed }) => [
+      styles.tile,
+      styles.navTile,
+      isActive && styles.tileActive,
+      pressed && styles.pressed,
+    ]}
+  >
+    <Ionicons
+      name={icon}
+      size={22}
+      color={isActive ? colors.accent.base : colors.text.secondary}
+    />
+    <Text
+      variant="body"
+      tone={isActive ? 'primary' : 'secondary'}
+      style={styles.navTileLabel}
+    >
+      {label}
+    </Text>
+  </Pressable>
+);
+
 const styles = StyleSheet.create({
-  outer: {
-    ...StyleSheet.absoluteFillObject,
-  },
+  outer: { ...StyleSheet.absoluteFillObject },
   content: {
     flex: 1,
     paddingHorizontal: spacing.lg,
+    gap: spacing.md,
   },
   flex: { flex: 1 },
-  childList: {
-    gap: spacing.xs,
-  },
-  childChip: {
+  row: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    gap: spacing.md,
   },
-  childMain: {
-    flex: 1,
+  col: { flex: 1 },
+  tile: {
+    backgroundColor: 'rgba(19, 27, 58, 0.78)',
+    borderRadius: BOX_RADIUS,
+    borderWidth: 1,
+    borderColor: 'rgba(120, 145, 220, 0.18)',
+    padding: spacing.md,
+    minHeight: 110,
+    justifyContent: 'flex-start',
+  },
+  tileActive: {
+    borderColor: 'rgba(168, 165, 230, 0.55)',
+    backgroundColor: 'rgba(40, 40, 100, 0.55)',
+  },
+  tileTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.sm,
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
   },
-  avatar: {
+  tileAvatar: {
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -341,34 +352,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
-  editBtn: {
-    paddingTop: spacing.sm + 2,
-    paddingHorizontal: spacing.sm,
-  },
-  editLabel: {
+  tileAvatarLetter: { fontFamily: fonts.semibold },
+  tileEdit: { fontFamily: fonts.medium },
+  tileName: {
     fontFamily: fonts.medium,
+    marginBottom: 2,
   },
-  avatarLetter: {
-    fontFamily: fonts.semibold,
-  },
-  childInfo: { flex: 1 },
-  childNameActive: { fontFamily: fonts.medium },
-  childAge: { marginTop: 2 },
-  activeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.accent.base,
-  },
-  emptyRow: {
-    paddingVertical: spacing.md,
-  },
-  addRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    marginTop: spacing.xs,
-    gap: spacing.md,
+  addTile: {
+    borderStyle: 'dashed',
+    borderColor: 'rgba(168, 165, 230, 0.45)',
+    backgroundColor: 'rgba(168, 165, 230, 0.06)',
   },
   addAvatar: {
     width: 36,
@@ -380,48 +373,32 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(168, 165, 230, 0.35)',
     backgroundColor: 'rgba(168, 165, 230, 0.08)',
   },
-  addLabel: { fontFamily: fonts.medium },
-  iconLead: { width: 24, textAlign: 'center' },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    marginVertical: spacing.md,
-  },
-  navRow: {
+  navTile: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm,
-    borderRadius: 12,
-    minHeight: 48,
+    justifyContent: 'flex-start',
     gap: spacing.md,
+    minHeight: 64,
   },
-  navRowActive: {
-    backgroundColor: 'rgba(168, 165, 230, 0.08)',
-  },
-  navRowLabelActive: {
-    fontFamily: fonts.medium,
-    flex: 1,
-  },
+  navTileLabel: { fontFamily: fonts.medium },
   pressed: { opacity: 0.6 },
-  account: {
-    paddingTop: spacing.lg,
+  accountWrap: {},
+  accountBox: {
+    backgroundColor: 'rgba(19, 27, 58, 0.78)',
+    borderRadius: BOX_RADIUS,
+    borderWidth: 1,
+    borderColor: 'rgba(120, 145, 220, 0.18)',
+    padding: spacing.md,
   },
-  accountEyebrow: {
-    marginBottom: spacing.xs,
-  },
-  accountRow: {
+  accountTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
     gap: spacing.md,
   },
-  accountInfo: { flex: 1 },
-  accountCaption: { marginTop: 2 },
   accountAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: colors.accent.base,
     alignItems: 'center',
     justifyContent: 'center',
@@ -431,11 +408,21 @@ const styles = StyleSheet.create({
     fontFamily: fonts.semibold,
     fontSize: 13,
   },
+  accountInfo: { flex: 1 },
+  accountEyebrow: {
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  accountDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    marginVertical: spacing.sm,
+  },
   signOutRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    marginTop: spacing.xs,
+    paddingVertical: spacing.xs,
     gap: spacing.md,
   },
   signOutSheetTitle: {

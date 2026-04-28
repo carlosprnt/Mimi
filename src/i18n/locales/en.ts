@@ -18,6 +18,7 @@ export const en = {
     wordmark: 'Sleep app',
     children: 'Children',
     addChild: 'Add baby',
+    addChildHint: 'New profile',
     edit: 'Edit',
     noChildren: 'No children yet',
     account: 'ACCOUNT',
