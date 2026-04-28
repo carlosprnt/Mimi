@@ -65,11 +65,11 @@ export const ProfileScreen: React.FC = () => {
   };
 
   return (
-    <Screen>
+    <Screen backdrop="night">
       <HeaderBar
         title={t('profile.title')}
         leading={{
-          glyph: '‹',
+          icon: 'arrow-back',
           label: t('common.back'),
           onPress: () => navigation.navigate('Home'),
         }}
