@@ -68,7 +68,11 @@ const RootDrawer: React.FC = () => {
         sceneStyle: {
           backgroundColor: 'transparent',
         },
-        drawerType: 'front',
+        // 'permanent' avoids the built-in Overlay component (which
+        // intercepts every tap to auto-close the drawer). We don't need
+        // the drawer to actually animate — we drive our own pull-down
+        // menu via useMenuStore + DrawerSceneWrapper.
+        drawerType: 'permanent',
         overlayColor: 'transparent',
         swipeEnabled: false,
       }}

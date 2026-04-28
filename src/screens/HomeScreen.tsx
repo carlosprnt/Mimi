@@ -4,7 +4,8 @@ import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useMenuStore } from '@/state/menuStore';
 import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -446,7 +447,7 @@ export const HomeScreen: React.FC = () => {
       <DashboardHeader
         name={baby.name}
         scrollY={scrollY}
-        onPressMenu={() => navigation.dispatch(DrawerActions.openDrawer())}
+        onPressMenu={() => useMenuStore.getState().setOpen(true)}
         menuLabel={t('nav.menu')}
         status={
           isToday && recommendation && recommendation.root === 'SLEEPING'

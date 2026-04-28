@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Pressable, StyleSheet, View, LayoutChangeEvent } from 'react-native';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components';
 import { useBabyStore } from '@/state/babyStore';
+import { useMenuStore } from '@/state/menuStore';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
 
@@ -32,7 +33,8 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   const activeBabyId = useBabyStore((s) => s.activeBabyId);
   const setActiveBabyId = useBabyStore((s) => s.setActiveBabyId);
 
-  const closeDrawer = () => navigation.dispatch(DrawerActions.closeDrawer());
+  const setMenuOpen = useMenuStore((s) => s.setOpen);
+  const closeDrawer = () => setMenuOpen(false);
 
   const selectBaby = (id: string) => {
     setActiveBabyId(id);
@@ -40,22 +42,16 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   };
 
   const editBaby = (id: string) => {
-    // eslint-disable-next-line no-console
-    console.log('[MenuPanel] editBaby', id);
     navigation.getParent()?.navigate('BabyEdit', { babyId: id });
     closeDrawer();
   };
 
   const goAddBaby = () => {
-    // eslint-disable-next-line no-console
-    console.log('[MenuPanel] goAddBaby');
     navigation.getParent()?.navigate('OnboardingName', { mode: 'addChild' });
     closeDrawer();
   };
 
   const goTo = (route: RouteName) => {
-    // eslint-disable-next-line no-console
-    console.log('[MenuPanel] goTo', route, 'parent?', !!navigation.getParent());
     navigation.navigate(route);
     closeDrawer();
   };

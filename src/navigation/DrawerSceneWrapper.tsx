@@ -14,13 +14,9 @@ import Animated, {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useDrawerStatus } from '@react-navigation/drawer';
-import {
-  useNavigation,
-  useRoute,
-  DrawerActions,
-} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors } from '@/theme';
+import { useMenuStore } from '@/state/menuStore';
 import { MenuPanel } from './MenuPanel';
 
 const SCENE_RADIUS = 28;
@@ -39,8 +35,8 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
   const { height } = useWindowDimensions();
   const navigation = useNavigation();
   const route = useRoute();
-  const drawerStatus = useDrawerStatus();
-  const isDrawerOpen = drawerStatus === 'open';
+  const isDrawerOpen = useMenuStore((s) => s.open);
+  const setMenuOpen = useMenuStore((s) => s.setOpen);
 
   const [menuHeight, setMenuHeight] = useState<number>(
     height * FALLBACK_REVEAL_RATIO - SCENE_GAP,
@@ -121,13 +117,8 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
     ],
   }));
 
-  const closeDrawer = () => {
-    navigation.dispatch(DrawerActions.closeDrawer());
-  };
-
-  const openDrawer = () => {
-    navigation.dispatch(DrawerActions.openDrawer());
-  };
+  const closeDrawer = () => setMenuOpen(false);
+  const openDrawer = () => setMenuOpen(true);
 
   const pan = Gesture.Pan()
     .activeOffsetY([-12, 12])
