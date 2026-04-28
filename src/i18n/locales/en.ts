@@ -16,7 +16,8 @@ export const en = {
   drawer: {
     wordmark: 'Sleep app',
     children: 'Children',
-    addChild: 'Add child',
+    addChild: 'Add baby',
+    edit: 'Edit',
     noChildren: 'No children yet',
     account: 'ACCOUNT',
     accountLocal: 'Local only',

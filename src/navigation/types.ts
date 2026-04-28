@@ -4,6 +4,7 @@ export type DrawerParamList = {
   Home: undefined;
   History: undefined;
   Profile: undefined;
+  EditBaby: { babyId: string };
 };
 
 export type RootStackParamList = {

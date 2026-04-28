@@ -6,6 +6,7 @@ import { useBabyStore } from '@/state/babyStore';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { HistoryScreen } from '@/screens/HistoryScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
+import { BabyEditScreen } from '@/screens/BabyEditScreen';
 import { WelcomeScreen } from '@/screens/onboarding/WelcomeScreen';
 import { OnboardingDobScreen } from '@/screens/onboarding/OnboardingDobScreen';
 import { OnboardingAtTermScreen } from '@/screens/onboarding/OnboardingAtTermScreen';
@@ -39,6 +40,7 @@ const wrapDrawerScene = (
 const HomeScene = wrapDrawerScene(HomeScreen as React.ComponentType<Record<string, unknown>>);
 const HistoryScene = wrapDrawerScene(HistoryScreen as React.ComponentType<Record<string, unknown>>);
 const ProfileScene = wrapDrawerScene(ProfileScreen as React.ComponentType<Record<string, unknown>>);
+const BabyEditScene = wrapDrawerScene(BabyEditScreen as React.ComponentType<Record<string, unknown>>);
 
 const navTheme = {
   ...DarkTheme,
@@ -75,6 +77,7 @@ const RootDrawer: React.FC = () => {
       <Drawer.Screen name="Home" component={HomeScene} />
       <Drawer.Screen name="History" component={HistoryScene} />
       <Drawer.Screen name="Profile" component={ProfileScene} />
+      <Drawer.Screen name="EditBaby" component={BabyEditScene} />
     </Drawer.Navigator>
   );
 };

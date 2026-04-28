@@ -18,7 +18,8 @@ export const es: Translations = {
   drawer: {
     wordmark: 'App de sueño',
     children: 'Niños',
-    addChild: 'Añadir niño',
+    addChild: 'Añadir bebé',
+    edit: 'Editar',
     noChildren: 'Aún no hay niños',
     account: 'CUENTA',
     accountLocal: 'Solo local',

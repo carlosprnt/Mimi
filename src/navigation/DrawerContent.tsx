@@ -52,6 +52,10 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
     props.navigation.closeDrawer();
   };
 
+  const editBaby = (id: string) => {
+    props.navigation.navigate('EditBaby', { babyId: id });
+  };
+
   const goAddChild = () => {
     props.navigation.closeDrawer();
     props.navigation
@@ -88,7 +92,7 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
 
   const navItems: NavItem[] = [
     { route: 'Home', label: t('nav.home'), icon: 'home-outline' },
-    { route: 'History', label: t('nav.history'), icon: 'time-outline' },
+    { route: 'History', label: t('nav.history'), icon: 'stats-chart-outline' },
     { route: 'Profile', label: t('nav.settings'), icon: 'settings-outline' },
   ];
 
@@ -121,52 +125,58 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
           <View style={styles.childList}>
             {babies.map((baby) => {
               const isActive = baby.id === activeBabyId;
+              const showDot = isActive && babies.length > 1;
               return (
-                <Pressable
-                  key={baby.id}
-                  onPress={() => selectBaby(baby.id)}
-                  style={({ pressed }) => [
-                    styles.childChip,
-                    isActive && styles.childChipActive,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.avatar,
-                      isActive && styles.avatarActive,
+                <View key={baby.id} style={styles.childChip}>
+                  <Pressable
+                    onPress={() => selectBaby(baby.id)}
+                    style={({ pressed }) => [
+                      styles.childMain,
+                      pressed && styles.pressed,
                     ]}
                   >
-                    <Text
-                      variant="body"
-                      tone={isActive ? 'onAccent' : 'secondary'}
-                      style={styles.avatarLetter}
-                    >
-                      {baby.name.charAt(0).toUpperCase()}
+                    <View style={styles.avatar}>
+                      <Text
+                        variant="body"
+                        tone="secondary"
+                        style={styles.avatarLetter}
+                      >
+                        {baby.name.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={styles.childInfo}>
+                      <Text
+                        variant="body"
+                        tone={isActive ? 'primary' : 'secondary'}
+                        style={isActive ? styles.childNameActive : undefined}
+                        numberOfLines={1}
+                      >
+                        {baby.name}
+                      </Text>
+                      <Text
+                        variant="footnote"
+                        tone="tertiary"
+                        style={styles.childAge}
+                        numberOfLines={1}
+                      >
+                        {ageLabel(baby)}
+                      </Text>
+                    </View>
+                    {showDot ? <View style={styles.activeDot} /> : null}
+                  </Pressable>
+                  <Pressable
+                    onPress={() => editBaby(baby.id)}
+                    hitSlop={8}
+                    style={({ pressed }) => [
+                      styles.editBtn,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <Text variant="footnote" tone="accent" style={styles.editLabel}>
+                      {t('drawer.edit')}
                     </Text>
-                  </View>
-                  <View style={styles.childInfo}>
-                    <Text
-                      variant="body"
-                      tone={isActive ? 'primary' : 'secondary'}
-                      style={isActive ? styles.childNameActive : undefined}
-                      numberOfLines={1}
-                    >
-                      {baby.name}
-                    </Text>
-                    <Text
-                      variant="footnote"
-                      tone="tertiary"
-                      style={styles.childAge}
-                      numberOfLines={1}
-                    >
-                      {ageLabel(baby)}
-                    </Text>
-                  </View>
-                  {isActive ? (
-                    <View style={styles.activeDot} />
-                  ) : null}
-                </Pressable>
+                  </Pressable>
+                </View>
               );
             })}
           </View>
@@ -176,12 +186,9 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
           onPress={goAddChild}
           style={({ pressed }) => [styles.addRow, pressed && styles.pressed]}
         >
-          <Ionicons
-            name="add"
-            size={20}
-            color={colors.accent.base}
-            style={styles.iconLead}
-          />
+          <View style={styles.addAvatar}>
+            <Ionicons name="add" size={20} color={colors.accent.base} />
+          </View>
           <Text variant="body" tone="accent" style={styles.addLabel}>
             {t('drawer.addChild')}
           </Text>
@@ -372,16 +379,14 @@ const styles = StyleSheet.create({
   childChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'transparent',
   },
-  childChipActive: {
-    backgroundColor: 'rgba(168, 165, 230, 0.12)',
-    borderColor: 'rgba(168, 165, 230, 0.25)',
+  childMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
   },
   avatar: {
     width: 36,
@@ -393,9 +398,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
-  avatarActive: {
-    backgroundColor: colors.accent.base,
-    borderColor: colors.accent.base,
+  editBtn: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+  },
+  editLabel: {
+    fontFamily: fonts.medium,
   },
   avatarLetter: {
     fontFamily: fonts.semibold,
@@ -422,10 +430,20 @@ const styles = StyleSheet.create({
   addRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    marginTop: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.xs,
     gap: spacing.md,
+  },
+  addAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(168, 165, 230, 0.35)',
+    backgroundColor: 'rgba(168, 165, 230, 0.08)',
   },
   addLabel: {
     fontFamily: fonts.medium,
