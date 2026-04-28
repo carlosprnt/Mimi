@@ -41,27 +41,18 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   };
 
   const editBaby = (id: string) => {
+    navigation.getParent()?.navigate('BabyEdit', { babyId: id });
     closeDrawer();
-    setTimeout(
-      () => navigation.getParent()?.navigate('BabyEdit', { babyId: id }),
-      60,
-    );
   };
 
   const goAddBaby = () => {
+    navigation.getParent()?.navigate('OnboardingName', { mode: 'addChild' });
     closeDrawer();
-    setTimeout(
-      () =>
-        navigation.getParent()?.navigate('OnboardingName', { mode: 'addChild' }),
-      60,
-    );
   };
 
   const goTo = (route: RouteName) => {
+    navigation.navigate(route);
     closeDrawer();
-    // Defer navigation slightly so the drawer-close animation begins
-    // first; the new screen mounts already in the closed state.
-    setTimeout(() => navigation.navigate(route), 60);
   };
 
   const tiles: Array<{ kind: 'baby'; id: string } | { kind: 'add' }> = [
@@ -78,13 +69,14 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   };
 
   return (
-    <View style={styles.outer} pointerEvents="box-none">
-      <LinearGradient
-        colors={['#020205', '#040611', colors.night.bottom]}
-        locations={[0, 0.45, 1]}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
+    <View style={styles.outer}>
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <LinearGradient
+          colors={['#020205', '#040611', colors.night.bottom]}
+          locations={[0, 0.45, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
 
       <View
         style={[

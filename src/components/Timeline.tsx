@@ -320,6 +320,7 @@ export const Timeline: React.FC<TimelineProps> = ({
               ]}
             >
               <View style={styles.rail}>
+                <SolidLine hidden={isFirst} variant="overnight" />
                 <View style={styles.dotContainer}>
                   <View style={[styles.dot, styles.dotPlaceholder]}>
                     <Ionicons
@@ -401,6 +402,14 @@ export const Timeline: React.FC<TimelineProps> = ({
         const row = (
           <>
             <View style={styles.rail}>
+              <SolidLine
+                hidden={isFirst}
+                variant={railVariant(
+                  isInterruption,
+                  aboveSuggested,
+                  aboveOvernight,
+                )}
+              />
               <View style={styles.dotContainer}>
                 {isNext ? <PulsingGlow /> : null}
                 <View
@@ -617,8 +626,8 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingLeft: spacing.md,
-    paddingTop: spacing.sm + 2,
-    paddingBottom: spacing.sm,
+    paddingVertical: spacing.sm,
+    justifyContent: 'center',
   },
   titleRow: {
     flexDirection: 'row',

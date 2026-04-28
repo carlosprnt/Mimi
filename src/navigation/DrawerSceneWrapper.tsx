@@ -9,7 +9,6 @@ import Animated, {
   useSharedValue,
   withRepeat,
   withSequence,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -72,29 +71,19 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
     );
   }, [shimmer]);
 
+  // Effective progress combines the timing-driven `progress` with the
+  // active drag offset, so scale, radius and blur all track the user's
+  // finger smoothly while they're pulling the scene.
   const sceneStyle = useAnimatedStyle(() => {
-    const scale = interpolate(
-      progress.value,
-      [0, 1],
-      [1, SCALE_MIN],
-      Extrapolation.CLAMP,
+    const denom = Math.max(1, reveal);
+    const ep = Math.max(
+      0,
+      Math.min(1, progress.value + dragY.value / denom),
     );
-    const baseY = interpolate(
-      progress.value,
-      [0, 1],
-      [0, reveal],
-      Extrapolation.CLAMP,
-    );
-    const totalY = Math.max(0, baseY + dragY.value);
-    const radius = interpolate(
-      progress.value,
-      [0, 1],
-      [0, SCENE_RADIUS],
-      Extrapolation.CLAMP,
-    );
+    const scale = interpolate(ep, [0, 1], [1, SCALE_MIN], Extrapolation.CLAMP);
+    const totalY = ep * reveal;
+    const radius = interpolate(ep, [0, 1], [0, SCENE_RADIUS], Extrapolation.CLAMP);
     return {
-      // Use layout `top` so hit-testing matches the visual position —
-      // taps on the menu area no longer hit the translated scene.
       top: totalY,
       height,
       transform: [{ scale }],
@@ -105,13 +94,27 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
     };
   });
 
-  const blurStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 1], [0, 0.55], Extrapolation.CLAMP),
-  }));
+  const blurStyle = useAnimatedStyle(() => {
+    const denom = Math.max(1, reveal);
+    const ep = Math.max(
+      0,
+      Math.min(1, progress.value + dragY.value / denom),
+    );
+    return {
+      opacity: interpolate(ep, [0, 1], [0, 0.55], Extrapolation.CLAMP),
+    };
+  });
 
-  const grabberStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0.4, 1], [0, 1], Extrapolation.CLAMP),
-  }));
+  const grabberStyle = useAnimatedStyle(() => {
+    const denom = Math.max(1, reveal);
+    const ep = Math.max(
+      0,
+      Math.min(1, progress.value + dragY.value / denom),
+    );
+    return {
+      opacity: interpolate(ep, [0.4, 1], [0, 1], Extrapolation.CLAMP),
+    };
+  });
 
   const shimmerStyle = useAnimatedStyle(() => ({
     transform: [
@@ -152,7 +155,12 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
         const movedDown = dragY.value > reveal * 0.18;
         if (fast || movedDown) runOnJS(openDrawer)();
       }
-      dragY.value = withSpring(0, { damping: 18, stiffness: 220 });
+      // Settle drag-offset back to 0 with timing (no bounce). The
+      // drawer's own progress animation will pick the rest up.
+      dragY.value = withTiming(0, {
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+      });
     });
 
   return (
