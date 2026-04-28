@@ -229,7 +229,7 @@ export const HistoryScreen: React.FC = () => {
             <Text variant="eyebrow" tone="tertiary">
               {t('history.nightSleepDaily')}
             </Text>
-            <Text variant="footnote" tone="secondary">
+            <Text tone="secondary" style={styles.cardAverage}>
               {t('history.average')} · {formatSleepHours(avgNightMs)}
             </Text>
           </View>
@@ -257,7 +257,7 @@ export const HistoryScreen: React.FC = () => {
             <Text variant="eyebrow" tone="tertiary">
               {t('history.nightWakesPerNight')}
             </Text>
-            <Text variant="footnote" tone="secondary">
+            <Text tone="secondary" style={styles.cardAverage}>
               {t('history.average')} · {avgWakeCount.toFixed(1)}
             </Text>
           </View>
@@ -286,7 +286,7 @@ export const HistoryScreen: React.FC = () => {
               {t('history.nightWakeDistribution')}
             </Text>
             {hasAnyWake ? (
-              <Text variant="footnote" tone="secondary">
+              <Text tone="secondary" style={styles.cardAverage}>
                 {t('history.average')} · {formatHourBucket(peakBucket)}
               </Text>
             ) : null}
@@ -351,10 +351,15 @@ const styles = StyleSheet.create({
   },
   card: {},
   cardHead: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: spacing.xs,
     marginBottom: spacing.md,
+  },
+  cardAverage: {
+    fontFamily: fonts.medium,
+    fontSize: 16,
+    lineHeight: 20,
   },
   empty: {
     paddingTop: spacing.lg,
