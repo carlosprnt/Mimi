@@ -1,98 +1,108 @@
 import React from 'react';
-import { StyleSheet, useWindowDimensions } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
+  runOnJS,
   useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from 'react-native-reanimated';
-import { useDrawerProgress } from '@react-navigation/drawer';
-import { BlurView } from 'expo-blur';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  useDrawerProgress,
+  useDrawerStatus,
+} from '@react-navigation/drawer';
+import {
+  useNavigation,
+  useRoute,
+  DrawerActions,
+} from '@react-navigation/native';
 import { colors } from '@/theme';
+import { MenuPanel } from './MenuPanel';
 
-export const DRAWER_WIDTH = 320;
-// Layout when the drawer is fully open. Both the menu panel and the
-// scaled dashboard hug these edges of the device.
-export const DRAWER_TOP = 100;
-export const DRAWER_BOTTOM_MARGIN = 4;
-export const DRAWER_LEFT_MARGIN = 4;
-export const DRAWER_GAP = 4;
-const RADIUS = 32;
+export const DRAWER_REVEAL_RATIO = 0.62;
+const SCENE_RADIUS = 28;
+const CLOSE_VELOCITY = 600;
 
 export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const progress = useDrawerProgress();
-  const { width, height } = useWindowDimensions();
+  const { height } = useWindowDimensions();
+  const navigation = useNavigation();
+  const route = useRoute();
+  const drawerStatus = useDrawerStatus();
+  const isDrawerOpen = drawerStatus === 'open';
 
-  // Match the dashboard's visible Y range to [DRAWER_TOP, height -
-  // DRAWER_BOTTOM_MARGIN] by picking a uniform scale derived from the
-  // device height. This also gives a constant translateY of
-  // (DRAWER_TOP - (DRAWER_TOP + DRAWER_BOTTOM_MARGIN) / 2) = 48 px.
-  const visibleHeight = height - DRAWER_TOP - DRAWER_BOTTOM_MARGIN;
-  const scaleTo = visibleHeight / height;
-  const translateYTarget = (DRAWER_TOP - DRAWER_BOTTOM_MARGIN) / 2;
-
-  // Land the dashboard's left edge DRAWER_GAP pixels past the menu panel
-  // (the panel itself sits inside its drawer container at x = 0; its
-  // right edge is at DRAWER_WIDTH).
-  const translateXTarget =
-    DRAWER_WIDTH + DRAWER_GAP - (width * (1 - scaleTo)) / 2;
+  const reveal = height * DRAWER_REVEAL_RATIO;
+  const dragY = useSharedValue(0);
 
   const sceneStyle = useAnimatedStyle(() => {
-    const p = progress.value;
+    const baseY = interpolate(
+      progress.value,
+      [0, 1],
+      [0, reveal],
+      Extrapolation.CLAMP,
+    );
+    const totalY = Math.max(0, baseY + dragY.value);
+    const radius = interpolate(
+      progress.value,
+      [0, 1],
+      [0, SCENE_RADIUS],
+      Extrapolation.CLAMP,
+    );
     return {
-      transform: [
-        {
-          translateX: interpolate(
-            p,
-            [0, 1],
-            [0, translateXTarget],
-            Extrapolation.CLAMP,
-          ),
-        },
-        {
-          translateY: interpolate(
-            p,
-            [0, 1],
-            [0, translateYTarget],
-            Extrapolation.CLAMP,
-          ),
-        },
-        {
-          scale: interpolate(p, [0, 1], [1, scaleTo], Extrapolation.CLAMP),
-        },
-      ],
-      borderRadius: interpolate(p, [0, 1], [0, RADIUS], Extrapolation.CLAMP),
-      borderWidth: interpolate(p, [0, 1], [0, 1], Extrapolation.CLAMP),
+      transform: [{ translateY: totalY }],
+      borderTopLeftRadius: radius,
+      borderTopRightRadius: radius,
     };
   });
 
-  const blurStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 1], [0, 1], Extrapolation.CLAMP),
-  }));
+  const closeDrawer = () => {
+    navigation.dispatch(DrawerActions.closeDrawer());
+  };
+
+  const pan = Gesture.Pan()
+    .enabled(isDrawerOpen)
+    .activeOffsetY([-12, 12])
+    .onChange((e) => {
+      // Only let the user drag the sheet upward (closing direction).
+      const next = dragY.value + e.changeY;
+      dragY.value = Math.min(0, next);
+    })
+    .onEnd((e) => {
+      const fast = e.velocityY < -CLOSE_VELOCITY;
+      const movedUp = dragY.value < -reveal * 0.22;
+      if (fast || movedUp) {
+        runOnJS(closeDrawer)();
+      }
+      dragY.value = withSpring(0, { damping: 18, stiffness: 220 });
+    });
 
   return (
-    <Animated.View style={[styles.scene, sceneStyle]}>
-      {children}
-      <Animated.View
-        pointerEvents="none"
-        style={[StyleSheet.absoluteFillObject, blurStyle]}
-      >
-        <BlurView
-          intensity={28}
-          tint="dark"
-          style={StyleSheet.absoluteFillObject}
-        />
-      </Animated.View>
-    </Animated.View>
+    <View style={styles.root}>
+      <MenuPanel
+        activeRoute={route.name as 'Home' | 'History' | 'Profile'}
+        navigation={navigation}
+      />
+      <GestureDetector gesture={pan}>
+        <Animated.View style={[styles.scene, sceneStyle]}>
+          {children}
+        </Animated.View>
+      </GestureDetector>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.night.bottom,
+  },
   scene: {
     flex: 1,
     overflow: 'hidden',
     backgroundColor: colors.bg.base,
-    borderColor: 'rgba(168, 165, 230, 0.18)',
   },
 });

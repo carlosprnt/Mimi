@@ -1,0 +1,452 @@
+import React, { useState } from 'react';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import {
+  CommonActions,
+  DrawerActions,
+} from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text, Sheet, Button, SignOutIcon } from '@/components';
+import { useBabyStore } from '@/state/babyStore';
+import { useOnboardingDraft } from '@/state/onboardingDraft';
+import { useAuthStore } from '@/state/authStore';
+import { signOut as supabaseSignOut } from '@/services/auth';
+import { ageLabel } from '@/logic/age';
+import { colors, fonts, spacing } from '@/theme';
+import { t } from '@/i18n';
+
+type RouteName = 'Home' | 'History' | 'Profile';
+
+interface NavItem {
+  route: RouteName;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}
+
+interface MenuPanelProps {
+  // The currently rendered scene's name, used to highlight the active row.
+  activeRoute: RouteName;
+  // navigation prop from the host scene, used to navigate / close drawer.
+  navigation: any;
+}
+
+export const MenuPanel: React.FC<MenuPanelProps> = ({
+  activeRoute,
+  navigation,
+}) => {
+  const insets = useSafeAreaInsets();
+  const babies = useBabyStore((s) => s.babies);
+  const activeBabyId = useBabyStore((s) => s.activeBabyId);
+  const setActiveBabyId = useBabyStore((s) => s.setActiveBabyId);
+  const clearOnboardingDraft = useOnboardingDraft((s) => s.clear);
+  const signOutAuth = useAuthStore((s) => s.signOut);
+  const authedUser = useAuthStore((s) => s.user);
+
+  const [signOutOpen, setSignOutOpen] = useState(false);
+  const [accountExpanded, setAccountExpanded] = useState(false);
+
+  const closeDrawer = () => navigation.dispatch(DrawerActions.closeDrawer());
+
+  const selectBaby = (id: string) => {
+    setActiveBabyId(id);
+    closeDrawer();
+  };
+
+  const editBaby = (id: string) => {
+    closeDrawer();
+    navigation.getParent()?.navigate('BabyEdit', { babyId: id });
+  };
+
+  const goAddChild = () => {
+    closeDrawer();
+    navigation.getParent()?.navigate('OnboardingName', { mode: 'addChild' });
+  };
+
+  const goTo = (route: RouteName) => {
+    navigation.navigate(route);
+    closeDrawer();
+  };
+
+  const handleSignOut = () => {
+    setSignOutOpen(false);
+    void supabaseSignOut();
+    clearOnboardingDraft();
+    signOutAuth();
+    closeDrawer();
+    const parent = navigation.getParent();
+    parent?.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'OnboardingWelcome' }],
+      }),
+    );
+  };
+
+  const navItems: NavItem[] = [
+    { route: 'Home', label: t('nav.home'), icon: 'home-outline' },
+    { route: 'History', label: t('nav.history'), icon: 'pie-chart-outline' },
+    { route: 'Profile', label: t('nav.settings'), icon: 'settings-outline' },
+  ];
+
+  return (
+    <View style={styles.outer} pointerEvents="box-none">
+      <LinearGradient
+        colors={['#020205', '#040611', colors.night.bottom]}
+        locations={[0, 0.45, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <View
+        style={[
+          styles.content,
+          { paddingTop: insets.top + spacing.sm },
+        ]}
+      >
+        {babies.length === 0 ? (
+          <View style={styles.emptyRow}>
+            <Text variant="callout" tone="tertiary">
+              {t('drawer.noChildren')}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.childList}>
+            {babies.map((baby) => {
+              const isActive = baby.id === activeBabyId;
+              const showDot = isActive && babies.length > 1;
+              return (
+                <View key={baby.id} style={styles.childChip}>
+                  <Pressable
+                    onPress={() => selectBaby(baby.id)}
+                    style={({ pressed }) => [
+                      styles.childMain,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <View style={styles.avatar}>
+                      <Text
+                        variant="body"
+                        tone="secondary"
+                        style={styles.avatarLetter}
+                      >
+                        {baby.name.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={styles.childInfo}>
+                      <Text
+                        variant="body"
+                        tone={isActive ? 'primary' : 'secondary'}
+                        style={isActive ? styles.childNameActive : undefined}
+                        numberOfLines={1}
+                      >
+                        {baby.name}
+                      </Text>
+                      <Text
+                        variant="footnote"
+                        tone="tertiary"
+                        style={styles.childAge}
+                        numberOfLines={1}
+                      >
+                        {ageLabel(baby)}
+                      </Text>
+                    </View>
+                    {showDot ? <View style={styles.activeDot} /> : null}
+                  </Pressable>
+                  <Pressable
+                    onPress={() => editBaby(baby.id)}
+                    hitSlop={8}
+                    style={({ pressed }) => [
+                      styles.editBtn,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <Text variant="footnote" tone="accent" style={styles.editLabel}>
+                      {t('drawer.edit')}
+                    </Text>
+                  </Pressable>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        <Pressable
+          onPress={goAddChild}
+          style={({ pressed }) => [styles.addRow, pressed && styles.pressed]}
+        >
+          <View style={styles.addAvatar}>
+            <Ionicons name="add" size={20} color={colors.accent.base} />
+          </View>
+          <Text variant="body" tone="accent" style={styles.addLabel}>
+            {t('drawer.addChild')}
+          </Text>
+        </Pressable>
+
+        <View style={styles.divider} />
+
+        {navItems.map((item) => {
+          const isActive = activeRoute === item.route;
+          return (
+            <Pressable
+              key={item.route}
+              onPress={() => goTo(item.route)}
+              style={({ pressed }) => [
+                styles.navRow,
+                isActive && styles.navRowActive,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Ionicons
+                name={item.icon}
+                size={20}
+                color={isActive ? colors.accent.base : colors.text.secondary}
+                style={styles.iconLead}
+              />
+              <Text
+                variant="body"
+                tone={isActive ? 'primary' : 'secondary'}
+                style={isActive ? styles.navRowLabelActive : undefined}
+              >
+                {item.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+
+        <View style={styles.flex} />
+
+        <View style={[styles.account, { marginBottom: insets.bottom + spacing.xs }]}>
+          <Text variant="eyebrow" tone="tertiary" style={styles.accountEyebrow}>
+            {t('drawer.account')}
+          </Text>
+
+          <Pressable
+            onPress={() => setAccountExpanded((v) => !v)}
+            style={({ pressed }) => [
+              styles.accountRow,
+              pressed && styles.pressed,
+            ]}
+            hitSlop={4}
+          >
+            <View style={styles.accountInfo}>
+              <Text variant="body" tone="primary" numberOfLines={1}>
+                {authedUser?.email ?? t('drawer.accountLocal')}
+              </Text>
+              {!authedUser ? (
+                <Text
+                  variant="footnote"
+                  tone="tertiary"
+                  numberOfLines={1}
+                  style={styles.accountCaption}
+                >
+                  {t('drawer.accountLocalCaption')}
+                </Text>
+              ) : null}
+            </View>
+            {authedUser?.picture ? (
+              <Image source={{ uri: authedUser.picture }} style={styles.accountAvatar} />
+            ) : (
+              <View style={styles.accountAvatar}>
+                <Text
+                  variant="body"
+                  tone="onAccent"
+                  style={styles.accountInitials}
+                >
+                  {(authedUser?.name ?? authedUser?.email ?? '·')
+                    .trim()
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+
+          {accountExpanded && authedUser ? (
+            <Pressable
+              onPress={() => setSignOutOpen(true)}
+              style={({ pressed }) => [
+                styles.signOutRow,
+                pressed && styles.pressed,
+              ]}
+            >
+              <SignOutIcon size={20} />
+              <Text variant="body" tone="danger">
+                {t('drawer.signOut')}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      </View>
+
+      <Sheet
+        visible={signOutOpen}
+        onClose={() => setSignOutOpen(false)}
+      >
+        <Text variant="title" style={styles.signOutSheetTitle}>
+          {t('drawer.signOutConfirmTitle')}
+        </Text>
+        <Text
+          variant="callout"
+          tone="secondary"
+          style={styles.signOutSheetBody}
+        >
+          {t('drawer.signOutConfirmBody')}
+        </Text>
+        <Button
+          title={t('drawer.signOutConfirmCta')}
+          variant="destructive"
+          onPress={handleSignOut}
+        />
+        <View style={styles.signOutSheetGap} />
+        <Button
+          title={t('common.no')}
+          variant="dangerGhost"
+          onPress={() => setSignOutOpen(false)}
+        />
+      </Sheet>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  outer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+  },
+  flex: { flex: 1 },
+  childList: {
+    gap: spacing.xs,
+  },
+  childChip: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  childMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  editBtn: {
+    paddingTop: spacing.sm + 2,
+    paddingHorizontal: spacing.sm,
+  },
+  editLabel: {
+    fontFamily: fonts.medium,
+  },
+  avatarLetter: {
+    fontFamily: fonts.semibold,
+  },
+  childInfo: { flex: 1 },
+  childNameActive: { fontFamily: fonts.medium },
+  childAge: { marginTop: 2 },
+  activeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.accent.base,
+  },
+  emptyRow: {
+    paddingVertical: spacing.md,
+  },
+  addRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    marginTop: spacing.xs,
+    gap: spacing.md,
+  },
+  addAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(168, 165, 230, 0.35)',
+    backgroundColor: 'rgba(168, 165, 230, 0.08)',
+  },
+  addLabel: { fontFamily: fonts.medium },
+  iconLead: { width: 24, textAlign: 'center' },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    marginVertical: spacing.md,
+  },
+  navRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderRadius: 12,
+    minHeight: 48,
+    gap: spacing.md,
+  },
+  navRowActive: {
+    backgroundColor: 'rgba(168, 165, 230, 0.08)',
+  },
+  navRowLabelActive: {
+    fontFamily: fonts.medium,
+    flex: 1,
+  },
+  pressed: { opacity: 0.6 },
+  account: {
+    paddingTop: spacing.lg,
+  },
+  accountEyebrow: {
+    marginBottom: spacing.xs,
+  },
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    gap: spacing.md,
+  },
+  accountInfo: { flex: 1 },
+  accountCaption: { marginTop: 2 },
+  accountAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.accent.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  accountInitials: {
+    fontFamily: fonts.semibold,
+    fontSize: 13,
+  },
+  signOutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    marginTop: spacing.xs,
+    gap: spacing.md,
+  },
+  signOutSheetTitle: {
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  signOutSheetBody: {
+    marginBottom: spacing.xl,
+    textAlign: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  signOutSheetGap: { height: spacing.sm },
+});

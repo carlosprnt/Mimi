@@ -18,7 +18,7 @@ import { DobScreen } from '@/screens/onboarding/DobScreen';
 import { PrematurityScreen } from '@/screens/onboarding/PrematurityScreen';
 import { colors } from '@/theme';
 import { DrawerContent } from './DrawerContent';
-import { DrawerSceneWrapper, DRAWER_WIDTH } from './DrawerSceneWrapper';
+import { DrawerSceneWrapper } from './DrawerSceneWrapper';
 import { DrawerParamList, RootStackParamList } from './types';
 
 const DEEP_NIGHT_BG = '#000000';
@@ -57,20 +57,20 @@ const navTheme = {
 const RootDrawer: React.FC = () => {
   return (
     <Drawer.Navigator
-      drawerContent={(props) => <DrawerContent {...props} />}
+      drawerContent={() => <DrawerContent />}
       screenOptions={{
         headerShown: false,
         drawerStyle: {
           backgroundColor: 'transparent',
-          width: DRAWER_WIDTH,
+          width: 1,
           borderRightWidth: 0,
         },
         sceneStyle: {
-          backgroundColor: DEEP_NIGHT_BG,
+          backgroundColor: 'transparent',
         },
         drawerType: 'front',
         overlayColor: 'transparent',
-        swipeEnabled: true,
+        swipeEnabled: false,
       }}
     >
       <Drawer.Screen name="Home" component={HomeScene} />
