@@ -220,10 +220,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg.base,
   },
   menuOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+    ...StyleSheet.absoluteFillObject,
   },
   grabberWrap: {
     position: 'absolute',

@@ -74,21 +74,22 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   };
 
   return (
-    <View style={styles.outer} onLayout={handleLayout}>
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <LinearGradient
-          colors={['#020205', '#040611', colors.night.bottom]}
-          locations={[0, 0.45, 1]}
-          style={StyleSheet.absoluteFill}
-        />
-      </View>
-
+    <View style={styles.outer} pointerEvents="box-none">
       <View
         style={[
           styles.content,
           { paddingTop: insets.top + spacing.md },
         ]}
+        onLayout={handleLayout}
       >
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <LinearGradient
+            colors={['#020205', '#040611', colors.night.bottom]}
+            locations={[0, 0.45, 1]}
+            style={StyleSheet.absoluteFill}
+          />
+        </View>
+
         {rows.map((row, rIdx) => (
           <View key={`row-${rIdx}`} style={styles.row}>
             {row.map((tile, cIdx) => {
@@ -228,7 +229,7 @@ const NavTile: React.FC<{
 
 const styles = StyleSheet.create({
   outer: {
-    overflow: 'hidden',
+    ...StyleSheet.absoluteFillObject,
   },
   content: {
     paddingHorizontal: spacing.lg,
