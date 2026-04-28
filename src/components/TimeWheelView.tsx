@@ -73,7 +73,7 @@ const NativeIOSPicker: React.FC<TimeWheelViewProps> = ({
           ]}
           hitSlop={8}
         >
-          <Ionicons name="checkmark" size={22} color={colors.pure.white} />
+          <Ionicons name="checkmark" size={22} color={colors.text.onAccent} />
         </Pressable>
       </View>
 
@@ -162,7 +162,7 @@ const CustomWheelPicker: React.FC<TimeWheelViewProps> = ({
           ]}
           hitSlop={8}
         >
-          <Ionicons name="checkmark" size={22} color={colors.pure.white} />
+          <Ionicons name="checkmark" size={22} color={colors.text.onAccent} />
         </Pressable>
       </View>
 

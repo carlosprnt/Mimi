@@ -128,7 +128,7 @@ export const DateWheelSheet: React.FC<DateWheelSheetProps> = ({
           ]}
           hitSlop={8}
         >
-          <Ionicons name="checkmark" size={22} color={colors.pure.white} />
+          <Ionicons name="checkmark" size={22} color={colors.text.onAccent} />
         </Pressable>
       </View>
 
