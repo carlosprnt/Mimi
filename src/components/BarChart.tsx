@@ -26,8 +26,10 @@ interface BarChartProps {
 }
 
 const PLOT_HEIGHT = 140;
-const MEAN_DOT_SIZE = 3;
-const MEAN_DOT_GAP = 5;
+const MEAN_DOT_W = 3;
+const MEAN_DOT_H = 0.5;
+const MEAN_DOT_GAP = 4;
+const MEAN_LINE_COLOR = 'rgba(255,255,255,0.55)';
 
 export const BarChart: React.FC<BarChartProps> = ({
   values,
@@ -79,7 +81,7 @@ export const BarChart: React.FC<BarChartProps> = ({
             pointerEvents="none"
             style={[styles.meanLine, { bottom: meanBottom }]}
           >
-            <DottedLine tint={tint} />
+            <DottedLine />
           </View>
         ) : null}
       </View>
@@ -112,12 +114,12 @@ export const BarChart: React.FC<BarChartProps> = ({
   );
 };
 
-const DOT_COUNT = 220;
+const DOT_COUNT = 260;
 
-const DottedLine: React.FC<{ tint: string }> = ({ tint }) => (
+const DottedLine: React.FC = () => (
   <View style={styles.dottedRow}>
     {Array.from({ length: DOT_COUNT }).map((_, i) => (
-      <View key={i} style={[styles.dot, { backgroundColor: tint }]} />
+      <View key={i} style={styles.dot} />
     ))}
   </View>
 );
@@ -133,7 +135,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    height: MEAN_DOT_SIZE,
+    height: MEAN_DOT_H,
     overflow: 'hidden',
   },
   dottedRow: {
@@ -142,10 +144,9 @@ const styles = StyleSheet.create({
     gap: MEAN_DOT_GAP,
   },
   dot: {
-    width: MEAN_DOT_SIZE,
-    height: MEAN_DOT_SIZE,
-    borderRadius: MEAN_DOT_SIZE / 2,
-    opacity: 0.7,
+    width: MEAN_DOT_W,
+    height: MEAN_DOT_H,
+    backgroundColor: MEAN_LINE_COLOR,
   },
   column: {
     flex: 1,
