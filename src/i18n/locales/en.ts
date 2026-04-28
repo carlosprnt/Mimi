@@ -8,7 +8,7 @@ export const en = {
   },
   nav: {
     profile: 'Profile',
-    history: 'History',
+    history: 'Statistics',
     settings: 'Settings',
     home: 'Home',
     menu: 'Menu',

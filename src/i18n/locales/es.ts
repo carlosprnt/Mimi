@@ -10,7 +10,7 @@ export const es: Translations = {
   },
   nav: {
     profile: 'Perfil',
-    history: 'Historial',
+    history: 'Estadísticas',
     settings: 'Ajustes',
     home: 'Inicio',
     menu: 'Menú',

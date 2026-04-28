@@ -103,10 +103,7 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
         <DrawerContentScrollView
           {...props}
           style={styles.scroll}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingTop: Math.max(insets.top, spacing.xl) },
-          ]}
+          contentContainerStyle={styles.scrollContent}
         >
         <View style={styles.header}>
           <Text variant="title" tone="primary" style={styles.wordmark}>
@@ -350,6 +347,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    paddingTop: spacing.sm,
     paddingBottom: spacing.lg,
   },
   accountFooter: {
@@ -359,7 +357,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.md,
     gap: spacing.sm,
   },
   wordmark: {
@@ -439,7 +437,7 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.08)',
-    marginVertical: spacing.xl,
+    marginVertical: spacing.md,
     marginHorizontal: spacing.lg,
   },
   navRow: {
