@@ -148,7 +148,9 @@ export const en = {
     week: 'Week',
     month: 'Month',
     totalSleep: 'Total sleep per day',
+    nightSleepDaily: 'Night sleep per day',
     nightWakes: 'Night wakings per night',
+    nightWakeHours: 'Night waking hours',
     average: 'Average',
   },
   emptyDay: {

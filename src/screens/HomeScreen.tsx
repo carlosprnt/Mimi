@@ -314,9 +314,15 @@ export const HomeScreen: React.FC = () => {
   const onPressMore = () => setActionMenuOpen(true);
 
   const onPressActiveQuickAction = () => {
+    // During a nap the lightning button still records a nightWake care
+    // event under the hood (same data shape) but the modal title and
+    // resulting timeline label read as plain "Añadir despertar".
+    const isNapActive = active?.kind === 'nap';
     setPointEvent({
       kind: 'nightWake',
-      title: t('timeline.addNightWake'),
+      title: isNapActive
+        ? t('timeline.addWake')
+        : t('timeline.addNightWake'),
       initial: new Date(now),
       careEventId: null,
     });

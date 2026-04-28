@@ -16,6 +16,10 @@ interface BarChartProps {
   tint?: string;
   /** Force a maximum on the Y axis. Useful when comparing two charts. */
   yMax?: number;
+  /** When set, columns use this fixed width instead of flexing. Lets
+   *  the chart be wider than its container and live inside a
+   *  horizontal ScrollView. */
+  cellWidth?: number;
 }
 
 const PLOT_HEIGHT = 140;
@@ -27,8 +31,12 @@ export const BarChart: React.FC<BarChartProps> = ({
   formatValue,
   tint = colors.accent.base,
   yMax,
+  cellWidth,
 }) => {
   const computedMax = yMax ?? Math.max(1, ...values);
+  const colStyle = cellWidth
+    ? [styles.columnFixed, { width: cellWidth }]
+    : styles.column;
 
   return (
     <View>
@@ -37,7 +45,7 @@ export const BarChart: React.FC<BarChartProps> = ({
           const ratio = computedMax > 0 ? v / computedMax : 0;
           const barH = Math.max(2, ratio * (height - 14));
           return (
-            <View key={i} style={styles.column}>
+            <View key={i} style={colStyle}>
               <View style={styles.bar}>
                 <View
                   style={[
@@ -57,12 +65,22 @@ export const BarChart: React.FC<BarChartProps> = ({
 
       <View style={styles.labels}>
         {labels.map((l, i) => (
-          <View key={i} style={styles.column}>
-            <Text variant="footnote" tone="tertiary" style={styles.tick}>
+          <View key={i} style={colStyle}>
+            <Text
+              variant="footnote"
+              tone="tertiary"
+              style={styles.tick}
+              numberOfLines={1}
+            >
               {l}
             </Text>
             {formatValue && values[i] > 0 ? (
-              <Text variant="footnote" tone="secondary" style={styles.value}>
+              <Text
+                variant="footnote"
+                tone="secondary"
+                style={styles.value}
+                numberOfLines={1}
+              >
                 {formatValue(values[i])}
               </Text>
             ) : null}
@@ -81,6 +99,9 @@ const styles = StyleSheet.create({
   },
   column: {
     flex: 1,
+    alignItems: 'center',
+  },
+  columnFixed: {
     alignItems: 'center',
   },
   bar: {

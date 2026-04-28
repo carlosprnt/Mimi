@@ -150,7 +150,9 @@ export const es: Translations = {
     week: 'Semana',
     month: 'Mes',
     totalSleep: 'Sueño total por día',
+    nightSleepDaily: 'Sueño nocturno por día',
     nightWakes: 'Despertares por noche',
+    nightWakeHours: 'Horas de despertares nocturnos',
     average: 'Media',
   },
   emptyDay: {
