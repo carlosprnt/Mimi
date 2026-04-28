@@ -240,6 +240,7 @@ export const HistoryScreen: React.FC = () => {
                 labels={labels}
                 tint={colors.accent.base}
                 cellWidth={monthCellWidth}
+                meanValue={avgNightMs}
               />
             </ScrollView>
           ) : (
@@ -248,6 +249,7 @@ export const HistoryScreen: React.FC = () => {
               labels={labels}
               tint={colors.accent.base}
               formatValue={formatSleepHours}
+              meanValue={avgNightMs}
             />
           )}
         </Card>
@@ -268,6 +270,7 @@ export const HistoryScreen: React.FC = () => {
                 labels={labels}
                 tint={colors.danger.base}
                 cellWidth={monthCellWidth}
+                meanValue={avgWakeCount}
               />
             </ScrollView>
           ) : (
@@ -276,6 +279,7 @@ export const HistoryScreen: React.FC = () => {
               labels={labels}
               tint={colors.danger.base}
               formatValue={(n) => (n > 0 ? String(n) : '')}
+              meanValue={avgWakeCount}
             />
           )}
         </Card>
@@ -296,6 +300,7 @@ export const HistoryScreen: React.FC = () => {
             labels={histogramLabels}
             tint={colors.danger.base}
             formatValue={(n) => (n > 0 ? String(n) : '')}
+            meanValue={meanAll(wakeHistogram.filter((c) => c > 0))}
           />
         </Card>
 

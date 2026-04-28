@@ -20,9 +20,14 @@ interface BarChartProps {
    *  the chart be wider than its container and live inside a
    *  horizontal ScrollView. */
   cellWidth?: number;
+  /** When set, draws a horizontal dotted line across the plot at this
+   *  Y value to mark the mean. Hidden when 0 or undefined. */
+  meanValue?: number;
 }
 
 const PLOT_HEIGHT = 140;
+const MEAN_DOT_SIZE = 3;
+const MEAN_DOT_GAP = 5;
 
 export const BarChart: React.FC<BarChartProps> = ({
   values,
@@ -32,11 +37,19 @@ export const BarChart: React.FC<BarChartProps> = ({
   tint = colors.accent.base,
   yMax,
   cellWidth,
+  meanValue,
 }) => {
   const computedMax = yMax ?? Math.max(1, ...values);
   const colStyle = cellWidth
     ? [styles.columnFixed, { width: cellWidth }]
     : styles.column;
+
+  const meanRatio =
+    meanValue !== undefined && meanValue > 0 && computedMax > 0
+      ? Math.min(1, meanValue / computedMax)
+      : null;
+  const meanBottom =
+    meanRatio !== null ? meanRatio * (height - 14) : null;
 
   return (
     <View>
@@ -61,6 +74,14 @@ export const BarChart: React.FC<BarChartProps> = ({
             </View>
           );
         })}
+        {meanBottom !== null ? (
+          <View
+            pointerEvents="none"
+            style={[styles.meanLine, { bottom: meanBottom }]}
+          >
+            <DottedLine tint={tint} />
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.labels}>
@@ -91,11 +112,40 @@ export const BarChart: React.FC<BarChartProps> = ({
   );
 };
 
+const DOT_COUNT = 220;
+
+const DottedLine: React.FC<{ tint: string }> = ({ tint }) => (
+  <View style={styles.dottedRow}>
+    {Array.from({ length: DOT_COUNT }).map((_, i) => (
+      <View key={i} style={[styles.dot, { backgroundColor: tint }]} />
+    ))}
+  </View>
+);
+
 const styles = StyleSheet.create({
   plot: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 6,
+    position: 'relative',
+  },
+  meanLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: MEAN_DOT_SIZE,
+    overflow: 'hidden',
+  },
+  dottedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: MEAN_DOT_GAP,
+  },
+  dot: {
+    width: MEAN_DOT_SIZE,
+    height: MEAN_DOT_SIZE,
+    borderRadius: MEAN_DOT_SIZE / 2,
+    opacity: 0.7,
   },
   column: {
     flex: 1,
