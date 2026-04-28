@@ -69,10 +69,10 @@ export const BabyEditScreen: React.FC = () => {
   return (
     <Screen backdrop="night">
       <HeaderBar
-        title={baby.name}
+        title={t('profile.babyEditTitle')}
         leading={{
-          icon: 'close',
-          label: t('common.close'),
+          icon: 'arrow-back',
+          label: t('common.back'),
           onPress: dismiss,
         }}
       />
@@ -97,10 +97,12 @@ export const BabyEditScreen: React.FC = () => {
               })}
               onPress={() => setEditing('dob')}
             />
-            <ListRow
-              label={t('profile.age')}
-              value={ageLabel(baby)}
-            />
+            <View style={styles.disabledRow}>
+              <ListRow
+                label={t('profile.age')}
+                value={ageLabel(baby)}
+              />
+            </View>
             <ListRow
               label={t('profile.bornEarly')}
               value={
@@ -165,5 +167,8 @@ const styles = StyleSheet.create({
   deleteButton: {
     alignSelf: 'stretch',
     marginTop: spacing.xl,
+  },
+  disabledRow: {
+    opacity: 0.45,
   },
 });

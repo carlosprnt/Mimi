@@ -168,6 +168,7 @@ export const en = {
     dob: 'Date of birth',
     bornEarly: 'Born early',
     age: 'Age',
+    babyEditTitle: 'Baby settings',
     weeks: '{count} weeks',
     preferences: 'PREFERENCES',
     clock24h: '24-hour time',

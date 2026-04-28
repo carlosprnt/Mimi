@@ -108,18 +108,7 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="OnboardingDobLegacy" component={DobScreen} />
         <Stack.Screen name="OnboardingPrematurity" component={PrematurityScreen} />
         <Stack.Screen name="Root" component={RootDrawer} />
-        <Stack.Screen
-          name="BabyEdit"
-          component={BabyEditScreen}
-          options={{
-            presentation: 'formSheet',
-            animation: 'slide_from_bottom',
-            contentStyle: { backgroundColor: 'transparent' },
-            sheetAllowedDetents: [0.55, 0.85],
-            sheetGrabberVisible: true,
-            sheetCornerRadius: 28,
-          }}
-        />
+        <Stack.Screen name="BabyEdit" component={BabyEditScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
