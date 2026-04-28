@@ -51,6 +51,8 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   };
 
   const goTo = (route: RouteName) => {
+    // eslint-disable-next-line no-console
+    console.log('[MenuPanel] goTo', route, !!navigation);
     navigation.navigate(route);
     closeDrawer();
   };

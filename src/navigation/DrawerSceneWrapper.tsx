@@ -29,8 +29,8 @@ const OPEN_VELOCITY = 600;
 const SCALE_MIN = 0.9;
 const ANIM_DURATION = 380;
 const EASING_OUT = Easing.out(Easing.cubic);
-const SCENE_GAP = 32; // distance from last menu item to top of scene
-const GRABBER_TOP = 40; // distance from scene's top to the drag pill
+const SCENE_GAP = 32;
+const GRABBER_TOP = 40;
 const FALLBACK_REVEAL_RATIO = 0.62;
 
 export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
@@ -42,7 +42,6 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
   const drawerStatus = useDrawerStatus();
   const isDrawerOpen = drawerStatus === 'open';
 
-  // Menu measures itself; we use that height + a 40px gap as the reveal.
   const [menuHeight, setMenuHeight] = useState<number>(
     height * FALLBACK_REVEAL_RATIO - SCENE_GAP,
   );
@@ -50,7 +49,7 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
 
   const progress = useSharedValue(0);
   const dragY = useSharedValue(0);
-  const shimmer = useSharedValue(-1);
+  const shimmer = useSharedValue(0);
 
   useEffect(() => {
     progress.value = withTiming(isDrawerOpen ? 1 : 0, {
@@ -59,7 +58,6 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
     });
   }, [isDrawerOpen, progress]);
 
-  // Continuously animate a shimmer that sweeps across the grabber pill.
   useEffect(() => {
     shimmer.value = withRepeat(
       withSequence(
@@ -71,22 +69,14 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
     );
   }, [shimmer]);
 
-  // Effective progress combines the timing-driven `progress` with the
-  // active drag offset, so scale, radius and blur all track the user's
-  // finger smoothly while they're pulling the scene.
   const sceneStyle = useAnimatedStyle(() => {
     const denom = Math.max(1, reveal);
-    const ep = Math.max(
-      0,
-      Math.min(1, progress.value + dragY.value / denom),
-    );
+    const ep = Math.max(0, Math.min(1, progress.value + dragY.value / denom));
     const scale = interpolate(ep, [0, 1], [1, SCALE_MIN], Extrapolation.CLAMP);
-    const totalY = ep * reveal;
+    const ty = ep * reveal;
     const radius = interpolate(ep, [0, 1], [0, SCENE_RADIUS], Extrapolation.CLAMP);
     return {
-      top: totalY,
-      height,
-      transform: [{ scale }],
+      transform: [{ translateY: ty }, { scale }],
       borderTopLeftRadius: radius,
       borderTopRightRadius: radius,
       borderBottomLeftRadius: radius,
@@ -94,12 +84,17 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
     };
   });
 
+  const menuVisibilityStyle = useAnimatedStyle(() => {
+    const denom = Math.max(1, reveal);
+    const ep = Math.max(0, Math.min(1, progress.value + dragY.value / denom));
+    return {
+      opacity: interpolate(ep, [0, 1], [0, 1], Extrapolation.CLAMP),
+    };
+  });
+
   const blurStyle = useAnimatedStyle(() => {
     const denom = Math.max(1, reveal);
-    const ep = Math.max(
-      0,
-      Math.min(1, progress.value + dragY.value / denom),
-    );
+    const ep = Math.max(0, Math.min(1, progress.value + dragY.value / denom));
     return {
       opacity: interpolate(ep, [0, 1], [0, 0.55], Extrapolation.CLAMP),
     };
@@ -107,10 +102,7 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
 
   const grabberStyle = useAnimatedStyle(() => {
     const denom = Math.max(1, reveal);
-    const ep = Math.max(
-      0,
-      Math.min(1, progress.value + dragY.value / denom),
-    );
+    const ep = Math.max(0, Math.min(1, progress.value + dragY.value / denom));
     return {
       opacity: interpolate(ep, [0.4, 1], [0, 1], Extrapolation.CLAMP),
     };
@@ -141,8 +133,6 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
     .activeOffsetY([-12, 12])
     .onChange((e) => {
       const next = dragY.value + e.changeY;
-      // While closed, only allow downward drag to peek-open. While
-      // open, only allow upward drag to peek-close.
       dragY.value = isDrawerOpen ? Math.min(0, next) : Math.max(0, next);
     })
     .onEnd((e) => {
@@ -155,8 +145,6 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
         const movedDown = dragY.value > reveal * 0.18;
         if (fast || movedDown) runOnJS(openDrawer)();
       }
-      // Settle drag-offset back to 0 with timing (no bounce). The
-      // drawer's own progress animation will pick the rest up.
       dragY.value = withTiming(0, {
         duration: 220,
         easing: Easing.out(Easing.cubic),
@@ -165,13 +153,11 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <View style={styles.root}>
-      <MenuPanel
-        activeRoute={route.name as 'Home' | 'History' | 'Profile'}
-        navigation={navigation}
-        onContentHeight={setMenuHeight}
-      />
       <GestureDetector gesture={pan}>
-        <Animated.View style={[styles.scene, sceneStyle]}>
+        <Animated.View
+          style={[styles.scene, sceneStyle]}
+          pointerEvents={isDrawerOpen ? 'box-only' : 'auto'}
+        >
           {children}
           <Animated.View
             pointerEvents="none"
@@ -205,6 +191,21 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
           </Animated.View>
         </Animated.View>
       </GestureDetector>
+
+      {/* Menu rendered ABOVE the scene. pointerEvents toggles between
+          'none' (closed → taps pass through to scene) and 'box-none'
+          (open → tile Pressables receive taps; empty space passes
+          through to scene). This guarantees menu items are tappable. */}
+      <Animated.View
+        pointerEvents={isDrawerOpen ? 'box-none' : 'none'}
+        style={[styles.menuOverlay, menuVisibilityStyle]}
+      >
+        <MenuPanel
+          activeRoute={route.name as 'Home' | 'History' | 'Profile'}
+          navigation={navigation}
+          onContentHeight={setMenuHeight}
+        />
+      </Animated.View>
     </View>
   );
 };
@@ -215,11 +216,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.night.bottom,
   },
   scene: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
+    flex: 1,
     overflow: 'hidden',
     backgroundColor: colors.bg.base,
+  },
+  menuOverlay: {
+    ...StyleSheet.absoluteFillObject,
   },
   grabberWrap: {
     position: 'absolute',
