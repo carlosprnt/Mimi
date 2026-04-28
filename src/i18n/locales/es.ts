@@ -152,7 +152,9 @@ export const es: Translations = {
     totalSleep: 'Sueño total por día',
     nightSleepDaily: 'Sueño nocturno por día',
     nightWakes: 'Despertares por noche',
+    nightWakesPerNight: 'Despertares totales por noche',
     nightWakeHours: 'Horas de despertares nocturnos',
+    nightWakeDistribution: 'Distribución de despertares por hora',
     average: 'Media',
   },
   emptyDay: {

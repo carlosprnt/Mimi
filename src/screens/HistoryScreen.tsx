@@ -8,8 +8,6 @@ import {
   Card,
   Text,
   BarChart,
-  RangeBarChart,
-  type RangeBar,
 } from '@/components';
 import { spacing, screenGutter, colors, fonts } from '@/theme';
 import { useActiveBaby } from '@/state/babyStore';
@@ -37,10 +35,7 @@ const buildDays = (range: Range, now: Date): Date[] => {
   return out;
 };
 
-/**
- * Night sleep duration attributed to the day it ENDS on. So "the night
- * before Tuesday" appears on the Tuesday bar.
- */
+/** Night sleep duration attributed to the day it ENDS on. */
 const nightSleepMsByDay = (
   sessions: SleepSession[],
   days: Date[],
@@ -60,62 +55,68 @@ const nightSleepMsByDay = (
 };
 
 /**
- * For each day, find the night-wake care events that belong to "the
- * night before that day" (between 18:00 of the previous day and 12:00
- * of the day). Returns a range bar per day with min, max, mean of the
- * wake hour, normalised so 00:00 → 24, 03:00 → 27, etc — keeping the
- * y-axis monotonic across the night.
+ * Attribute a nightWake event to a "night-day". Wakes before noon
+ * belong to the same calendar day; wakes after 18:00 belong to the
+ * NEXT day's night chart. Daytime wakes (12-18) are skipped.
  */
-const nightWakeRangesByDay = (
+const attributeNightWake = (at: Date): number | null => {
+  const h = at.getHours() + at.getMinutes() / 60;
+  if (h < 12) return dayKey(at);
+  if (h >= 18) {
+    const next = new Date(at);
+    next.setDate(next.getDate() + 1);
+    return dayKey(next);
+  }
+  return null;
+};
+
+/** Count of nightWake care events per night-day. */
+const nightWakesByDay = (
   events: CareEvent[],
   days: Date[],
-): Array<RangeBar | null> => {
-  // Pre-bin events by their day-key
-  const wakesByDay = new Map<number, number[]>();
-  for (const day of days) wakesByDay.set(dayKey(day), []);
-
+): number[] => {
+  const buckets = new Map<number, number>();
+  for (const day of days) buckets.set(dayKey(day), 0);
   for (const ev of events) {
     if (ev.kind !== 'nightWake') continue;
     const at = new Date(ev.at);
-    const h = at.getHours() + at.getMinutes() / 60;
-    // If wake happened before noon, attribute to the same calendar day
-    // (it belongs to that day's night which started yesterday). Map
-    // those hours to 24+h so the bar plots above the night start.
-    // If wake happened in the evening (>= 18), it belongs to TOMORROW's
-    // day bar (the night that ends tomorrow).
-    let attributedDayMs: number;
-    let normH: number;
-    if (h < 12) {
-      attributedDayMs = dayKey(at);
-      normH = h + 24;
-    } else if (h >= 18) {
-      const tomorrow = new Date(at);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      attributedDayMs = dayKey(tomorrow);
-      normH = h;
-    } else {
-      // Daytime wake — not part of the night.
-      continue;
-    }
-    const arr = wakesByDay.get(attributedDayMs);
-    if (!arr) continue;
-    arr.push(normH);
+    const key = attributeNightWake(at);
+    if (key === null || !buckets.has(key)) continue;
+    buckets.set(key, (buckets.get(key) ?? 0) + 1);
   }
+  return days.map((d) => buckets.get(dayKey(d)) ?? 0);
+};
 
-  return days.map((d) => {
-    const arr = wakesByDay.get(dayKey(d)) ?? [];
-    if (arr.length === 0) return null;
-    const min = Math.min(...arr);
-    const max = Math.max(...arr);
-    const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
-    return { min, max, mean };
-  });
+/**
+ * Distribution of night-wake events bucketed by hour across the entire
+ * range. 12 hourly bars from 18:00 to 06:00 next day. Y is total wake
+ * count at that hour across all nights in `days`.
+ */
+const HOUR_BUCKETS = 12;
+const HOUR_START = 18;
+
+const nightWakeHourHistogram = (
+  events: CareEvent[],
+  days: Date[],
+): number[] => {
+  const dayKeys = new Set(days.map((d) => dayKey(d)));
+  const counts = new Array<number>(HOUR_BUCKETS).fill(0);
+  for (const ev of events) {
+    if (ev.kind !== 'nightWake') continue;
+    const at = new Date(ev.at);
+    const k = attributeNightWake(at);
+    if (k === null || !dayKeys.has(k)) continue;
+    const h = at.getHours() + at.getMinutes() / 60;
+    const norm = h < 12 ? h + 24 : h;
+    const bucket = Math.floor(norm - HOUR_START);
+    if (bucket < 0 || bucket >= HOUR_BUCKETS) continue;
+    counts[bucket] += 1;
+  }
+  return counts;
 };
 
 const dayLabelWeek = (d: Date): string =>
-  d
-    .toLocaleDateString(undefined, { weekday: 'narrow' })
-    .toUpperCase();
+  d.toLocaleDateString(undefined, { weekday: 'narrow' }).toUpperCase();
 
 const dayLabelMonth = (d: Date): string => String(d.getDate());
 
@@ -125,11 +126,9 @@ const formatSleepHours = (ms: number): string => {
   return `${hours}h`;
 };
 
-const formatNormHour = (h: number): string => {
-  const real = h % 24;
-  const hh = Math.floor(real);
-  const mm = Math.round((real - hh) * 60);
-  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+const formatHourBucket = (i: number): string => {
+  const h = (HOUR_START + i) % 24;
+  return `${String(h).padStart(2, '0')}h`;
 };
 
 const sumAvg = (xs: number[]): number => {
@@ -138,15 +137,8 @@ const sumAvg = (xs: number[]): number => {
   return filtered.reduce((acc, x) => acc + x, 0) / filtered.length;
 };
 
-const meanOfMeans = (
-  ranges: Array<RangeBar | null>,
-): number | null => {
-  const means = ranges
-    .filter((r): r is RangeBar => r !== null && r.mean !== undefined)
-    .map((r) => r.mean!);
-  if (means.length === 0) return null;
-  return means.reduce((a, b) => a + b, 0) / means.length;
-};
+const meanAll = (xs: number[]): number =>
+  xs.length === 0 ? 0 : xs.reduce((acc, x) => acc + x, 0) / xs.length;
 
 export const HistoryScreen: React.FC = () => {
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList, 'History'>>();
@@ -160,21 +152,27 @@ export const HistoryScreen: React.FC = () => {
     () => nightSleepMsByDay(sessions, days),
     [sessions, days],
   );
-  const wakeRanges = useMemo(
-    () => nightWakeRangesByDay(careEvents, days),
+  const wakeCounts = useMemo(
+    () => nightWakesByDay(careEvents, days),
+    [careEvents, days],
+  );
+  const wakeHistogram = useMemo(
+    () => nightWakeHourHistogram(careEvents, days),
     [careEvents, days],
   );
 
   const avgNightMs = sumAvg(nightSleepValues);
-  const avgWakeHour = meanOfMeans(wakeRanges);
+  const avgWakeCount = meanAll(wakeCounts);
 
   const labels = days.map(range === 'week' ? dayLabelWeek : dayLabelMonth);
+  const histogramLabels = Array.from({ length: HOUR_BUCKETS }, (_, i) =>
+    formatHourBucket(i),
+  );
+  const peakBucket = wakeHistogram.indexOf(Math.max(...wakeHistogram));
+  const hasAnyWake = wakeHistogram.some((c) => c > 0);
+
   const isMonth = range === 'month';
   const monthCellWidth = 28;
-
-  // Y axis for the night-wake-hours chart: 18:00 → 30:00 (06:00 next).
-  const Y_MIN = 18;
-  const Y_MAX = 30;
 
   return (
     <Screen backdrop="night">
@@ -236,10 +234,7 @@ export const HistoryScreen: React.FC = () => {
             </Text>
           </View>
           {isMonth ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-            >
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <BarChart
                 values={nightSleepValues}
                 labels={labels}
@@ -260,39 +255,48 @@ export const HistoryScreen: React.FC = () => {
         <Card variant="bordered" tone="night" style={styles.card}>
           <View style={styles.cardHead}>
             <Text variant="eyebrow" tone="tertiary">
-              {t('history.nightWakeHours')}
+              {t('history.nightWakesPerNight')}
             </Text>
             <Text variant="footnote" tone="secondary">
-              {avgWakeHour !== null
-                ? `${t('history.average')} · ${formatNormHour(avgWakeHour)}`
-                : '—'}
+              {t('history.average')} · {avgWakeCount.toFixed(1)}
             </Text>
           </View>
           {isMonth ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-            >
-              <RangeBarChart
-                ranges={wakeRanges}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <BarChart
+                values={wakeCounts}
                 labels={labels}
-                yMin={Y_MIN}
-                yMax={Y_MAX}
                 tint={colors.danger.base}
-                formatTick={(y) => formatNormHour(y)}
                 cellWidth={monthCellWidth}
               />
             </ScrollView>
           ) : (
-            <RangeBarChart
-              ranges={wakeRanges}
+            <BarChart
+              values={wakeCounts}
               labels={labels}
-              yMin={Y_MIN}
-              yMax={Y_MAX}
               tint={colors.danger.base}
-              formatTick={(y) => formatNormHour(y)}
+              formatValue={(n) => (n > 0 ? String(n) : '')}
             />
           )}
+        </Card>
+
+        <Card variant="bordered" tone="night" style={styles.card}>
+          <View style={styles.cardHead}>
+            <Text variant="eyebrow" tone="tertiary">
+              {t('history.nightWakeDistribution')}
+            </Text>
+            {hasAnyWake ? (
+              <Text variant="footnote" tone="secondary">
+                {t('history.average')} · {formatHourBucket(peakBucket)}
+              </Text>
+            ) : null}
+          </View>
+          <BarChart
+            values={wakeHistogram}
+            labels={histogramLabels}
+            tint={colors.danger.base}
+            formatValue={(n) => (n > 0 ? String(n) : '')}
+          />
         </Card>
 
         {sessions.filter((s) => s.endedAt).length === 0 ? (

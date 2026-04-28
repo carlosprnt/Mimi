@@ -150,7 +150,9 @@ export const en = {
     totalSleep: 'Total sleep per day',
     nightSleepDaily: 'Night sleep per day',
     nightWakes: 'Night wakings per night',
+    nightWakesPerNight: 'Total night wakings per night',
     nightWakeHours: 'Night waking hours',
+    nightWakeDistribution: 'Night wakings by hour',
     average: 'Average',
   },
   emptyDay: {
