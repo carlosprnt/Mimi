@@ -211,7 +211,6 @@ const styles = StyleSheet.create({
   btn: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   pressed: {
     opacity: 0.7,

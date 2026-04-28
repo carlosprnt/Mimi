@@ -105,7 +105,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.pure.white,
   },
   pressed: {
     opacity: 0.7,

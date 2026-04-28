@@ -145,6 +145,11 @@ export const en = {
     emptyHint: 'Start the first sleep from home.',
     nightSleep: 'Night sleep',
     nap: 'Nap',
+    week: 'Week',
+    month: 'Month',
+    totalSleep: 'Total sleep per day',
+    nightWakes: 'Night wakings per night',
+    average: 'Average',
   },
   emptyDay: {
     title: 'No data for this day',

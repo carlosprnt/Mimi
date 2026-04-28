@@ -2,6 +2,7 @@ export { Text } from './Text';
 export type { TextProps } from './Text';
 export { Screen } from './Screen';
 export { Card } from './Card';
+export { BarChart } from './BarChart';
 export { Button } from './Button';
 export { Divider } from './Divider';
 export { ListRow } from './ListRow';

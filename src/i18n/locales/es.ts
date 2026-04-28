@@ -147,6 +147,11 @@ export const es: Translations = {
     emptyHint: 'Empieza el primer sueño desde Inicio.',
     nightSleep: 'Sueño nocturno',
     nap: 'Siesta',
+    week: 'Semana',
+    month: 'Mes',
+    totalSleep: 'Sueño total por día',
+    nightWakes: 'Despertares por noche',
+    average: 'Media',
   },
   emptyDay: {
     title: 'Día sin datos añadidos',
