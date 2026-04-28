@@ -52,8 +52,10 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({
   };
 
   const goTo = (route: RouteName) => {
-    navigation.navigate(route);
     closeDrawer();
+    if (route === activeRoute) return;
+    // Replace so the stack doesn't accumulate Home → History → Home etc.
+    navigation.replace(route);
   };
 
   const tiles: Array<{ kind: 'baby'; id: string } | { kind: 'add' }> = [

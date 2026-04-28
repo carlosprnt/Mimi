@@ -6,8 +6,14 @@ export type DrawerParamList = {
   Profile: undefined;
 };
 
+export type MainStackParamList = {
+  Home: undefined;
+  History: undefined;
+  Profile: undefined;
+};
+
 export type RootStackParamList = {
-  Root: NavigatorScreenParams<DrawerParamList>;
+  Root: NavigatorScreenParams<MainStackParamList>;
   OnboardingWelcome: undefined;
   OnboardingDob: undefined;
   OnboardingAtTerm: undefined;

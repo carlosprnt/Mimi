@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { DrawerNavigationProp } from '@react-navigation/drawer';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Screen,
   HeaderBar,
@@ -16,7 +16,7 @@ import { useCareEventsForBaby } from '@/state/careEventStore';
 import { SleepSession } from '@/logic/recommendation';
 import { CareEvent } from '@/logic/careEvents';
 import { startOfDay } from '@/logic/format';
-import { DrawerParamList } from '@/navigation/types';
+import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
 type Range = 'week' | 'month';
@@ -141,7 +141,7 @@ const meanAll = (xs: number[]): number =>
   xs.length === 0 ? 0 : xs.reduce((acc, x) => acc + x, 0) / xs.length;
 
 export const HistoryScreen: React.FC = () => {
-  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList, 'History'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList, 'History'>>();
   const baby = useActiveBaby();
   const sessions = useSessionsForBaby(baby?.id ?? null);
   const careEvents = useCareEventsForBaby(baby?.id ?? null);

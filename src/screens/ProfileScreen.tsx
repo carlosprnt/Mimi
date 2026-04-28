@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
-import type { DrawerNavigationProp } from '@react-navigation/drawer';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Screen,
   HeaderBar,
@@ -20,12 +20,12 @@ import { useCareEventStore } from '@/state/careEventStore';
 import { useAuthStore } from '@/state/authStore';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import { deleteAccount, signOut as supabaseSignOut } from '@/services/auth';
-import { DrawerParamList } from '@/navigation/types';
+import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
 export const ProfileScreen: React.FC = () => {
   const navigation =
-    useNavigation<DrawerNavigationProp<DrawerParamList, 'Profile'>>();
+    useNavigation<NativeStackNavigationProp<MainStackParamList, 'Profile'>>();
   const preferences = useBabyStore((s) => s.preferences);
   const setPreferences = useBabyStore((s) => s.setPreferences);
   const resetBabies = useBabyStore((s) => s.reset);

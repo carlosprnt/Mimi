@@ -6,7 +6,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { useMenuStore } from '@/state/menuStore';
-import type { DrawerNavigationProp } from '@react-navigation/drawer';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -56,7 +56,7 @@ import {
   startOfDay,
 } from '@/logic/format';
 import { softImpact, lightImpact } from '@/utils/haptics';
-import { DrawerParamList } from '@/navigation/types';
+import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 import type { Recommendation } from '@/logic/recommendation';
 
@@ -72,7 +72,7 @@ const TICK_MS = 30 * 1000;
 const HEADER_EXPANDED = 72;
 
 export const HomeScreen: React.FC = () => {
-  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList, 'Home'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList, 'Home'>>();
   const insets = useSafeAreaInsets();
   const baby = useActiveBaby();
   const use24h = useBabyStore((s) => s.preferences.use24h);

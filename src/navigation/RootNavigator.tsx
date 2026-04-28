@@ -1,6 +1,5 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { useBabyStore } from '@/state/babyStore';
 import { HomeScreen } from '@/screens/HomeScreen';
@@ -17,16 +16,15 @@ import { NameScreen } from '@/screens/onboarding/NameScreen';
 import { DobScreen } from '@/screens/onboarding/DobScreen';
 import { PrematurityScreen } from '@/screens/onboarding/PrematurityScreen';
 import { colors } from '@/theme';
-import { DrawerContent } from './DrawerContent';
 import { DrawerSceneWrapper } from './DrawerSceneWrapper';
-import { DrawerParamList, RootStackParamList } from './types';
+import { MainStackParamList, RootStackParamList } from './types';
 
 const DEEP_NIGHT_BG = '#000000';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const Drawer = createDrawerNavigator<DrawerParamList>();
+const MainStack = createNativeStackNavigator<MainStackParamList>();
 
-const wrapDrawerScene = (
+const wrapMainScene = (
   Inner: React.ComponentType<Record<string, unknown>>,
 ): React.ComponentType<Record<string, unknown>> => {
   const Scene: React.FC<Record<string, unknown>> = (props) => (
@@ -37,9 +35,9 @@ const wrapDrawerScene = (
   return Scene;
 };
 
-const HomeScene = wrapDrawerScene(HomeScreen as React.ComponentType<Record<string, unknown>>);
-const HistoryScene = wrapDrawerScene(HistoryScreen as React.ComponentType<Record<string, unknown>>);
-const ProfileScene = wrapDrawerScene(ProfileScreen as React.ComponentType<Record<string, unknown>>);
+const HomeScene = wrapMainScene(HomeScreen as React.ComponentType<Record<string, unknown>>);
+const HistoryScene = wrapMainScene(HistoryScreen as React.ComponentType<Record<string, unknown>>);
+const ProfileScene = wrapMainScene(ProfileScreen as React.ComponentType<Record<string, unknown>>);
 
 const navTheme = {
   ...DarkTheme,
@@ -54,33 +52,19 @@ const navTheme = {
   },
 };
 
-const RootDrawer: React.FC = () => {
+const RootMainStack: React.FC = () => {
   return (
-    <Drawer.Navigator
-      drawerContent={() => <DrawerContent />}
+    <MainStack.Navigator
       screenOptions={{
         headerShown: false,
-        drawerStyle: {
-          backgroundColor: 'transparent',
-          width: 1,
-          borderRightWidth: 0,
-        },
-        sceneStyle: {
-          backgroundColor: 'transparent',
-        },
-        // 'permanent' avoids the built-in Overlay component (which
-        // intercepts every tap to auto-close the drawer). We don't need
-        // the drawer to actually animate — we drive our own pull-down
-        // menu via useMenuStore + DrawerSceneWrapper.
-        drawerType: 'permanent',
-        overlayColor: 'transparent',
-        swipeEnabled: false,
+        contentStyle: { backgroundColor: 'transparent' },
+        animation: 'slide_from_right',
       }}
     >
-      <Drawer.Screen name="Home" component={HomeScene} />
-      <Drawer.Screen name="History" component={HistoryScene} />
-      <Drawer.Screen name="Profile" component={ProfileScene} />
-    </Drawer.Navigator>
+      <MainStack.Screen name="Home" component={HomeScene} />
+      <MainStack.Screen name="History" component={HistoryScene} />
+      <MainStack.Screen name="Profile" component={ProfileScene} />
+    </MainStack.Navigator>
   );
 };
 
@@ -111,7 +95,7 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="OnboardingName" component={NameScreen} />
         <Stack.Screen name="OnboardingDobLegacy" component={DobScreen} />
         <Stack.Screen name="OnboardingPrematurity" component={PrematurityScreen} />
-        <Stack.Screen name="Root" component={RootDrawer} />
+        <Stack.Screen name="Root" component={RootMainStack} />
         <Stack.Screen name="BabyEdit" component={BabyEditScreen} />
       </Stack.Navigator>
     </NavigationContainer>
