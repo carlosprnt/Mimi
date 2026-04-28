@@ -7,6 +7,7 @@ export const es: Translations = {
     back: 'Atrás',
     continue: 'Continuar',
     no: 'No',
+    close: 'Cerrar',
   },
   nav: {
     profile: 'Perfil',
@@ -182,11 +183,19 @@ export const es: Translations = {
     save: 'Guardar',
     cancel: 'Cancelar',
     deleteChild: 'Eliminar niño',
+    deleteBaby: 'Eliminar bebé',
     deleteChildConfirmTitle: '¿Eliminar a {name}?',
     deleteChildConfirmBody:
       'Esto borra al niño y todo su historial de sueño. No se puede deshacer.',
     delete: 'Eliminar',
     danger: 'ZONA DE PELIGRO',
+    deleteAccount: 'Eliminar cuenta',
+    deleteAccountConfirmTitle: '¿Eliminar tu cuenta?',
+    deleteAccountConfirmBody:
+      'Borraremos tu cuenta y todos tus datos de la base de datos. Esta acción no se puede deshacer.',
+    deleteAccountConfirmCta: 'Sí, eliminar cuenta',
+    deleteAccountFailed:
+      'No se pudo eliminar la cuenta. Inténtalo de nuevo más tarde.',
   },
   onboarding: {
     stepOf: 'Paso {step} de {total}',

@@ -40,7 +40,6 @@ const wrapDrawerScene = (
 const HomeScene = wrapDrawerScene(HomeScreen as React.ComponentType<Record<string, unknown>>);
 const HistoryScene = wrapDrawerScene(HistoryScreen as React.ComponentType<Record<string, unknown>>);
 const ProfileScene = wrapDrawerScene(ProfileScreen as React.ComponentType<Record<string, unknown>>);
-const BabyEditScene = wrapDrawerScene(BabyEditScreen as React.ComponentType<Record<string, unknown>>);
 
 const navTheme = {
   ...DarkTheme,
@@ -77,7 +76,6 @@ const RootDrawer: React.FC = () => {
       <Drawer.Screen name="Home" component={HomeScene} />
       <Drawer.Screen name="History" component={HistoryScene} />
       <Drawer.Screen name="Profile" component={ProfileScene} />
-      <Drawer.Screen name="EditBaby" component={BabyEditScene} />
     </Drawer.Navigator>
   );
 };
@@ -110,6 +108,11 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="OnboardingDobLegacy" component={DobScreen} />
         <Stack.Screen name="OnboardingPrematurity" component={PrematurityScreen} />
         <Stack.Screen name="Root" component={RootDrawer} />
+        <Stack.Screen
+          name="BabyEdit"
+          component={BabyEditScreen}
+          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,21 +1,13 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import {
-  useNavigation,
-  useRoute,
-  DrawerActions,
-} from '@react-navigation/native';
-import type {
-  DrawerNavigationProp,
-  DrawerScreenProps,
-} from '@react-navigation/drawer';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Screen,
   HeaderBar,
   Card,
   ListRow,
   SectionLabel,
-  Text,
   Button,
   NameEditSheet,
   DobEditSheet,
@@ -27,16 +19,15 @@ import { useBabyStore } from '@/state/babyStore';
 import { useSleepStore } from '@/state/sleepStore';
 import { useCareEventStore } from '@/state/careEventStore';
 import { ageLabel } from '@/logic/age';
-import { DrawerParamList } from '@/navigation/types';
+import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
 type EditingField = 'name' | 'dob' | 'prematurity' | 'delete' | null;
 
-type Props = DrawerScreenProps<DrawerParamList, 'EditBaby'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'BabyEdit'>;
 
 export const BabyEditScreen: React.FC = () => {
-  const navigation =
-    useNavigation<DrawerNavigationProp<DrawerParamList, 'EditBaby'>>();
+  const navigation = useNavigation<Props['navigation']>();
   const route = useRoute<Props['route']>();
   const babyId = route.params?.babyId;
   const baby = useBabyStore((s) =>
@@ -53,6 +44,7 @@ export const BabyEditScreen: React.FC = () => {
   if (!baby) return null;
 
   const dob = new Date(baby.dateOfBirth);
+  const dismiss = () => navigation.goBack();
 
   const onSaveName = (name: string) => {
     updateBaby(baby.id, { name });
@@ -72,7 +64,7 @@ export const BabyEditScreen: React.FC = () => {
     removeBaby(id);
     dropBabySessions(id);
     dropBabyCareEvents(id);
-    navigation.dispatch(DrawerActions.openDrawer());
+    dismiss();
   };
 
   return (
@@ -80,9 +72,9 @@ export const BabyEditScreen: React.FC = () => {
       <HeaderBar
         title={baby.name}
         leading={{
-          icon: 'arrow-back',
-          label: t('common.back'),
-          onPress: () => navigation.navigate('Home'),
+          icon: 'close',
+          label: t('common.close'),
+          onPress: dismiss,
         }}
       />
 
@@ -121,9 +113,8 @@ export const BabyEditScreen: React.FC = () => {
           </View>
         </Card>
 
-        <SectionLabel label={t('profile.danger')} />
         <Button
-          title={t('profile.deleteChild')}
+          title={t('profile.deleteBaby')}
           variant="dangerGhost"
           onPress={() => setEditing('delete')}
           style={styles.deleteButton}
@@ -168,5 +159,6 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     alignSelf: 'stretch',
+    marginTop: spacing.xl,
   },
 });

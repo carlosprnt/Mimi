@@ -5,6 +5,7 @@ export const en = {
     back: 'Back',
     continue: 'Continue',
     no: 'No',
+    close: 'Close',
   },
   nav: {
     profile: 'Profile',
@@ -180,11 +181,19 @@ export const en = {
     save: 'Save',
     cancel: 'Cancel',
     deleteChild: 'Delete child',
+    deleteBaby: 'Delete baby',
     deleteChildConfirmTitle: 'Delete {name}?',
     deleteChildConfirmBody:
       'This removes the child and all their sleep history. This cannot be undone.',
     delete: 'Delete',
     danger: 'DANGER ZONE',
+    deleteAccount: 'Delete account',
+    deleteAccountConfirmTitle: 'Delete your account?',
+    deleteAccountConfirmBody:
+      'We will delete your account and all your data from the database. This cannot be undone.',
+    deleteAccountConfirmCta: 'Yes, delete account',
+    deleteAccountFailed:
+      'Could not delete the account. Please try again later.',
   },
   onboarding: {
     stepOf: 'Step {step} of {total}',

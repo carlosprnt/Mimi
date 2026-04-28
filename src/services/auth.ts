@@ -101,6 +101,25 @@ export const signOut = async (): Promise<void> => {
   await supabase.auth.signOut().catch(() => {});
 };
 
+/**
+ * Permanently deletes the current user's account and all their data.
+ * Requires a Supabase Edge Function named "delete-account" that uses the
+ * service role key to call `auth.admin.deleteUser`. RLS-managed tables
+ * (babies, sleep_sessions, care_events, profiles) are expected to cascade
+ * via `on delete cascade` on the user_id foreign keys.
+ */
+export const deleteAccount = async (): Promise<{ ok: boolean; message?: string }> => {
+  if (!isSupabaseConfigured()) {
+    return { ok: false, message: 'Supabase no configurado.' };
+  }
+  const { error } = await supabase.functions.invoke('delete-account');
+  if (error) {
+    return { ok: false, message: error.message };
+  }
+  await supabase.auth.signOut().catch(() => {});
+  return { ok: true };
+};
+
 export const getCurrentSession = async (): Promise<Session | null> => {
   if (!isSupabaseConfigured()) return null;
   const { data } = await supabase.auth.getSession();

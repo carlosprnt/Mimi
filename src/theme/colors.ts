@@ -25,6 +25,7 @@ export const colors = {
   accent: {
     base: '#A8A5E6',
     pressed: '#918EDC',
+    strong: '#6F69E8',
     soft: 'rgba(168, 165, 230, 0.14)',
     glow: 'rgba(168, 165, 230, 0.22)',
   },

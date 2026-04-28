@@ -4,7 +4,6 @@ export type DrawerParamList = {
   Home: undefined;
   History: undefined;
   Profile: undefined;
-  EditBaby: { babyId: string };
 };
 
 export type RootStackParamList = {
@@ -19,4 +18,5 @@ export type RootStackParamList = {
   OnboardingName: { mode?: 'addChild' } | undefined;
   OnboardingDobLegacy: { name: string; mode?: 'addChild' };
   OnboardingPrematurity: { name: string; dob: string; mode?: 'addChild' };
+  BabyEdit: { babyId: string };
 };
