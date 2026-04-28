@@ -121,21 +121,17 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
   const openDrawer = () => setMenuOpen(true);
 
   const pan = Gesture.Pan()
-    .activeOffsetY([-12, 12])
+    .enabled(isDrawerOpen)
+    .activeOffsetY(-12)
+    .failOffsetY(12)
     .onChange((e) => {
       const next = dragY.value + e.changeY;
-      dragY.value = isDrawerOpen ? Math.min(0, next) : Math.max(0, next);
+      dragY.value = Math.min(0, next);
     })
     .onEnd((e) => {
-      if (isDrawerOpen) {
-        const fast = e.velocityY < -CLOSE_VELOCITY;
-        const movedUp = dragY.value < -reveal * 0.22;
-        if (fast || movedUp) runOnJS(closeDrawer)();
-      } else {
-        const fast = e.velocityY > OPEN_VELOCITY;
-        const movedDown = dragY.value > reveal * 0.18;
-        if (fast || movedDown) runOnJS(openDrawer)();
-      }
+      const fast = e.velocityY < -CLOSE_VELOCITY;
+      const movedUp = dragY.value < -reveal * 0.22;
+      if (fast || movedUp) runOnJS(closeDrawer)();
       dragY.value = withTiming(0, {
         duration: 220,
         easing: Easing.out(Easing.cubic),
