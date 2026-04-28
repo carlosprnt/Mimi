@@ -188,6 +188,8 @@ export const HistoryScreen: React.FC = () => {
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
       >
         <View style={styles.toggle}>
           <Pressable
@@ -234,7 +236,12 @@ export const HistoryScreen: React.FC = () => {
             </Text>
           </View>
           {isMonth ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              bounces={false}
+              overScrollMode="never"
+            >
               <BarChart
                 values={nightSleepValues}
                 labels={labels}
@@ -264,7 +271,12 @@ export const HistoryScreen: React.FC = () => {
             </Text>
           </View>
           {isMonth ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              bounces={false}
+              overScrollMode="never"
+            >
               <BarChart
                 values={wakeCounts}
                 labels={labels}
