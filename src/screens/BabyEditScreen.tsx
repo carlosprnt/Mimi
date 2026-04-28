@@ -7,7 +7,6 @@ import {
   HeaderBar,
   Card,
   ListRow,
-  SectionLabel,
   Button,
   NameEditSheet,
   DobEditSheet,
@@ -82,8 +81,7 @@ export const BabyEditScreen: React.FC = () => {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <SectionLabel label={t('profile.baby')} />
-        <Card padded={false}>
+        <Card padded={false} tone="night" style={styles.card}>
           <View style={styles.inner}>
             <ListRow
               label={t('profile.name')}
@@ -97,8 +95,11 @@ export const BabyEditScreen: React.FC = () => {
                 month: 'short',
                 year: 'numeric',
               })}
-              caption={ageLabel(baby)}
               onPress={() => setEditing('dob')}
+            />
+            <ListRow
+              label={t('profile.age')}
+              value={ageLabel(baby)}
             />
             <ListRow
               label={t('profile.bornEarly')}
@@ -153,6 +154,10 @@ const styles = StyleSheet.create({
   scroll: {
     paddingHorizontal: screenGutter,
     paddingBottom: spacing.huge,
+    paddingTop: spacing.md,
+  },
+  card: {
+    backgroundColor: 'rgba(19, 27, 58, 0.78)',
   },
   inner: {
     paddingHorizontal: spacing.lg,

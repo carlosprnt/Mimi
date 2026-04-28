@@ -76,7 +76,7 @@ export const ProfileScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <SectionLabel label={t('profile.preferences')} />
-        <Card padded={false}>
+        <Card padded={false} tone="night" style={styles.card}>
           <View style={styles.inner}>
             <ListRow
               label={t('profile.clock24h')}
@@ -119,7 +119,7 @@ export const ProfileScreen: React.FC = () => {
         </Card>
 
         <SectionLabel label={t('profile.about')} />
-        <Card padded={false}>
+        <Card padded={false} tone="night" style={styles.card}>
           <View style={styles.inner}>
             <ListRow label={t('profile.version')} value="0.1.0" showDivider={false} />
           </View>
@@ -179,6 +179,9 @@ const styles = StyleSheet.create({
   },
   inner: {
     paddingHorizontal: spacing.lg,
+  },
+  card: {
+    backgroundColor: 'rgba(19, 27, 58, 0.78)',
   },
   note: {
     marginTop: spacing.xxl,

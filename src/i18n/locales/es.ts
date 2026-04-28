@@ -169,6 +169,7 @@ export const es: Translations = {
     name: 'Nombre',
     dob: 'Fecha de nacimiento',
     bornEarly: 'Nacido antes de tiempo',
+    age: 'Edad',
     weeks: '{count} semanas',
     preferences: 'PREFERENCIAS',
     clock24h: 'Hora en formato 24h',

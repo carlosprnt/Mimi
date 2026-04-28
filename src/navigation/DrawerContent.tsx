@@ -10,7 +10,6 @@ import {
 } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Sheet, Button, SignOutIcon } from '@/components';
 import { useBabyStore } from '@/state/babyStore';
@@ -246,77 +245,64 @@ export const DrawerContent: React.FC<DrawerContentComponentProps> = (props) => {
             {t('drawer.account')}
           </Text>
 
-          <View style={styles.accountCard}>
-            <BlurView
-              intensity={28}
-              tint="dark"
-              experimentalBlurMethod="dimezisBlurView"
-              style={StyleSheet.absoluteFill}
-            />
-            <View pointerEvents="none" style={styles.accountCardTint} />
+          <Pressable
+            onPress={() => setAccountExpanded((v) => !v)}
+            style={({ pressed }) => [
+              styles.accountRow,
+              pressed && styles.pressed,
+            ]}
+            hitSlop={4}
+          >
+            <View style={styles.accountInfo}>
+              <Text variant="body" tone="primary" numberOfLines={1}>
+                {authedUser?.email ?? t('drawer.accountLocal')}
+              </Text>
+              {!authedUser ? (
+                <Text
+                  variant="footnote"
+                  tone="tertiary"
+                  numberOfLines={1}
+                  style={styles.accountCaption}
+                >
+                  {t('drawer.accountLocalCaption')}
+                </Text>
+              ) : null}
+            </View>
+            {authedUser?.picture ? (
+              <Image
+                source={{ uri: authedUser.picture }}
+                style={styles.accountAvatar}
+              />
+            ) : (
+              <View style={styles.accountAvatar}>
+                <Text
+                  variant="body"
+                  tone="onAccent"
+                  style={styles.accountInitials}
+                >
+                  {(authedUser?.name ?? authedUser?.email ?? '·')
+                    .trim()
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </Text>
+              </View>
+            )}
+          </Pressable>
 
+          {accountExpanded && authedUser ? (
             <Pressable
-              onPress={() => setAccountExpanded((v) => !v)}
+              onPress={() => setSignOutOpen(true)}
               style={({ pressed }) => [
-                styles.accountRow,
+                styles.signOutRow,
                 pressed && styles.pressed,
               ]}
-              hitSlop={4}
             >
-              <View style={styles.accountInfo}>
-                <Text variant="body" tone="primary" numberOfLines={1}>
-                  {authedUser?.email ?? t('drawer.accountLocal')}
-                </Text>
-                {!authedUser ? (
-                  <Text
-                    variant="footnote"
-                    tone="tertiary"
-                    numberOfLines={1}
-                    style={styles.accountCaption}
-                  >
-                    {t('drawer.accountLocalCaption')}
-                  </Text>
-                ) : null}
-              </View>
-              {authedUser?.picture ? (
-                <Image
-                  source={{ uri: authedUser.picture }}
-                  style={styles.accountAvatar}
-                />
-              ) : (
-                <View style={styles.accountAvatar}>
-                  <Text
-                    variant="body"
-                    tone="onAccent"
-                    style={styles.accountInitials}
-                  >
-                    {(authedUser?.name ?? authedUser?.email ?? '·')
-                      .trim()
-                      .slice(0, 2)
-                      .toUpperCase()}
-                  </Text>
-                </View>
-              )}
+              <SignOutIcon size={20} />
+              <Text variant="body" tone="danger">
+                {t('drawer.signOut')}
+              </Text>
             </Pressable>
-
-            {accountExpanded && authedUser ? (
-              <>
-                <View style={styles.accountInnerDivider} />
-                <Pressable
-                  onPress={() => setSignOutOpen(true)}
-                  style={({ pressed }) => [
-                    styles.signOutRow,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <SignOutIcon size={20} />
-                  <Text variant="body" tone="danger">
-                    {t('drawer.signOut')}
-                  </Text>
-                </Pressable>
-              </>
-            ) : null}
-          </View>
+          ) : null}
         </View>
       </View>
 
@@ -376,7 +362,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 0,
     paddingBottom: spacing.md,
     gap: spacing.sm,
   },
@@ -386,12 +372,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
   },
   childList: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 0,
     gap: spacing.xs,
   },
   childChip: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   childMain: {
     flex: 1,
@@ -411,7 +397,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.08)',
   },
   editBtn: {
-    paddingVertical: spacing.sm,
+    paddingTop: spacing.sm + 2,
     paddingHorizontal: spacing.sm,
   },
   editLabel: {
@@ -442,7 +428,7 @@ const styles = StyleSheet.create({
   addRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 0,
     paddingVertical: spacing.sm,
     marginTop: spacing.xs,
     gap: spacing.md,
@@ -498,27 +484,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     marginBottom: spacing.xs,
   },
-  accountCard: {
-    marginHorizontal: spacing.lg,
-    borderRadius: 18,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(120, 145, 220, 0.20)',
-  },
-  accountCardTint: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(20, 35, 90, 0.42)',
-  },
-  accountInnerDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    marginHorizontal: spacing.md,
-  },
   accountRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     gap: spacing.md,
   },
   accountInfo: {
@@ -543,9 +513,9 @@ const styles = StyleSheet.create({
   signOutRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    minHeight: 44,
+    marginTop: spacing.xs,
     gap: spacing.md,
   },
   signOutSheetTitle: {
