@@ -7,6 +7,7 @@
     "userInterfaceStyle": "dark",
     "scheme": "mimi",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
     "plugins": [
       "expo-web-browser"
     ],
@@ -14,6 +15,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.carlospariente.mimi",
       "userInterfaceStyle": "dark",
+      "icon": "./assets/icon.png",
       "infoPlist": {
         "UIStatusBarStyle": "UIStatusBarStyleLightContent"
       }
@@ -22,6 +24,7 @@
       "package": "com.carlospariente.mimi",
       "userInterfaceStyle": "dark",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#0E0F12"
       }
     },
