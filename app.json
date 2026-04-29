@@ -12,14 +12,14 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.mimi.app",
+      "bundleIdentifier": "com.carlospariente.mimi",
       "userInterfaceStyle": "dark",
       "infoPlist": {
         "UIStatusBarStyle": "UIStatusBarStyleLightContent"
       }
     },
     "android": {
-      "package": "com.mimi.app",
+      "package": "com.carlospariente.mimi",
       "userInterfaceStyle": "dark",
       "adaptiveIcon": {
         "backgroundColor": "#0E0F12"
