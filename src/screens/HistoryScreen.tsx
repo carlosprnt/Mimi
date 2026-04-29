@@ -8,6 +8,10 @@ import {
   Card,
   Text,
   BarChart,
+  NightWakeBarChart,
+  MoodChart,
+  type NightWakeBar,
+  type Mood,
 } from '@/components';
 import { spacing, screenGutter, colors, fonts } from '@/theme';
 import { useActiveBaby } from '@/state/babyStore';
@@ -54,6 +58,25 @@ const nightSleepMsByDay = (
   return days.map((d) => buckets.get(dayKey(d)) ?? 0);
 };
 
+/** Total nap duration per calendar day. */
+const napMsByDay = (
+  sessions: SleepSession[],
+  days: Date[],
+): number[] => {
+  const buckets = new Map<number, number>();
+  for (const day of days) buckets.set(dayKey(day), 0);
+  for (const s of sessions) {
+    if (!s.endedAt || s.kind === 'night') continue;
+    const started = new Date(s.startedAt);
+    const key = dayKey(started);
+    if (!buckets.has(key)) continue;
+    const ms =
+      new Date(s.endedAt).getTime() - new Date(s.startedAt).getTime();
+    buckets.set(key, (buckets.get(key) ?? 0) + ms);
+  }
+  return days.map((d) => buckets.get(dayKey(d)) ?? 0);
+};
+
 /**
  * Attribute a nightWake event to a "night-day". Wakes before noon
  * belong to the same calendar day; wakes after 18:00 belong to the
@@ -88,31 +111,75 @@ const nightWakesByDay = (
 };
 
 /**
- * Distribution of night-wake events bucketed by hour across the entire
- * range. 12 hourly bars from 18:00 to 06:00 next day. Y is total wake
- * count at that hour across all nights in `days`.
+ * For each day, compute the night's start/end time and map wake events
+ * to their relative position (0..1) within that span.
  */
-const HOUR_BUCKETS = 12;
-const HOUR_START = 18;
-
-const nightWakeHourHistogram = (
+const nightWakeBars = (
+  sessions: SleepSession[],
   events: CareEvent[],
   days: Date[],
-): number[] => {
-  const dayKeys = new Set(days.map((d) => dayKey(d)));
-  const counts = new Array<number>(HOUR_BUCKETS).fill(0);
+): NightWakeBar[] => {
+  type Span = { start: number; end: number; sleepMs: number };
+  const spans = new Map<number, Span>();
+  for (const day of days) spans.set(dayKey(day), { start: 0, end: 0, sleepMs: 0 });
+  for (const s of sessions) {
+    if (!s.endedAt || s.kind !== 'night') continue;
+    const startedAt = new Date(s.startedAt).getTime();
+    const endedAt = new Date(s.endedAt).getTime();
+    const key = dayKey(new Date(s.endedAt));
+    const span = spans.get(key);
+    if (!span) continue;
+    span.start = span.start === 0 ? startedAt : Math.min(span.start, startedAt);
+    span.end = Math.max(span.end, endedAt);
+    span.sleepMs += endedAt - startedAt;
+  }
+
+  // Map wake events into the night's span.
+  const wakesByKey = new Map<number, number[]>();
   for (const ev of events) {
     if (ev.kind !== 'nightWake') continue;
     const at = new Date(ev.at);
-    const k = attributeNightWake(at);
-    if (k === null || !dayKeys.has(k)) continue;
-    const h = at.getHours() + at.getMinutes() / 60;
-    const norm = h < 12 ? h + 24 : h;
-    const bucket = Math.floor(norm - HOUR_START);
-    if (bucket < 0 || bucket >= HOUR_BUCKETS) continue;
-    counts[bucket] += 1;
+    const key = attributeNightWake(at);
+    if (key === null) continue;
+    const span = spans.get(key);
+    if (!span || span.end <= span.start) continue;
+    const t = at.getTime();
+    const rel = (t - span.start) / (span.end - span.start);
+    if (rel < 0 || rel > 1) continue;
+    const list = wakesByKey.get(key) ?? [];
+    list.push(rel);
+    wakesByKey.set(key, list);
   }
-  return counts;
+
+  return days.map((d) => {
+    const k = dayKey(d);
+    const span = spans.get(k);
+    return {
+      sleepMs: span?.sleepMs ?? 0,
+      wakes: wakesByKey.get(k) ?? [],
+    };
+  });
+};
+
+/**
+ * Heuristic mood per day:
+ *  - 'great' if sleep ≥ 9h and 0 night wakes
+ *  - 'good'  if 1-2 wakes (or sleep ≥ 7h with 0 wakes)
+ *  - 'rough' if 3+ wakes
+ *  - 'none'  if no sleep recorded
+ */
+const moodByDay = (
+  nightMs: number[],
+  wakes: number[],
+): Mood[] => {
+  return nightMs.map((ms, i) => {
+    if (ms <= 0) return 'none';
+    const w = wakes[i] ?? 0;
+    const hours = ms / 3600000;
+    if (w === 0 && hours >= 9) return 'great';
+    if (w >= 3) return 'rough';
+    return 'good';
+  });
 };
 
 const dayLabelWeek = (d: Date): string =>
@@ -124,11 +191,6 @@ const formatSleepHours = (ms: number): string => {
   if (ms <= 0) return '';
   const hours = Math.round((ms / 3600000) * 10) / 10;
   return `${hours}h`;
-};
-
-const formatHourBucket = (i: number): string => {
-  const h = (HOUR_START + i) % 24;
-  return `${String(h).padStart(2, '0')}h`;
 };
 
 const sumAvg = (xs: number[]): number => {
@@ -152,24 +214,28 @@ export const HistoryScreen: React.FC = () => {
     () => nightSleepMsByDay(sessions, days),
     [sessions, days],
   );
+  const napValues = useMemo(
+    () => napMsByDay(sessions, days),
+    [sessions, days],
+  );
   const wakeCounts = useMemo(
     () => nightWakesByDay(careEvents, days),
     [careEvents, days],
   );
-  const wakeHistogram = useMemo(
-    () => nightWakeHourHistogram(careEvents, days),
-    [careEvents, days],
+  const wakeBars = useMemo(
+    () => nightWakeBars(sessions, careEvents, days),
+    [sessions, careEvents, days],
+  );
+  const moods = useMemo(
+    () => moodByDay(nightSleepValues, wakeCounts),
+    [nightSleepValues, wakeCounts],
   );
 
   const avgNightMs = sumAvg(nightSleepValues);
+  const avgNapMs = sumAvg(napValues);
   const avgWakeCount = meanAll(wakeCounts);
 
   const labels = days.map(range === 'week' ? dayLabelWeek : dayLabelMonth);
-  const histogramLabels = Array.from({ length: HOUR_BUCKETS }, (_, i) =>
-    formatHourBucket(i),
-  );
-  const peakBucket = wakeHistogram.indexOf(Math.max(...wakeHistogram));
-  const hasAnyWake = wakeHistogram.some((c) => c > 0);
 
   const isMonth = range === 'month';
   const monthCellWidth = 28;
@@ -257,7 +323,7 @@ export const HistoryScreen: React.FC = () => {
         <Card variant="bordered" tone="night" style={styles.card}>
           <View style={styles.cardHead}>
             <Text variant="eyebrow" tone="tertiary">
-              {t('history.nightWakesPerNight')}
+              {t('history.nightWithWakes')}
             </Text>
             <Text tone="secondary" style={styles.cardAverage}>
               {t('history.average')} · {avgWakeCount.toFixed(1)}
@@ -265,21 +331,43 @@ export const HistoryScreen: React.FC = () => {
           </View>
           {isMonth ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <BarChart
-                values={wakeCounts}
+              <NightWakeBarChart
+                bars={wakeBars}
                 labels={labels}
-                tint={colors.danger.base}
                 cellWidth={monthCellWidth}
-                meanValue={avgWakeCount}
+              />
+            </ScrollView>
+          ) : (
+            <NightWakeBarChart bars={wakeBars} labels={labels} />
+          )}
+        </Card>
+
+        <Card variant="bordered" tone="night" style={styles.card}>
+          <View style={styles.cardHead}>
+            <Text variant="eyebrow" tone="tertiary">
+              {t('history.napsDaily')}
+            </Text>
+            <Text tone="secondary" style={styles.cardAverage}>
+              {t('history.average')} · {formatSleepHours(avgNapMs)}
+            </Text>
+          </View>
+          {isMonth ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <BarChart
+                values={napValues}
+                labels={labels}
+                tint={colors.warn.soft}
+                cellWidth={monthCellWidth}
+                meanValue={avgNapMs}
               />
             </ScrollView>
           ) : (
             <BarChart
-              values={wakeCounts}
+              values={napValues}
               labels={labels}
-              tint={colors.danger.base}
-              formatValue={(n) => (n > 0 ? String(n) : '')}
-              meanValue={avgWakeCount}
+              tint={colors.warn.soft}
+              formatValue={formatSleepHours}
+              meanValue={avgNapMs}
             />
           )}
         </Card>
@@ -287,21 +375,23 @@ export const HistoryScreen: React.FC = () => {
         <Card variant="bordered" tone="night" style={styles.card}>
           <View style={styles.cardHead}>
             <Text variant="eyebrow" tone="tertiary">
-              {t('history.nightWakeDistribution')}
+              {t('history.moodTitle')}
             </Text>
-            {hasAnyWake ? (
-              <Text tone="secondary" style={styles.cardAverage}>
-                {t('history.average')} · {formatHourBucket(peakBucket)}
-              </Text>
-            ) : null}
+            <Text tone="secondary" style={styles.cardAverage}>
+              {t('history.moodHint')}
+            </Text>
           </View>
-          <BarChart
-            values={wakeHistogram}
-            labels={histogramLabels}
-            tint={colors.danger.base}
-            formatValue={(n) => (n > 0 ? String(n) : '')}
-            meanValue={meanAll(wakeHistogram.filter((c) => c > 0))}
-          />
+          {isMonth ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <MoodChart
+                moods={moods}
+                labels={labels}
+                cellWidth={monthCellWidth}
+              />
+            </ScrollView>
+          ) : (
+            <MoodChart moods={moods} labels={labels} />
+          )}
         </Card>
 
         {sessions.filter((s) => s.endedAt).length === 0 ? (
