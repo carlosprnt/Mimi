@@ -17,7 +17,7 @@ import {
   Text,
   StickyAction,
   Sheet,
-  BabySwitcherSheet,
+  BabyDropdown,
   Button,
   Timeline,
   TimelineEditSheet,
@@ -700,10 +700,11 @@ export const HomeScreen: React.FC = () => {
         onClose={() => setSuggestionInfo(null)}
       />
 
-      <BabySwitcherSheet
+      <BabyDropdown
         visible={babySwitcherOpen}
         babies={babies}
         activeBabyId={baby?.id ?? null}
+        topOffset={insets.top + HEADER_EXPANDED + spacing.sm}
         onSelect={(id) => {
           setActiveBabyId(id);
           setBabySwitcherOpen(false);

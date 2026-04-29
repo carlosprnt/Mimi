@@ -202,8 +202,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   {name}
                 </Text>
                 <Ionicons
-                  name="chevron-down"
-                  size={20}
+                  name="caret-down-outline"
+                  size={16}
                   color={colors.text.secondary}
                   style={styles.nameChevron}
                 />

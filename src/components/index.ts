@@ -6,6 +6,7 @@ export { ScrollScaleWrap } from './ScrollScaleWrap';
 export { OrbitShine } from './OrbitShine';
 export { Sparkles } from './Sparkles';
 export { BabySwitcherSheet } from './BabySwitcherSheet';
+export { BabyDropdown } from './BabyDropdown';
 export { BarChart } from './BarChart';
 export { NightWakeBarChart } from './NightWakeBarChart';
 export type { NightWakeBar } from './NightWakeBarChart';
