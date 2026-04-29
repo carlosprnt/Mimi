@@ -207,7 +207,8 @@ const styles = StyleSheet.create({
     backgroundColor: TINT_COLOR,
   },
   list: {
-    paddingHorizontal: spacing.lg,
+    paddingLeft: spacing.lg,
+    paddingRight: 40,
     gap: ITEM_GAP,
     alignItems: 'flex-end',
   },
