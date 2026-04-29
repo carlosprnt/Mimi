@@ -89,10 +89,7 @@ const Cell: React.FC<{
     // opacity 0.
     const opacity = interpolate(
       cellRightOnScreen,
-      [
-        fadeBoundaryRight - DAY_CELL_WIDTH,
-        fadeBoundaryRight + DAY_CELL_WIDTH * 0.2,
-      ],
+      [fadeBoundaryRight, fadeBoundaryRight + DAY_CELL_WIDTH],
       [1, 0],
       Extrapolation.CLAMP,
     );

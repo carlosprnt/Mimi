@@ -1,16 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
+  Easing,
   Extrapolation,
   interpolate,
   SharedValue,
   useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components';
-import { useBabyStore, useActiveBaby } from '@/state/babyStore';
+import { useActiveBaby } from '@/state/babyStore';
 import { useMenuStore } from '@/state/menuStore';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
@@ -138,14 +144,63 @@ const CascadeItem: React.FC<{
         ]}
         hitSlop={6}
       >
-        <View style={styles.iconCircle}>
-          <Ionicons name={item.icon} size={20} color="#0E0F12" />
-        </View>
+        <IconBubble icon={item.icon} index={index} />
         <Text variant="body" tone="primary" style={styles.label} numberOfLines={1}>
           {item.label}
         </Text>
       </Pressable>
     </Animated.View>
+  );
+};
+
+const IconBubble: React.FC<{
+  icon: keyof typeof Ionicons.glyphMap;
+  index: number;
+}> = ({ icon, index }) => {
+  const glow = useSharedValue(0);
+
+  useEffect(() => {
+    // Each bubble's shimmer is offset slightly so they don't pulse in
+    // perfect sync, giving a more organic feel.
+    const offset = index * 220;
+    const start = setTimeout(() => {
+      glow.value = withRepeat(
+        withSequence(
+          withTiming(1, {
+            duration: 1200,
+            easing: Easing.inOut(Easing.quad),
+          }),
+          withTiming(0, {
+            duration: 1600,
+            easing: Easing.inOut(Easing.quad),
+          }),
+        ),
+        -1,
+        false,
+      );
+    }, offset);
+    return () => clearTimeout(start);
+  }, [glow, index]);
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(glow.value, [0, 1], [0.35, 1], Extrapolation.CLAMP),
+  }));
+
+  return (
+    <View style={styles.bubble}>
+      <BlurView
+        intensity={32}
+        tint="dark"
+        experimentalBlurMethod="dimezisBlurView"
+        style={styles.bubbleBlur}
+      />
+      <View style={styles.bubbleTint} pointerEvents="none" />
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.bubbleGlow, glowStyle]}
+      />
+      <Ionicons name={icon} size={20} color={colors.pure.white} />
+    </View>
   );
 };
 
@@ -165,13 +220,32 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingVertical: spacing.xs,
   },
-  iconCircle: {
+  bubble: {
     width: ICON_SIZE,
     height: ICON_SIZE,
     borderRadius: ICON_SIZE / 2,
-    backgroundColor: colors.pure.white,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  bubbleBlur: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  bubbleTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(20, 35, 90, 0.55)',
+  },
+  bubbleGlow: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: ICON_SIZE / 2,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.95)',
+    // Soft shadow halo so the white ring picks up a glow against the
+    // dark backdrop.
+    shadowColor: 'rgba(255,255,255,0.8)',
+    shadowOpacity: 0.7,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
   },
   label: {
     fontFamily: fonts.medium,

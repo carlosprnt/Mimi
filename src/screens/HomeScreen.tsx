@@ -12,7 +12,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Screen,
   Card,
-  ScrollScaleWrap,
   ListRow,
   Text,
   StickyAction,
@@ -512,10 +511,6 @@ export const HomeScreen: React.FC = () => {
           <EmptyDay />
         ) : (
           <>
-            <ScrollScaleWrap
-              scrollY={scrollY}
-              headerHeight={insets.top + HEADER_EXPANDED}
-            >
             <Card variant="bordered" tone="night" style={styles.planCard}>
               <View style={styles.planHeader}>
                 <Text variant="eyebrow" tone="tertiary">
@@ -575,12 +570,7 @@ export const HomeScreen: React.FC = () => {
                 </Pressable>
               ) : null}
             </Card>
-            </ScrollScaleWrap>
 
-            <ScrollScaleWrap
-              scrollY={scrollY}
-              headerHeight={insets.top + HEADER_EXPANDED}
-            >
             <Card variant="bordered" tone="night" style={styles.todayCard}>
               <Text variant="eyebrow" tone="tertiary" style={styles.todayHeading}>
                 {isToday ? t('home.today') : t('home.daySummary')}
@@ -612,7 +602,6 @@ export const HomeScreen: React.FC = () => {
                 />
               ) : null}
             </Card>
-            </ScrollScaleWrap>
           </>
         )}
 
