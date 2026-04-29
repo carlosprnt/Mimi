@@ -9,6 +9,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from './Text';
@@ -19,24 +20,31 @@ interface Props {
   visible: boolean;
   babies: Baby[];
   activeBabyId: string | null;
-  /** Pixels from the top of the screen to dock the dropdown below
-   *  (typically the dashboard header height). */
-  topOffset: number;
+  /** Y of the (visible) header name, measured from the top of the
+   *  screen. The dropdown anchors the active name there so it lines
+   *  up with the header's own name. */
+  nameTopY: number;
   onSelect: (id: string) => void;
   onClose: () => void;
 }
 
-const ITEM_FONT_SIZE = 26;
+const NAME_FONT_SIZE = 34;
+const NAME_LINE_HEIGHT = 38;
 const ITEM_GAP = spacing.sm;
 const ANIM_OPEN = 320;
 const ANIM_CLOSE = 220;
 const ITEM_STAGGER = 60;
 
+// Match the menu (DrawerSceneWrapper) backdrop exactly so the two
+// modals feel like the same surface.
+const BLUR_INTENSITY = 32;
+const TINT_COLOR = 'rgba(11, 20, 54, 0.55)';
+
 export const BabyDropdown: React.FC<Props> = ({
   visible,
   babies,
   activeBabyId,
-  topOffset,
+  nameTopY,
   onSelect,
   onClose,
 }) => {
@@ -67,47 +75,84 @@ export const BabyDropdown: React.FC<Props> = ({
 
   if (!mounted) return null;
 
+  const active = babies.find((b) => b.id === activeBabyId) ?? null;
   const others = babies.filter((b) => b.id !== activeBabyId);
+  // Active name is index 0 of the cascade; the rest follow.
+  const activeIndex = 0;
 
   return (
     <Animated.View
       pointerEvents={visible ? 'auto' : 'none'}
-      style={[styles.root, { top: topOffset }, overlayStyle]}
+      style={[styles.root, overlayStyle]}
     >
       <BlurView
-        intensity={28}
+        intensity={BLUR_INTENSITY}
         tint="dark"
         experimentalBlurMethod="dimezisBlurView"
         style={StyleSheet.absoluteFill}
       />
-      <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.tint]} />
+      <View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, styles.tint]}
+      />
 
       <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
       <View
         pointerEvents="box-none"
-        style={[styles.list, { paddingBottom: insets.bottom + spacing.lg }]}
+        style={[
+          styles.list,
+          {
+            paddingTop: nameTopY,
+            paddingBottom: insets.bottom + spacing.lg,
+          },
+        ]}
       >
+        {active ? (
+          <CascadeRow index={activeIndex} progress={progress}>
+            <View style={styles.activeRow}>
+              <Text tone="primary" style={styles.name} numberOfLines={1}>
+                {active.name}
+              </Text>
+              <Ionicons
+                name="checkmark"
+                size={22}
+                color={colors.accent.base}
+                style={styles.check}
+              />
+            </View>
+          </CascadeRow>
+        ) : null}
         {others.map((baby, i) => (
-          <Item
+          <CascadeRow
             key={baby.id}
-            baby={baby}
-            index={i}
+            index={activeIndex + 1 + i}
             progress={progress}
-            onPress={() => onSelect(baby.id)}
-          />
+          >
+            <Pressable
+              onPress={() => onSelect(baby.id)}
+              hitSlop={6}
+              style={({ pressed }) => [
+                styles.otherRow,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text tone="primary" style={styles.name} numberOfLines={1}>
+                {baby.name}
+              </Text>
+            </Pressable>
+          </CascadeRow>
         ))}
       </View>
     </Animated.View>
   );
 };
 
-const Item: React.FC<{
-  baby: Baby;
+const CascadeRow: React.FC<{
   index: number;
   progress: SharedValue<number>;
-  onPress: () => void;
-}> = ({ baby, index, progress, onPress }) => {
+  children: React.ReactNode;
+}> = ({ index, progress, children }) => {
   const animStyle = useAnimatedStyle(() => {
     const start = (index * ITEM_STAGGER) / ANIM_OPEN;
     const local = interpolate(
@@ -122,46 +167,41 @@ const Item: React.FC<{
     };
   });
 
-  return (
-    <Animated.View style={animStyle}>
-      <Pressable
-        onPress={onPress}
-        hitSlop={6}
-        style={({ pressed }) => [styles.item, pressed && styles.pressed]}
-      >
-        <Text tone="primary" style={styles.itemText} numberOfLines={1}>
-          {baby.name}
-        </Text>
-      </Pressable>
-    </Animated.View>
-  );
+  return <Animated.View style={animStyle}>{children}</Animated.View>;
 };
 
 const styles = StyleSheet.create({
   root: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
+    // Above the dashboard header (zIndex 10) so the blur covers it
+    // but the dropdown's own active name renders crisply on top.
+    zIndex: 20,
   },
   tint: {
-    backgroundColor: 'rgba(7, 11, 31, 0.30)',
+    backgroundColor: TINT_COLOR,
   },
   list: {
-    paddingTop: spacing.md,
     paddingHorizontal: spacing.lg,
     gap: ITEM_GAP,
     alignItems: 'flex-end',
   },
-  item: {
+  activeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  otherRow: {
     paddingVertical: spacing.xs,
   },
-  itemText: {
+  name: {
     fontFamily: fonts.medium,
-    fontSize: ITEM_FONT_SIZE,
-    lineHeight: ITEM_FONT_SIZE + 4,
-    textAlign: 'right',
+    fontSize: NAME_FONT_SIZE,
+    lineHeight: NAME_LINE_HEIGHT,
     color: colors.text.primary,
+    textAlign: 'right',
+  },
+  check: {
+    marginTop: 4,
   },
   pressed: {
     opacity: 0.6,

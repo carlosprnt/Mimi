@@ -704,7 +704,7 @@ export const HomeScreen: React.FC = () => {
         visible={babySwitcherOpen}
         babies={babies}
         activeBabyId={baby?.id ?? null}
-        topOffset={insets.top + HEADER_EXPANDED + spacing.sm}
+        nameTopY={insets.top + 17}
         onSelect={(id) => {
           setActiveBabyId(id);
           setBabySwitcherOpen(false);
