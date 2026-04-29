@@ -15,6 +15,7 @@ import { colors, fonts, spacing } from '@/theme';
 import { Text } from './Text';
 import { ShimmerText } from './ShimmerText';
 import { SleepingZzz } from './SleepingZzz';
+import { Sparkles } from './Sparkles';
 
 interface DashboardHeaderProps {
   name: string;
@@ -26,6 +27,8 @@ interface DashboardHeaderProps {
    *  onPressName when tapped. Used to switch active baby. */
   showBabyChevron?: boolean;
   onPressName?: () => void;
+  /** When true, twinkling sparkles surround the baby name. */
+  celebrate?: boolean;
 }
 
 const COLLAPSE_DISTANCE = 80;
@@ -42,6 +45,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   status,
   showBabyChevron,
   onPressName,
+  celebrate,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -178,6 +182,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         ) : null}
 
         <View style={styles.nameWrap}>
+          <Sparkles active={!!celebrate} />
           <Animated.View style={[styles.nameInner, nameAnim]}>
             {showBabyChevron && onPressName ? (
               <Pressable
@@ -262,6 +267,7 @@ const styles = StyleSheet.create({
   nameWrap: {
     flex: 1,
     alignItems: 'flex-end',
+    position: 'relative',
   },
   nameInner: {
     transformOrigin: 'right center',

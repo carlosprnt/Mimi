@@ -4,6 +4,7 @@ export { Screen } from './Screen';
 export { Card } from './Card';
 export { ScrollScaleWrap } from './ScrollScaleWrap';
 export { OrbitShine } from './OrbitShine';
+export { Sparkles } from './Sparkles';
 export { BabySwitcherSheet } from './BabySwitcherSheet';
 export { BarChart } from './BarChart';
 export { NightWakeBarChart } from './NightWakeBarChart';

@@ -81,12 +81,14 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
   }, [ctaGlow, glow]);
 
   const glowStyle = useAnimatedStyle(() => ({
+    // Thin, subtle white halo — the natural shadow gradient fades from
+    // the button edge outward. Kept faint so the orbit shine reads as
+    // the primary effect.
     shadowColor: '#FFFFFF',
-    shadowOpacity: interpolate(glow.value, [0, 1], [0.18, 0.7]),
-    shadowRadius: interpolate(glow.value, [0, 1], [4, 18]),
+    shadowOpacity: interpolate(glow.value, [0, 1], [0.04, 0.16]),
+    shadowRadius: interpolate(glow.value, [0, 1], [2, 6]),
     shadowOffset: { width: 0, height: 0 },
-    // Android elevation pulse to reinforce the glow effect.
-    elevation: interpolate(glow.value, [0, 1], [2, 8]),
+    elevation: interpolate(glow.value, [0, 1], [1, 2]),
   }));
   return (
     <Screen backdrop="night">

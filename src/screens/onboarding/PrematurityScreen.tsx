@@ -7,6 +7,7 @@ import { OnboardingShell } from './OnboardingShell';
 import { Text } from '@/components';
 import { fonts, radii, spacing } from '@/theme';
 import { useBabyStore } from '@/state/babyStore';
+import { useCelebrationStore } from '@/state/celebrationStore';
 import { RootStackParamList } from '@/navigation/types';
 import { t, type TranslationKey } from '@/i18n';
 
@@ -33,6 +34,7 @@ export const PrematurityScreen: React.FC = () => {
       prematureWeeks: selected && selected > 0 ? selected : undefined,
     });
     setActiveBabyId(created.id);
+    useCelebrationStore.getState().trigger(created.id);
     navigation.reset({
       index: 0,
       routes: [{ name: 'Root' }],

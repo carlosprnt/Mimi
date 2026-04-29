@@ -6,6 +6,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { useMenuStore } from '@/state/menuStore';
+import { useCelebrationStore } from '@/state/celebrationStore';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -79,6 +80,7 @@ export const HomeScreen: React.FC = () => {
   const babies = useBabyStore((s) => s.babies);
   const setActiveBabyId = useBabyStore((s) => s.setActiveBabyId);
   const use24h = useBabyStore((s) => s.preferences.use24h);
+  const celebrationId = useCelebrationStore((s) => s.babyId);
   const [babySwitcherOpen, setBabySwitcherOpen] = useState(false);
   const sessions = useSessionsForBaby(baby?.id ?? null);
   const careEvents = useCareEventsForBaby(baby?.id ?? null);
@@ -455,6 +457,7 @@ export const HomeScreen: React.FC = () => {
         menuLabel={t('nav.menu')}
         showBabyChevron={babies.length > 1}
         onPressName={() => setBabySwitcherOpen(true)}
+        celebrate={!!baby && celebrationId === baby.id}
         status={
           isToday && recommendation && recommendation.root === 'SLEEPING'
             ? recommendation.eyebrow
