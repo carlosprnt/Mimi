@@ -22,6 +22,10 @@ interface DashboardHeaderProps {
   onPressMenu: () => void;
   menuLabel: string;
   status?: string;
+  /** When true, render a small chevron next to the name and call
+   *  onPressName when tapped. Used to switch active baby. */
+  showBabyChevron?: boolean;
+  onPressName?: () => void;
 }
 
 const COLLAPSE_DISTANCE = 80;
@@ -36,6 +40,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   onPressMenu,
   menuLabel,
   status,
+  showBabyChevron,
+  onPressName,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -173,14 +179,40 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
         <View style={styles.nameWrap}>
           <Animated.View style={[styles.nameInner, nameAnim]}>
-            <Text
-              variant="display"
-              tone="primary"
-              numberOfLines={1}
-              style={styles.name}
-            >
-              {name}
-            </Text>
+            {showBabyChevron && onPressName ? (
+              <Pressable
+                onPress={onPressName}
+                hitSlop={6}
+                style={({ pressed }) => [
+                  styles.nameRow,
+                  pressed && styles.namePressed,
+                ]}
+              >
+                <Text
+                  variant="display"
+                  tone="primary"
+                  numberOfLines={1}
+                  style={styles.name}
+                >
+                  {name}
+                </Text>
+                <Ionicons
+                  name="chevron-down"
+                  size={20}
+                  color={colors.text.secondary}
+                  style={styles.nameChevron}
+                />
+              </Pressable>
+            ) : (
+              <Text
+                variant="display"
+                tone="primary"
+                numberOfLines={1}
+                style={styles.name}
+              >
+                {name}
+              </Text>
+            )}
           </Animated.View>
         </View>
       </Animated.View>
@@ -239,5 +271,16 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontSize: 34,
     lineHeight: 38,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  nameChevron: {
+    marginTop: 4,
+  },
+  namePressed: {
+    opacity: 0.7,
   },
 });

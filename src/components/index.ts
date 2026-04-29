@@ -3,6 +3,7 @@ export type { TextProps } from './Text';
 export { Screen } from './Screen';
 export { Card } from './Card';
 export { ScrollScaleWrap } from './ScrollScaleWrap';
+export { BabySwitcherSheet } from './BabySwitcherSheet';
 export { BarChart } from './BarChart';
 export { RangeBarChart } from './RangeBarChart';
 export type { RangeBar } from './RangeBarChart';

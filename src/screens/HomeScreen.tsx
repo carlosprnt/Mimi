@@ -17,6 +17,7 @@ import {
   Text,
   StickyAction,
   Sheet,
+  BabySwitcherSheet,
   Button,
   Timeline,
   TimelineEditSheet,
@@ -76,7 +77,10 @@ export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList, 'Home'>>();
   const insets = useSafeAreaInsets();
   const baby = useActiveBaby();
+  const babies = useBabyStore((s) => s.babies);
+  const setActiveBabyId = useBabyStore((s) => s.setActiveBabyId);
   const use24h = useBabyStore((s) => s.preferences.use24h);
+  const [babySwitcherOpen, setBabySwitcherOpen] = useState(false);
   const sessions = useSessionsForBaby(baby?.id ?? null);
   const careEvents = useCareEventsForBaby(baby?.id ?? null);
   const startSleep = useSleepStore((s) => s.startSleep);
@@ -450,6 +454,8 @@ export const HomeScreen: React.FC = () => {
         scrollY={scrollY}
         onPressMenu={() => useMenuStore.getState().setOpen(true)}
         menuLabel={t('nav.menu')}
+        showBabyChevron={babies.length > 1}
+        onPressName={() => setBabySwitcherOpen(true)}
         status={
           isToday && recommendation && recommendation.root === 'SLEEPING'
             ? recommendation.eyebrow
@@ -700,6 +706,17 @@ export const HomeScreen: React.FC = () => {
         use24h={use24h}
         now={now}
         onClose={() => setSuggestionInfo(null)}
+      />
+
+      <BabySwitcherSheet
+        visible={babySwitcherOpen}
+        babies={babies}
+        activeBabyId={baby?.id ?? null}
+        onSelect={(id) => {
+          setActiveBabyId(id);
+          setBabySwitcherOpen(false);
+        }}
+        onClose={() => setBabySwitcherOpen(false)}
       />
     </Screen>
   );

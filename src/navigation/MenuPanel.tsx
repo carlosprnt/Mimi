@@ -1,302 +1,182 @@
 import React from 'react';
-import { Pressable, StyleSheet, View, LayoutChangeEvent } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  SharedValue,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components';
-import { useBabyStore } from '@/state/babyStore';
+import { useBabyStore, useActiveBaby } from '@/state/babyStore';
 import { useMenuStore } from '@/state/menuStore';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
 
-type RouteName = 'Home' | 'History' | 'Profile';
-
 interface MenuPanelProps {
-  activeRoute: RouteName;
-  onContentHeight?: (height: number) => void;
+  /** Effective open progress (0 → 1). Drives the cascade animation. */
+  progress: SharedValue<number>;
 }
 
-const BOX_RADIUS = 22;
-const TILE_BG = 'rgba(19, 27, 58, 0.78)';
-const TILE_BORDER = 'rgba(120, 145, 220, 0.18)';
-const TILE_BORDER_ACTIVE = 'rgba(168, 165, 230, 0.55)';
-const TILE_BG_ACTIVE = 'rgba(40, 40, 100, 0.55)';
+interface MenuItem {
+  key: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+}
 
-export const MenuPanel: React.FC<MenuPanelProps> = ({
-  activeRoute,
-  onContentHeight,
-}) => {
+const ITEM_LEFT = 24;
+const ITEM_GAP = 14;
+const ICON_SIZE = 44;
+// How long each item's reveal takes inside the global progress (out of 1).
+const ITEM_DURATION = 0.55;
+// Stagger between items inside the global progress.
+const ITEM_STAGGER = 0.13;
+
+export const MenuPanel: React.FC<MenuPanelProps> = ({ progress }) => {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const babies = useBabyStore((s) => s.babies);
-  const activeBabyId = useBabyStore((s) => s.activeBabyId);
-  const setActiveBabyId = useBabyStore((s) => s.setActiveBabyId);
-
   const setMenuOpen = useMenuStore((s) => s.setOpen);
-  const closeDrawer = () => setMenuOpen(false);
+  const activeBaby = useActiveBaby();
 
-  const selectBaby = (id: string) => {
-    setActiveBabyId(id);
-    closeDrawer();
-  };
+  const close = () => setMenuOpen(false);
 
-  const editBaby = (id: string) => {
-    navigation.getParent()?.navigate('BabyEdit', { babyId: id });
-    closeDrawer();
+  const goEditBaby = () => {
+    if (!activeBaby) return;
+    close();
+    navigation.getParent()?.navigate('BabyEdit', { babyId: activeBaby.id });
   };
 
   const goAddBaby = () => {
+    close();
     navigation.getParent()?.navigate('OnboardingName', { mode: 'addChild' });
-    closeDrawer();
   };
 
-  const goTo = (route: RouteName) => {
-    closeDrawer();
-    if (route === activeRoute) return;
-    // Replace so the stack doesn't accumulate Home → History → Home etc.
-    navigation.replace(route);
+  const goHistory = () => {
+    close();
+    navigation.replace('History');
   };
 
-  const tiles: Array<{ kind: 'baby'; id: string } | { kind: 'add' }> = [
-    ...babies.map((b) => ({ kind: 'baby' as const, id: b.id })),
-    { kind: 'add' as const },
+  const goSettings = () => {
+    close();
+    navigation.replace('Profile');
+  };
+
+  const items: MenuItem[] = [
+    {
+      key: 'editBaby',
+      icon: 'create-outline',
+      label: activeBaby
+        ? t('drawer.editBabyData', { name: activeBaby.name })
+        : t('drawer.edit'),
+      onPress: goEditBaby,
+    },
+    {
+      key: 'addBaby',
+      icon: 'add',
+      label: t('drawer.addBaby'),
+      onPress: goAddBaby,
+    },
+    {
+      key: 'history',
+      icon: 'pie-chart-outline',
+      label: t('nav.history'),
+      onPress: goHistory,
+    },
+    {
+      key: 'settings',
+      icon: 'settings-outline',
+      label: t('drawer.appSettings'),
+      onPress: goSettings,
+    },
   ];
-  const rows: Array<Array<typeof tiles[number]>> = [];
-  for (let i = 0; i < tiles.length; i += 2) {
-    rows.push(tiles.slice(i, i + 2));
-  }
-
-  const handleLayout = (e: LayoutChangeEvent) => {
-    onContentHeight?.(e.nativeEvent.layout.height);
-  };
 
   return (
-    <View style={styles.outer} pointerEvents="box-none">
-      <View
-        style={[
-          styles.content,
-          { paddingTop: insets.top + spacing.md },
+    <View
+      style={[styles.container, { paddingTop: insets.top + spacing.huge }]}
+      pointerEvents="box-none"
+    >
+      {items.map((item, idx) => (
+        <CascadeItem key={item.key} index={idx} progress={progress} item={item} />
+      ))}
+    </View>
+  );
+};
+
+const CascadeItem: React.FC<{
+  index: number;
+  progress: SharedValue<number>;
+  item: MenuItem;
+}> = ({ index, progress, item }) => {
+  const start = index * ITEM_STAGGER;
+  const end = Math.min(1, start + ITEM_DURATION);
+
+  const animStyle = useAnimatedStyle(() => {
+    const local = interpolate(
+      progress.value,
+      [start, end],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    return {
+      opacity: local,
+      transform: [
+        { translateX: interpolate(local, [0, 1], [-60, 0]) },
+      ],
+    };
+  });
+
+  return (
+    <Animated.View style={[styles.row, animStyle]}>
+      <Pressable
+        onPress={item.onPress}
+        style={({ pressed }) => [
+          styles.pressable,
+          pressed && styles.pressed,
         ]}
-        onLayout={handleLayout}
+        hitSlop={6}
       >
-        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-          <LinearGradient
-            colors={['#020205', '#040611', colors.night.bottom]}
-            locations={[0, 0.45, 1]}
-            style={StyleSheet.absoluteFill}
-          />
+        <View style={styles.iconCircle}>
+          <Ionicons name={item.icon} size={20} color="#0E0F12" />
         </View>
-
-        {rows.map((row, rIdx) => (
-          <View key={`row-${rIdx}`} style={styles.row}>
-            {row.map((tile, cIdx) => {
-              const key = tile.kind === 'baby' ? `b-${tile.id}` : `add-${cIdx}`;
-              return (
-                <View key={key} style={styles.col}>
-                  {tile.kind === 'baby' ? (
-                    <BabyTile
-                      babyId={tile.id}
-                      isActive={tile.id === activeBabyId}
-                      onSelect={() => selectBaby(tile.id)}
-                      onEdit={() => editBaby(tile.id)}
-                    />
-                  ) : (
-                    <AddTile onPress={goAddBaby} />
-                  )}
-                </View>
-              );
-            })}
-            {row.length === 1 ? <View style={styles.col} /> : null}
-          </View>
-        ))}
-
-        <View style={styles.row}>
-          <View style={styles.col}>
-            <NavTile
-              icon="pie-chart-outline"
-              label={t('nav.history')}
-              isActive={activeRoute === 'History'}
-              onPress={() => goTo('History')}
-            />
-          </View>
-          <View style={styles.col}>
-            <NavTile
-              icon="settings-outline"
-              label={t('nav.settings')}
-              isActive={activeRoute === 'Profile'}
-              onPress={() => goTo('Profile')}
-            />
-          </View>
-        </View>
-      </View>
-    </View>
+        <Text variant="body" tone="primary" style={styles.label} numberOfLines={1}>
+          {item.label}
+        </Text>
+      </Pressable>
+    </Animated.View>
   );
 };
-
-const BabyTile: React.FC<{
-  babyId: string;
-  isActive: boolean;
-  onSelect: () => void;
-  onEdit: () => void;
-}> = ({ babyId, isActive, onSelect, onEdit }) => {
-  const baby = useBabyStore((s) => s.babies.find((b) => b.id === babyId));
-  if (!baby) return null;
-  return (
-    <Pressable
-      onPress={onSelect}
-      style={({ pressed }) => [
-        styles.tile,
-        isActive && styles.tileActive,
-        pressed && styles.pressed,
-      ]}
-    >
-      <View style={styles.tileTopRow}>
-        <View style={styles.tileAvatar}>
-          <Text variant="body" tone="secondary" style={styles.tileAvatarLetter}>
-            {baby.name.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <Pressable hitSlop={8} onPress={onEdit}>
-          <Text variant="footnote" tone="accent" style={styles.tileEdit}>
-            {t('drawer.edit')}
-          </Text>
-        </Pressable>
-      </View>
-      <Text
-        tone="primary"
-        style={styles.babyName}
-        numberOfLines={1}
-      >
-        {baby.name}
-      </Text>
-    </Pressable>
-  );
-};
-
-const AddTile: React.FC<{ onPress: () => void }> = ({ onPress }) => (
-  <Pressable
-    onPress={onPress}
-    style={({ pressed }) => [
-      styles.tile,
-      styles.addTile,
-      pressed && styles.pressed,
-    ]}
-  >
-    <View style={styles.tileTopRow}>
-      <View style={styles.addAvatar}>
-        <Ionicons name="add" size={20} color={colors.accent.base} />
-      </View>
-    </View>
-    <Text tone="accent" style={styles.tileName}>
-      {t('drawer.addChild')}
-    </Text>
-  </Pressable>
-);
-
-const NavTile: React.FC<{
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  isActive: boolean;
-  onPress: () => void;
-}> = ({ icon, label, isActive, onPress }) => (
-  <Pressable
-    onPress={onPress}
-    style={({ pressed }) => [
-      styles.tile,
-      styles.navTile,
-      isActive && styles.tileActive,
-      pressed && styles.pressed,
-    ]}
-  >
-    <View style={styles.navTileTopRow}>
-      <Ionicons
-        name={icon}
-        size={22}
-        color={isActive ? colors.accent.base : colors.text.secondary}
-      />
-    </View>
-    <Text
-      tone={isActive ? 'primary' : 'secondary'}
-      style={styles.tileName}
-    >
-      {label}
-    </Text>
-  </Pressable>
-);
 
 const styles = StyleSheet.create({
-  outer: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    gap: spacing.md,
+  container: {
+    flex: 1,
+    paddingLeft: ITEM_LEFT,
+    paddingRight: spacing.lg,
+    gap: ITEM_GAP,
   },
   row: {
+    alignSelf: 'flex-start',
+  },
+  pressable: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.md,
+    paddingVertical: spacing.xs,
   },
-  col: { flex: 1 },
-  tile: {
-    backgroundColor: TILE_BG,
-    borderRadius: BOX_RADIUS,
-    borderWidth: 1,
-    borderColor: TILE_BORDER,
-    padding: spacing.md,
-    minHeight: 120,
-    justifyContent: 'space-between',
-  },
-  navTile: {
-    minHeight: 88,
-  },
-  navTileTopRow: {
-    marginBottom: spacing.sm,
-  },
-  tileActive: {
-    borderColor: TILE_BORDER_ACTIVE,
-    backgroundColor: TILE_BG_ACTIVE,
-  },
-  tileTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  tileAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+  iconCircle: {
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    borderRadius: ICON_SIZE / 2,
+    backgroundColor: colors.pure.white,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
-  tileAvatarLetter: { fontFamily: fonts.semibold },
-  tileEdit: { fontFamily: fonts.medium },
-  tileName: {
+  label: {
     fontFamily: fonts.medium,
-  },
-  babyName: {
-    fontFamily: fonts.medium,
-    fontSize: 20,
-    lineHeight: 24,
-  },
-  addTile: {
-    borderStyle: 'dashed',
-    borderColor: 'rgba(168, 165, 230, 0.45)',
-    backgroundColor: 'rgba(168, 165, 230, 0.06)',
-  },
-  addAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(168, 165, 230, 0.35)',
-    backgroundColor: 'rgba(168, 165, 230, 0.08)',
+    fontSize: 18,
+    flexShrink: 1,
   },
   pressed: { opacity: 0.6 },
 });
