@@ -11,9 +11,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from './Text';
-import { Baby } from '@/logic/age';
+import { Baby, ageLabel } from '@/logic/age';
 import { colors, fonts, spacing } from '@/theme';
 
 interface Props {
@@ -30,13 +32,13 @@ interface Props {
 
 const NAME_FONT_SIZE = 34;
 const NAME_LINE_HEIGHT = 38;
+const AGE_FONT_SIZE = 14;
+const AGE_LINE_HEIGHT = 18;
 const ITEM_GAP = spacing.sm;
 const ANIM_OPEN = 320;
 const ANIM_CLOSE = 220;
 const ITEM_STAGGER = 60;
 
-// Match the menu (DrawerSceneWrapper) backdrop exactly so the two
-// modals feel like the same surface.
 const BLUR_INTENSITY = 32;
 const TINT_COLOR = 'rgba(11, 20, 54, 0.55)';
 
@@ -77,24 +79,32 @@ export const BabyDropdown: React.FC<Props> = ({
 
   const active = babies.find((b) => b.id === activeBabyId) ?? null;
   const others = babies.filter((b) => b.id !== activeBabyId);
-  // Active name is index 0 of the cascade; the rest follow.
-  const activeIndex = 0;
 
   return (
     <Animated.View
       pointerEvents={visible ? 'auto' : 'none'}
       style={[styles.root, overlayStyle]}
     >
-      <BlurView
-        intensity={BLUR_INTENSITY}
-        tint="dark"
-        experimentalBlurMethod="dimezisBlurView"
+      {/* Blur + tint masked top→bottom: opaque at top, fading to 0 at
+          the bottom so the lower part of the dashboard shows through. */}
+      <MaskedView
         style={StyleSheet.absoluteFill}
-      />
-      <View
-        pointerEvents="none"
-        style={[StyleSheet.absoluteFill, styles.tint]}
-      />
+        maskElement={
+          <LinearGradient
+            colors={['rgba(0,0,0,1)', 'rgba(0,0,0,1)', 'rgba(0,0,0,0)']}
+            locations={[0, 0.55, 1]}
+            style={StyleSheet.absoluteFill}
+          />
+        }
+      >
+        <BlurView
+          intensity={BLUR_INTENSITY}
+          tint="dark"
+          experimentalBlurMethod="dimezisBlurView"
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={[StyleSheet.absoluteFill, styles.tint]} />
+      </MaskedView>
 
       <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
@@ -109,36 +119,39 @@ export const BabyDropdown: React.FC<Props> = ({
         ]}
       >
         {active ? (
-          <CascadeRow index={activeIndex} progress={progress}>
-            <View style={styles.activeRow}>
-              <Text tone="primary" style={styles.name} numberOfLines={1}>
-                {active.name}
+          <CascadeRow index={0} progress={progress}>
+            <View style={styles.block}>
+              <View style={styles.activeNameRow}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={colors.accent.base}
+                />
+                <Text tone="primary" style={styles.name} numberOfLines={1}>
+                  {active.name}
+                </Text>
+              </View>
+              <Text tone="tertiary" style={styles.age} numberOfLines={1}>
+                {ageLabel(active)}
               </Text>
-              <Ionicons
-                name="checkmark"
-                size={22}
-                color={colors.accent.base}
-                style={styles.check}
-              />
             </View>
           </CascadeRow>
         ) : null}
         {others.map((baby, i) => (
-          <CascadeRow
-            key={baby.id}
-            index={activeIndex + 1 + i}
-            progress={progress}
-          >
+          <CascadeRow key={baby.id} index={1 + i} progress={progress}>
             <Pressable
               onPress={() => onSelect(baby.id)}
               hitSlop={6}
               style={({ pressed }) => [
-                styles.otherRow,
+                styles.block,
                 pressed && styles.pressed,
               ]}
             >
               <Text tone="primary" style={styles.name} numberOfLines={1}>
                 {baby.name}
+              </Text>
+              <Text tone="tertiary" style={styles.age} numberOfLines={1}>
+                {ageLabel(baby)}
               </Text>
             </Pressable>
           </CascadeRow>
@@ -173,8 +186,6 @@ const CascadeRow: React.FC<{
 const styles = StyleSheet.create({
   root: {
     ...StyleSheet.absoluteFillObject,
-    // Above the dashboard header (zIndex 10) so the blur covers it
-    // but the dropdown's own active name renders crisply on top.
     zIndex: 20,
   },
   tint: {
@@ -185,13 +196,14 @@ const styles = StyleSheet.create({
     gap: ITEM_GAP,
     alignItems: 'flex-end',
   },
-  activeRow: {
+  block: {
+    alignItems: 'flex-end',
+    paddingVertical: spacing.xs,
+  },
+  activeNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-  },
-  otherRow: {
-    paddingVertical: spacing.xs,
   },
   name: {
     fontFamily: fonts.medium,
@@ -200,8 +212,12 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     textAlign: 'right',
   },
-  check: {
-    marginTop: 4,
+  age: {
+    fontFamily: fonts.regular,
+    fontSize: AGE_FONT_SIZE,
+    lineHeight: AGE_LINE_HEIGHT,
+    textAlign: 'right',
+    marginTop: 2,
   },
   pressed: {
     opacity: 0.6,
