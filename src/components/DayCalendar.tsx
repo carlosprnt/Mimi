@@ -7,13 +7,11 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Animated, {
-  Easing,
   Extrapolation,
   interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
-  withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
@@ -31,7 +29,6 @@ interface DayCalendarProps {
 
 const DAY_CELL_WIDTH = 44;
 const DAY_CELL_GAP = 6;
-const SCROLL_GAP_BUMP = 4;
 const STICKY_TODAY_RIGHT = spacing.lg;
 const STICKY_TODAY_GUTTER = 8;
 
@@ -56,47 +53,33 @@ const Cell: React.FC<{
   hasData: boolean;
   onPress: () => void;
   scrollX: SharedValue<number>;
-  active: SharedValue<number>;
   fadeBoundaryRight: number;
   scrollViewWidth: number;
 }> = ({
   index,
-  total,
   date,
   isSelected,
   hasData,
   onPress,
   scrollX,
-  active,
   fadeBoundaryRight,
-  scrollViewWidth,
 }) => {
   const baseSpan = DAY_CELL_WIDTH + DAY_CELL_GAP;
 
   const animStyle = useAnimatedStyle(() => {
-    const a = active.value;
-    const extraGap = a * SCROLL_GAP_BUMP;
-    // The cell's right-edge X in screen coords (before transform). The
-    // ScrollView's contentOffset.x slides the strip left as the user
-    // scrolls right; cells with x close to the fade boundary get
-    // attenuated.
-    const cellSpan = baseSpan + extraGap;
-    const cellLeftInContent = spacing.lg + index * cellSpan;
+    // The cell's right-edge X in screen coords. Cells whose right
+    // edge crosses the sticky-today cell start to fade out so the
+    // scrolling strip doesn't visually pile under it.
+    const cellLeftInContent = spacing.lg + index * baseSpan;
     const cellRightInContent = cellLeftInContent + DAY_CELL_WIDTH;
     const cellRightOnScreen = cellRightInContent - scrollX.value;
-    // Once a cell's right edge crosses fadeBoundaryRight, it begins to
-    // disappear; by the time it's behind the sticky cell entirely,
-    // opacity 0.
     const opacity = interpolate(
       cellRightOnScreen,
       [fadeBoundaryRight, fadeBoundaryRight + DAY_CELL_WIDTH],
       [1, 0],
       Extrapolation.CLAMP,
     );
-    return {
-      opacity,
-      marginRight: index === total - 1 ? 0 : extraGap,
-    };
+    return { opacity };
   });
 
   return (
@@ -145,7 +128,6 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
   const { width } = useWindowDimensions();
   const scrollRef = useRef<Animated.ScrollView>(null);
   const scrollX = useSharedValue(0);
-  const active = useSharedValue(0);
 
   const today = useMemo(() => startOfDay(now), [now]);
 
@@ -187,43 +169,11 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
     return () => clearTimeout(id);
   }, [selectedIndex, width]);
 
-  const inMomentumRef = useRef(false);
-
-  const animateDown = () => {
-    active.value = withTiming(1, {
-      duration: 160,
-      easing: Easing.out(Easing.quad),
-    });
-  };
-  const animateUp = () => {
-    active.value = withTiming(0, {
-      duration: 160,
-      easing: Easing.out(Easing.cubic),
-    });
-  };
-
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (e) => {
       scrollX.value = e.contentOffset.x;
     },
   });
-
-  const handleScrollBeginDrag = () => {
-    inMomentumRef.current = false;
-    animateDown();
-  };
-  const handleMomentumScrollBegin = () => {
-    inMomentumRef.current = true;
-  };
-  const handleScrollEndDrag = () => {
-    setTimeout(() => {
-      if (!inMomentumRef.current) animateUp();
-    }, 80);
-  };
-  const handleMomentumScrollEnd = () => {
-    inMomentumRef.current = false;
-    animateUp();
-  };
 
   // The sticky today cell sits at right: STICKY_TODAY_RIGHT and is
   // DAY_CELL_WIDTH wide. So its left edge in screen coords is at
@@ -245,10 +195,6 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
         ]}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        onScrollEndDrag={handleScrollEndDrag}
-        onMomentumScrollBegin={handleMomentumScrollBegin}
-        onMomentumScrollEnd={handleMomentumScrollEnd}
       >
         {days.map((d, i) => (
           <Cell
@@ -260,7 +206,6 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
             hasData={daysWithData ? daysWithData.has(dayKey(d)) : true}
             onPress={() => onSelect(d)}
             scrollX={scrollX}
-            active={active}
             fadeBoundaryRight={fadeBoundaryRight}
             scrollViewWidth={width}
           />
