@@ -96,11 +96,6 @@ const Cell: React.FC<{
     return {
       opacity,
       marginRight: index === total - 1 ? 0 : extraGap,
-      transform: [
-        {
-          scale: interpolate(a, [0, 1], [1, 0.9], Extrapolation.CLAMP),
-        },
-      ],
     };
   });
 

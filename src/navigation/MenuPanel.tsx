@@ -31,6 +31,8 @@ interface MenuItem {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
+  /** When true, the icon bubble uses a dotted ring instead of solid. */
+  dotted?: boolean;
 }
 
 const ITEM_LEFT = 24;
@@ -84,6 +86,7 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({ progress }) => {
       icon: 'add',
       label: t('drawer.addBaby'),
       onPress: goAddBaby,
+      dotted: true,
     },
     {
       key: 'history',
@@ -144,7 +147,7 @@ const CascadeItem: React.FC<{
         ]}
         hitSlop={6}
       >
-        <IconBubble icon={item.icon} index={index} />
+        <IconBubble icon={item.icon} index={index} dotted={item.dotted} />
         <Text variant="body" tone="primary" style={styles.label} numberOfLines={1}>
           {item.label}
         </Text>
@@ -156,7 +159,8 @@ const CascadeItem: React.FC<{
 const IconBubble: React.FC<{
   icon: keyof typeof Ionicons.glyphMap;
   index: number;
-}> = ({ icon, index }) => {
+  dotted?: boolean;
+}> = ({ icon, index, dotted }) => {
   const glow = useSharedValue(0);
 
   useEffect(() => {
@@ -197,7 +201,11 @@ const IconBubble: React.FC<{
       <View style={styles.bubbleTint} pointerEvents="none" />
       <Animated.View
         pointerEvents="none"
-        style={[styles.bubbleGlow, glowStyle]}
+        style={[
+          styles.bubbleGlow,
+          dotted && styles.bubbleGlowDotted,
+          glowStyle,
+        ]}
       />
       <Ionicons name={icon} size={20} color={colors.pure.white} />
     </View>
@@ -246,6 +254,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.7,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 0 },
+  },
+  bubbleGlowDotted: {
+    borderStyle: 'dotted',
+    borderWidth: 2,
   },
   label: {
     fontFamily: fonts.medium,
