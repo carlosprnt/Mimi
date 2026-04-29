@@ -182,8 +182,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         ) : null}
 
         <View style={styles.nameWrap}>
-          <Sparkles active={!!celebrate} />
           <Animated.View style={[styles.nameInner, nameAnim]}>
+            <Sparkles active={!!celebrate} />
             {showBabyChevron && onPressName ? (
               <Pressable
                 onPress={onPressName}
@@ -271,6 +271,7 @@ const styles = StyleSheet.create({
   },
   nameInner: {
     transformOrigin: 'right center',
+    position: 'relative',
   },
   name: {
     fontFamily: fonts.medium,

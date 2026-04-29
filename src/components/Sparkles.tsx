@@ -9,65 +9,63 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
 
-interface SparkleSpec {
+interface DotSpec {
   id: number;
   leftPct: number;
   topPct: number;
-  delay: number;
   size: number;
+  delay: number;
   cycle: number;
-  rotation: number;
+  peak: number;
 }
 
 interface SparklesProps {
   /** When true the field renders and animates; switching to false unmounts it. */
   active: boolean;
-  /** Number of sparkles. */
   count?: number;
   color?: string;
 }
 
+const SIZE_BUCKET = [1, 1, 2, 2, 2, 4];
+
+const pickSize = () => SIZE_BUCKET[Math.floor(Math.random() * SIZE_BUCKET.length)];
+
 /**
- * A field of small twinkling stars that appear around its parent for a
- * celebratory effect. The parent should `position: 'relative'` and give
- * this enough room to bleed outside its bounds.
+ * A sparse field of tiny twinkling dots (1 / 2 / 4 px) that flicker
+ * around the parent. The parent should `position: 'relative'` and
+ * leave a few pixels of bleed for the dots that fall on the edges.
  */
 export const Sparkles: React.FC<SparklesProps> = ({
   active,
-  count = 10,
-  color = '#FFE89F',
+  count = 14,
+  color = 'rgba(255,255,255,0.9)',
 }) => {
-  const stars: SparkleSpec[] = useMemo(() => {
+  const dots: DotSpec[] = useMemo(() => {
     if (!active) return [];
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       leftPct: Math.random() * 100,
       topPct: Math.random() * 100,
-      delay: Math.random() * 1200,
-      size: 9 + Math.random() * 13,
-      cycle: 700 + Math.random() * 600,
-      rotation: Math.random() * 360,
+      size: pickSize(),
+      delay: Math.random() * 1500,
+      cycle: 700 + Math.random() * 700,
+      peak: 0.55 + Math.random() * 0.45,
     }));
-    // Re-generating on every activation gives a different layout each time.
   }, [active, count]);
 
   if (!active) return null;
 
   return (
     <View pointerEvents="none" style={styles.field}>
-      {stars.map((s) => (
-        <SparkleStar key={s.id} spec={s} color={color} />
+      {dots.map((d) => (
+        <Twinkle key={d.id} spec={d} color={color} />
       ))}
     </View>
   );
 };
 
-const SparkleStar: React.FC<{ spec: SparkleSpec; color: string }> = ({
-  spec,
-  color,
-}) => {
+const Twinkle: React.FC<{ spec: DotSpec; color: string }> = ({ spec, color }) => {
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
 
@@ -93,37 +91,43 @@ const SparkleStar: React.FC<{ spec: SparkleSpec; color: string }> = ({
       spec.delay,
       withRepeat(
         withSequence(
-          withTiming(1, { duration: spec.cycle / 2 }),
+          withTiming(spec.peak, { duration: spec.cycle / 2 }),
           withTiming(0, { duration: spec.cycle / 2 }),
         ),
         -1,
         false,
       ),
     );
-  }, [spec.delay, spec.cycle, scale, opacity]);
+  }, [spec.delay, spec.cycle, spec.peak, scale, opacity]);
 
   const animStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { rotate: `${spec.rotation}deg` },
-    ],
+    transform: [{ scale: scale.value }],
     opacity: opacity.value,
   }));
 
   return (
     <Animated.View
       style={[
-        styles.star,
+        styles.dotWrap,
         {
           left: `${spec.leftPct}%`,
           top: `${spec.topPct}%`,
+          width: spec.size,
+          height: spec.size,
           marginLeft: -spec.size / 2,
           marginTop: -spec.size / 2,
         },
         animStyle,
       ]}
     >
-      <Ionicons name="sparkles" size={spec.size} color={color} />
+      <View
+        style={{
+          width: spec.size,
+          height: spec.size,
+          borderRadius: spec.size / 2,
+          backgroundColor: color,
+        }}
+      />
     </Animated.View>
   );
 };
@@ -131,12 +135,12 @@ const SparkleStar: React.FC<{ spec: SparkleSpec; color: string }> = ({
 const styles = StyleSheet.create({
   field: {
     position: 'absolute',
-    top: -16,
-    left: -28,
-    right: -16,
-    bottom: -16,
+    top: -8,
+    left: -10,
+    right: -10,
+    bottom: -8,
   },
-  star: {
+  dotWrap: {
     position: 'absolute',
   },
 });

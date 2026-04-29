@@ -33,8 +33,8 @@ export const OrbitShine: React.FC<OrbitShineProps> = ({
   children,
   duration = 2400,
   litRatio = 0.18,
-  strokeWidth = 1.6,
-  color = 'rgba(255,255,255,0.95)',
+  strokeWidth = 1.2,
+  color = 'rgba(255,255,255,0.38)',
 }) => {
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const offset = useSharedValue(0);
