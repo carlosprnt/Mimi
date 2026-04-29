@@ -7,6 +7,7 @@ import Animated, {
 import { useNavigation } from '@react-navigation/native';
 import { useMenuStore } from '@/state/menuStore';
 import { useCelebrationStore } from '@/state/celebrationStore';
+import { useWidgetSync } from '@/hooks/useWidgetSync';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -149,6 +150,8 @@ export const HomeScreen: React.FC = () => {
         : null,
     [baby, sessions, now, isToday, careEvents],
   );
+
+  useWidgetSync(recommendation, now);
 
   const active = useMemo(() => activeSession(sessions), [sessions]);
   const timeline = useMemo(

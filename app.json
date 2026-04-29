@@ -9,14 +9,18 @@
     "newArchEnabled": true,
     "icon": "./assets/icon.png",
     "plugins": [
-      "expo-web-browser"
+      "expo-web-browser",
+      "@bacons/apple-targets"
     ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.carlospariente.mimi",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "userInterfaceStyle": "dark",
       "icon": "./assets/icon.png",
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.com.carlospariente.mimi"]
+      },
       "infoPlist": {
         "UIStatusBarStyle": "UIStatusBarStyleLightContent"
       }
