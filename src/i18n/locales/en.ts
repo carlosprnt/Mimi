@@ -281,6 +281,7 @@ export const en = {
     prematurity: {
       eyebrow: 'CORRECTED AGE',
       title: 'Was your baby born early?',
+      titleWithName: 'Was {name} born early?',
       subtitle:
         "Optional — helps Mimi use a gentler wake window when it's relevant.",
       options: {
@@ -291,6 +292,7 @@ export const en = {
         weeks8: '8 weeks early',
       },
       finishSetup: 'Finish setup',
+      createProfile: 'Create new profile',
     },
   },
   recommendation: {

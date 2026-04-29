@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -6,6 +6,15 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen, Text, Button, HeaderBar } from '@/components';
 import { spacing, screenGutter, colors } from '@/theme';
@@ -27,6 +36,8 @@ interface OnboardingShellProps {
   onClose?: () => void;
   /** Round back button next to the CTA — pops one step. */
   onPrevStep?: () => void;
+  /** Wraps the CTA in a pulsing white halo (used on the final step). */
+  ctaGlow?: boolean;
   secondaryTitle?: string;
   onSecondary?: () => void;
 }
@@ -43,11 +54,40 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
   onCta,
   onClose,
   onPrevStep,
+  ctaGlow,
   secondaryTitle,
   onSecondary,
 }) => {
   const resolvedCta = ctaTitle ?? t('common.continue');
   const resolvedTitle = title ?? t('onboarding.newBabyTitle');
+
+  const glow = useSharedValue(0);
+  useEffect(() => {
+    if (!ctaGlow) return;
+    glow.value = withRepeat(
+      withSequence(
+        withTiming(1, {
+          duration: 1400,
+          easing: Easing.inOut(Easing.quad),
+        }),
+        withTiming(0, {
+          duration: 1400,
+          easing: Easing.inOut(Easing.quad),
+        }),
+      ),
+      -1,
+      false,
+    );
+  }, [ctaGlow, glow]);
+
+  const glowStyle = useAnimatedStyle(() => ({
+    shadowColor: '#FFFFFF',
+    shadowOpacity: interpolate(glow.value, [0, 1], [0.18, 0.7]),
+    shadowRadius: interpolate(glow.value, [0, 1], [4, 18]),
+    shadowOffset: { width: 0, height: 0 },
+    // Android elevation pulse to reinforce the glow effect.
+    elevation: interpolate(glow.value, [0, 1], [2, 8]),
+  }));
   return (
     <Screen backdrop="night">
       <HeaderBar
@@ -107,9 +147,9 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
                 />
               </Pressable>
             ) : null}
-            <View style={styles.ctaFlex}>
+            <Animated.View style={[styles.ctaFlex, ctaGlow && glowStyle]}>
               <Button title={resolvedCta} onPress={onCta} disabled={ctaDisabled} />
-            </View>
+            </Animated.View>
           </View>
           {secondaryTitle && onSecondary ? (
             <>

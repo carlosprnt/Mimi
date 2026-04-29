@@ -283,6 +283,7 @@ export const es: Translations = {
     prematurity: {
       eyebrow: 'EDAD CORREGIDA',
       title: '¿Nació antes de tiempo?',
+      titleWithName: '¿{name} nació antes de tiempo?',
       subtitle:
         'Opcional — ayuda a Mimi a usar una ventana de vigilia más suave cuando toca.',
       options: {
@@ -293,6 +294,7 @@ export const es: Translations = {
         weeks8: '8 semanas antes',
       },
       finishSetup: 'Terminar configuración',
+      createProfile: 'Crear nuevo perfil',
     },
   },
   recommendation: {
