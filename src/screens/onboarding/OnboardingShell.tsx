@@ -16,7 +16,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { Screen, Text, Button, HeaderBar } from '@/components';
+import { Screen, Text, Button, HeaderBar, OrbitShine } from '@/components';
 import { spacing, screenGutter, colors } from '@/theme';
 import { t } from '@/i18n';
 
@@ -148,7 +148,21 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
               </Pressable>
             ) : null}
             <Animated.View style={[styles.ctaFlex, ctaGlow && glowStyle]}>
-              <Button title={resolvedCta} onPress={onCta} disabled={ctaDisabled} />
+              {ctaGlow ? (
+                <OrbitShine>
+                  <Button
+                    title={resolvedCta}
+                    onPress={onCta}
+                    disabled={ctaDisabled}
+                  />
+                </OrbitShine>
+              ) : (
+                <Button
+                  title={resolvedCta}
+                  onPress={onCta}
+                  disabled={ctaDisabled}
+                />
+              )}
             </Animated.View>
           </View>
           {secondaryTitle && onSecondary ? (

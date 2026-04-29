@@ -3,6 +3,7 @@ export type { TextProps } from './Text';
 export { Screen } from './Screen';
 export { Card } from './Card';
 export { ScrollScaleWrap } from './ScrollScaleWrap';
+export { OrbitShine } from './OrbitShine';
 export { BabySwitcherSheet } from './BabySwitcherSheet';
 export { BarChart } from './BarChart';
 export { NightWakeBarChart } from './NightWakeBarChart';
