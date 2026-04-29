@@ -75,7 +75,7 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({ progress }) => {
   const items: MenuItem[] = [
     {
       key: 'editBaby',
-      icon: 'create-outline',
+      icon: 'color-wand-outline',
       label: activeBaby
         ? t('drawer.editBabyData', { name: activeBaby.name })
         : t('drawer.edit'),
