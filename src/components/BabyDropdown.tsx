@@ -7,6 +7,8 @@ import Animated, {
   SharedValue,
   useAnimatedStyle,
   useSharedValue,
+  withRepeat,
+  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
@@ -121,7 +123,7 @@ export const BabyDropdown: React.FC<Props> = ({
           <CascadeRow index={0} progress={progress}>
             <View style={styles.block}>
               <View style={styles.activeNameRow}>
-                <View style={styles.activeDot} />
+                <BlinkingDot />
                 <Text tone="primary" style={styles.name} numberOfLines={1}>
                   {active.name}
                 </Text>
@@ -154,6 +156,24 @@ export const BabyDropdown: React.FC<Props> = ({
       </View>
     </Animated.View>
   );
+};
+
+const BlinkingDot: React.FC = () => {
+  const t = useSharedValue(0);
+  useEffect(() => {
+    t.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 700, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0, { duration: 700, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1,
+      false,
+    );
+  }, [t]);
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(t.value, [0, 1], [0.45, 1]),
+  }));
+  return <Animated.View style={[styles.activeDot, animStyle]} />;
 };
 
 const CascadeRow: React.FC<{
@@ -201,9 +221,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   activeDot: {
-    width: 2,
-    height: 2,
-    borderRadius: 1,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: colors.accent.base,
   },
   name: {
