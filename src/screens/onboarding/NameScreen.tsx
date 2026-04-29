@@ -22,7 +22,7 @@ export const NameScreen: React.FC = () => {
     <OnboardingShell
       step={{ index: 1, total: 3 }}
       eyebrow={t('onboarding.name.eyebrow')}
-      title={t('onboarding.name.title')}
+      bodyTitle={t('onboarding.name.title')}
       subtitle={t('onboarding.name.subtitle')}
       onBack={() => navigation.goBack()}
       onCta={next}

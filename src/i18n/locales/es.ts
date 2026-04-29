@@ -210,6 +210,8 @@ export const es: Translations = {
   },
   onboarding: {
     stepOf: 'Paso {step} de {total}',
+    stepShort: '{step} de {total}',
+    newBabyTitle: 'Nuevo bebé',
     common: {
       continue: 'Continuar',
       back: 'Atrás',

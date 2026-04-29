@@ -1,13 +1,21 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { Screen, Text, Button, HeaderBar } from '@/components';
 import { spacing, screenGutter, colors } from '@/theme';
 import { t } from '@/i18n';
 
 interface OnboardingShellProps {
   step?: { index: number; total: number };
+  /** Header title (defaults to "Nuevo bebé"). */
+  title?: string;
   eyebrow?: string;
-  title: string;
+  /** In-body title shown above the children. */
+  bodyTitle?: string;
   subtitle?: string;
   children?: React.ReactNode;
   ctaTitle?: string;
@@ -20,8 +28,9 @@ interface OnboardingShellProps {
 
 export const OnboardingShell: React.FC<OnboardingShellProps> = ({
   step,
-  eyebrow,
   title,
+  eyebrow,
+  bodyTitle,
   subtitle,
   children,
   ctaTitle,
@@ -32,62 +41,76 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
   onSecondary,
 }) => {
   const resolvedCta = ctaTitle ?? t('common.continue');
+  const resolvedTitle = title ?? t('onboarding.newBabyTitle');
   return (
-    <Screen>
+    <Screen backdrop="night">
       <HeaderBar
+        title={resolvedTitle}
         leading={
           onBack
-            ? { glyph: '‹', label: t('common.back'), onPress: onBack }
+            ? { icon: 'arrow-back', label: t('common.back'), onPress: onBack }
             : undefined
         }
-        subtitle={
+        trailingText={
           step
-            ? t('onboarding.stepOf', { step: step.index, total: step.total })
+            ? t('onboarding.stepShort', { step: step.index, total: step.total })
             : undefined
         }
       />
 
-      <View style={styles.body}>
-        {eyebrow ? (
-          <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
-            {eyebrow}
-          </Text>
-        ) : null}
-        <Text variant="title" style={styles.title}>
-          {title}
-        </Text>
-        {subtitle ? (
-          <Text variant="callout" tone="secondary" style={styles.subtitle}>
-            {subtitle}
-          </Text>
-        ) : null}
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.body}>
+          {eyebrow ? (
+            <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
+              {eyebrow}
+            </Text>
+          ) : null}
+          {bodyTitle ? (
+            <Text variant="title" style={styles.bodyTitle}>
+              {bodyTitle}
+            </Text>
+          ) : null}
+          {subtitle ? (
+            <Text variant="callout" tone="secondary" style={styles.subtitle}>
+              {subtitle}
+            </Text>
+          ) : null}
 
-        <View style={styles.content}>{children}</View>
-      </View>
+          <View style={styles.content}>{children}</View>
+        </View>
 
-      <View style={styles.ctaWrap}>
-        <Button title={resolvedCta} onPress={onCta} disabled={ctaDisabled} />
-        {secondaryTitle && onSecondary ? (
-          <>
-            <View style={{ height: spacing.sm }} />
-            <Button title={secondaryTitle} onPress={onSecondary} variant="dangerGhost" />
-          </>
-        ) : null}
-      </View>
+        <View style={styles.ctaWrap}>
+          <Button title={resolvedCta} onPress={onCta} disabled={ctaDisabled} />
+          {secondaryTitle && onSecondary ? (
+            <>
+              <View style={{ height: spacing.sm }} />
+              <Button
+                title={secondaryTitle}
+                onPress={onSecondary}
+                variant="dangerGhost"
+              />
+            </>
+          ) : null}
+        </View>
+      </KeyboardAvoidingView>
     </Screen>
   );
 };
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   body: {
     flex: 1,
     paddingHorizontal: screenGutter,
-    paddingTop: spacing.xl,
+    paddingTop: spacing.lg,
   },
   eyebrow: {
     marginBottom: spacing.md,
   },
-  title: {
+  bodyTitle: {
     color: colors.text.primary,
   },
   subtitle: {
@@ -100,5 +123,6 @@ const styles = StyleSheet.create({
   ctaWrap: {
     paddingHorizontal: screenGutter,
     paddingBottom: spacing.xl,
+    paddingTop: spacing.md,
   },
 });

@@ -30,7 +30,7 @@ export const DobScreen: React.FC = () => {
     <OnboardingShell
       step={{ index: 2, total: 3 }}
       eyebrow={t('onboarding.dob.eyebrow')}
-      title={t('onboarding.dob.title')}
+      bodyTitle={t('onboarding.dob.title')}
       subtitle={t('onboarding.dob.subtitle')}
       onBack={() => navigation.goBack()}
       onCta={() =>

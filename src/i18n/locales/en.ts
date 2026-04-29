@@ -208,6 +208,8 @@ export const en = {
   },
   onboarding: {
     stepOf: 'Step {step} of {total}',
+    stepShort: '{step} of {total}',
+    newBabyTitle: 'New baby',
     common: {
       continue: 'Continue',
       back: 'Back',

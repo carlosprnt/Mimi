@@ -41,7 +41,7 @@ export const PrematurityScreen: React.FC = () => {
     <OnboardingShell
       step={{ index: 3, total: 3 }}
       eyebrow={t('onboarding.prematurity.eyebrow')}
-      title={t('onboarding.prematurity.title')}
+      bodyTitle={t('onboarding.prematurity.title')}
       subtitle={t('onboarding.prematurity.subtitle')}
       onBack={() => navigation.goBack()}
       onCta={finish}

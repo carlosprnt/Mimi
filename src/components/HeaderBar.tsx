@@ -16,6 +16,8 @@ interface HeaderBarProps {
   subtitle?: string;
   leading?: IconAction;
   trailing?: IconAction[];
+  /** A small secondary label shown on the right (e.g. "1 de 3"). */
+  trailingText?: string;
   showWordmark?: boolean;
 }
 
@@ -42,6 +44,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   subtitle,
   leading,
   trailing,
+  trailingText,
   showWordmark,
 }) => {
   return (
@@ -68,6 +71,11 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
       </View>
 
       <View style={[styles.side, styles.sideRight]}>
+        {trailingText ? (
+          <Text variant="footnote" tone="tertiary" style={styles.trailingText}>
+            {trailingText}
+          </Text>
+        ) : null}
         {(trailing ?? []).map((action) => (
           <ActionButton key={action.label} action={action} />
         ))}
@@ -98,6 +106,9 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     marginTop: 2,
+  },
+  trailingText: {
+    paddingHorizontal: spacing.sm,
   },
   btn: {
     width: 40,
