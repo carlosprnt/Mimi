@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, spacing } from '@/theme';
+import { haptics } from '@/logic/haptics';
 import { Text } from './Text';
 import { ShimmerText } from './ShimmerText';
 import { SleepingZzz } from './SleepingZzz';
@@ -153,7 +154,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
       <Animated.View style={[styles.row, containerAnim]}>
         <Pressable
-          onPress={onPressMenu}
+          onPress={() => {
+            haptics.light();
+            onPressMenu();
+          }}
           accessibilityRole="button"
           accessibilityLabel={menuLabel}
           hitSlop={8}
@@ -186,7 +190,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <Sparkles active={!!celebrate} />
             {showBabyChevron && onPressName ? (
               <Pressable
-                onPress={onPressName}
+                onPress={() => {
+                  haptics.light();
+                  onPressName();
+                }}
                 hitSlop={6}
                 style={({ pressed }) => [
                   styles.nameRow,

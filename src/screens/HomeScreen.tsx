@@ -57,7 +57,13 @@ import {
   isSameDay,
   startOfDay,
 } from '@/logic/format';
-import { softImpact, lightImpact } from '@/utils/haptics';
+import {
+  softImpact,
+  lightImpact,
+  mediumImpact,
+  successNotice,
+  warningNotice,
+} from '@/utils/haptics';
 import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 import type { Recommendation } from '@/logic/recommendation';
@@ -211,7 +217,7 @@ export const HomeScreen: React.FC = () => {
       lightImpact();
       setConfirmEnd(true);
     } else {
-      softImpact();
+      mediumImpact();
       startSleep(baby.id);
     }
   };
@@ -219,7 +225,7 @@ export const HomeScreen: React.FC = () => {
   const confirmEndSleep = () => {
     endSleep(baby.id);
     setConfirmEnd(false);
-    softImpact();
+    successNotice();
   };
 
   const hasWakeEvent = timeline.some((e) => e.kind === 'wake');

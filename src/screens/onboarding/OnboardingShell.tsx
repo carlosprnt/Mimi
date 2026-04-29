@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen, Text, Button, HeaderBar, OrbitShine } from '@/components';
+import { haptics } from '@/logic/haptics';
 import { spacing, screenGutter, colors } from '@/theme';
 import { t } from '@/i18n';
 
@@ -96,7 +97,14 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
         title={resolvedTitle}
         leading={
           onClose
-            ? { icon: 'close', label: t('common.close'), onPress: onClose }
+            ? {
+                icon: 'close',
+                label: t('common.close'),
+                onPress: () => {
+                  haptics.light();
+                  onClose();
+                },
+              }
             : undefined
         }
         trailingText={
@@ -134,7 +142,10 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
           <View style={styles.ctaRow}>
             {onPrevStep ? (
               <Pressable
-                onPress={onPrevStep}
+                onPress={() => {
+                  haptics.light();
+                  onPrevStep();
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={t('common.back')}
                 style={({ pressed }) => [
@@ -154,14 +165,20 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
                 <OrbitShine>
                   <Button
                     title={resolvedCta}
-                    onPress={onCta}
+                    onPress={() => {
+                      haptics.medium();
+                      onCta();
+                    }}
                     disabled={ctaDisabled}
                   />
                 </OrbitShine>
               ) : (
                 <Button
                   title={resolvedCta}
-                  onPress={onCta}
+                  onPress={() => {
+                    haptics.light();
+                    onCta();
+                  }}
                   disabled={ctaDisabled}
                 />
               )}

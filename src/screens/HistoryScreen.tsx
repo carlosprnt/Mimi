@@ -20,6 +20,7 @@ import { useCareEventsForBaby } from '@/state/careEventStore';
 import { SleepSession } from '@/logic/recommendation';
 import { CareEvent } from '@/logic/careEvents';
 import { startOfDay } from '@/logic/format';
+import { haptics } from '@/logic/haptics';
 import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
@@ -257,7 +258,10 @@ export const HistoryScreen: React.FC = () => {
       >
         <View style={styles.toggle}>
           <Pressable
-            onPress={() => setRange('week')}
+            onPress={() => {
+              haptics.selection();
+              setRange('week');
+            }}
             style={({ pressed }) => [
               styles.toggleBtn,
               range === 'week' && styles.toggleBtnActive,
@@ -273,7 +277,10 @@ export const HistoryScreen: React.FC = () => {
             </Text>
           </Pressable>
           <Pressable
-            onPress={() => setRange('month')}
+            onPress={() => {
+              haptics.selection();
+              setRange('month');
+            }}
             style={({ pressed }) => [
               styles.toggleBtn,
               range === 'month' && styles.toggleBtnActive,

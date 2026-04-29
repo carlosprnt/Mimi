@@ -20,6 +20,7 @@ import { useCareEventStore } from '@/state/careEventStore';
 import { useAuthStore } from '@/state/authStore';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import { deleteAccount, signOut as supabaseSignOut } from '@/services/auth';
+import { haptics } from '@/logic/haptics';
 import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
@@ -41,6 +42,7 @@ export const ProfileScreen: React.FC = () => {
   const [deleting, setDeleting] = useState(false);
 
   const onConfirmSignOut = () => {
+    haptics.warning();
     setSignOutOpen(false);
     void supabaseSignOut();
     clearOnboardingDraft();
@@ -56,6 +58,7 @@ export const ProfileScreen: React.FC = () => {
 
   const onConfirmDelete = async () => {
     if (deleting) return;
+    haptics.warning();
     setDeleting(true);
     const result = await deleteAccount();
     setDeleting(false);

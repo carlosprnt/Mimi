@@ -17,6 +17,7 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from './Text';
 import { Baby, ageLabel } from '@/logic/age';
+import { haptics } from '@/logic/haptics';
 import { colors, fonts, spacing } from '@/theme';
 
 interface Props {
@@ -137,7 +138,10 @@ export const BabyDropdown: React.FC<Props> = ({
         {others.map((baby, i) => (
           <CascadeRow key={baby.id} index={1 + i} progress={progress}>
             <Pressable
-              onPress={() => onSelect(baby.id)}
+              onPress={() => {
+                haptics.selection();
+                onSelect(baby.id);
+              }}
               hitSlop={6}
               style={({ pressed }) => [
                 styles.block,

@@ -18,6 +18,7 @@ import { BlurView } from 'expo-blur';
 import { colors, fonts, spacing } from '@/theme';
 import { Text } from './Text';
 import { isSameDay, startOfDay } from '@/logic/format';
+import { haptics } from '@/logic/haptics';
 
 interface DayCalendarProps {
   selectedDate: Date;
@@ -204,7 +205,10 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
             date={d}
             isSelected={isSameDay(d, selectedDate)}
             hasData={daysWithData ? daysWithData.has(dayKey(d)) : true}
-            onPress={() => onSelect(d)}
+            onPress={() => {
+              haptics.selection();
+              onSelect(d);
+            }}
             scrollX={scrollX}
             fadeBoundaryRight={fadeBoundaryRight}
             scrollViewWidth={width}
@@ -214,7 +218,10 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
 
       <View pointerEvents="box-none" style={styles.stickyWrap}>
         <Pressable
-          onPress={() => onSelect(today)}
+          onPress={() => {
+            haptics.selection();
+            onSelect(today);
+          }}
           style={({ pressed }) => [
             styles.cell,
             styles.stickyCell,

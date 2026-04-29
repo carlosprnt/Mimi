@@ -8,6 +8,7 @@ import { Text } from '@/components';
 import { fonts, radii, spacing } from '@/theme';
 import { useBabyStore } from '@/state/babyStore';
 import { useCelebrationStore } from '@/state/celebrationStore';
+import { haptics } from '@/logic/haptics';
 import { RootStackParamList } from '@/navigation/types';
 import { t, type TranslationKey } from '@/i18n';
 
@@ -35,6 +36,7 @@ export const PrematurityScreen: React.FC = () => {
     });
     setActiveBabyId(created.id);
     useCelebrationStore.getState().trigger(created.id);
+    haptics.success();
     navigation.reset({
       index: 0,
       routes: [{ name: 'Root' }],
@@ -42,6 +44,7 @@ export const PrematurityScreen: React.FC = () => {
   };
 
   const togglePick = (value: number) => {
+    haptics.selection();
     setSelected((cur) => (cur === value ? null : value));
   };
 

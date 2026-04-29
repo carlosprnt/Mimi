@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Screen, HeaderBar, Text, Button } from '@/components';
 import { colors, fonts, radii, spacing, screenGutter } from '@/theme';
 import { ageLabel } from '@/logic/age';
+import { haptics } from '@/logic/haptics';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
@@ -32,12 +33,14 @@ export const DobScreen: React.FC = () => {
     new Date(),
   );
 
-  const goNext = () =>
+  const goNext = () => {
+    haptics.light();
     navigation.navigate('OnboardingPrematurity', {
       name,
       dob: dob.toISOString(),
       mode: route.params.mode,
     });
+  };
 
   return (
     <Screen backdrop="night">
@@ -46,8 +49,10 @@ export const DobScreen: React.FC = () => {
         leading={{
           icon: 'close',
           label: t('common.close'),
-          onPress: () =>
-            navigation.reset({ index: 0, routes: [{ name: 'Root' }] }),
+          onPress: () => {
+            haptics.light();
+            navigation.reset({ index: 0, routes: [{ name: 'Root' }] });
+          },
         }}
         trailingText={t('onboarding.stepShort', { step: 2, total: 3 })}
       />
@@ -74,7 +79,10 @@ export const DobScreen: React.FC = () => {
       {/* Bottom: CTA, then picker docked at the very bottom */}
       <View style={styles.ctaWrap}>
         <Pressable
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            haptics.light();
+            navigation.goBack();
+          }}
           accessibilityRole="button"
           accessibilityLabel={t('common.back')}
           style={({ pressed }) => [

@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components';
 import { useActiveBaby } from '@/state/babyStore';
 import { useMenuStore } from '@/state/menuStore';
+import { haptics } from '@/logic/haptics';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
 
@@ -53,21 +54,25 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({ progress }) => {
 
   const goEditBaby = () => {
     if (!activeBaby) return;
+    haptics.selection();
     close();
     navigation.getParent()?.navigate('BabyEdit', { babyId: activeBaby.id });
   };
 
   const goAddBaby = () => {
+    haptics.light();
     close();
     navigation.getParent()?.navigate('OnboardingName', { mode: 'addChild' });
   };
 
   const goHistory = () => {
+    haptics.selection();
     close();
     navigation.replace('History');
   };
 
   const goSettings = () => {
+    haptics.selection();
     close();
     navigation.replace('Profile');
   };
