@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { OnboardingShell } from './OnboardingShell';
-import { Text } from '@/components';
-import { colors, radii, spacing } from '@/theme';
+import { Screen, HeaderBar, Text, Button } from '@/components';
+import { colors, fonts, radii, spacing, screenGutter } from '@/theme';
+import { ageLabel } from '@/logic/age';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
 export const DobScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'OnboardingDobLegacy'>>();
+  const name = route.params.name;
   const [dob, setDob] = useState<Date>(() => {
     const d = new Date();
     d.setMonth(d.getMonth() - 3);
@@ -19,85 +26,145 @@ export const DobScreen: React.FC = () => {
   });
   const [androidOpen, setAndroidOpen] = useState(false);
 
-  const formatted = dob.toLocaleDateString(undefined, {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  const liveAge = ageLabel(
+    {
+      id: 'preview',
+      name: name || '',
+      dateOfBirth: dob.toISOString(),
+    },
+    new Date(),
+  );
+
+  const goNext = () =>
+    navigation.navigate('OnboardingPrematurity', {
+      name,
+      dob: dob.toISOString(),
+      mode: route.params.mode,
+    });
 
   return (
-    <OnboardingShell
-      step={{ index: 2, total: 3 }}
-      eyebrow={t('onboarding.dob.eyebrow')}
-      bodyTitle={t('onboarding.dob.title')}
-      subtitle={t('onboarding.dob.subtitle')}
-      onBack={() => navigation.goBack()}
-      onCta={() =>
-        navigation.navigate('OnboardingPrematurity', {
-          name: route.params.name,
-          dob: dob.toISOString(),
-          mode: route.params.mode,
-        })
-      }
-    >
-      {Platform.OS === 'ios' ? (
-        <View style={styles.pickerWrap}>
-          <DateTimePicker
-            value={dob}
-            mode="date"
-            display="spinner"
-            maximumDate={new Date()}
-            minimumDate={new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 6)}
-            textColor={colors.text.primary}
-            themeVariant="dark"
-            onChange={(_, value) => value && setDob(value)}
-          />
+    <Screen backdrop="night">
+      <HeaderBar
+        title={t('onboarding.newBabyTitle')}
+        leading={{
+          icon: 'arrow-back',
+          label: t('common.back'),
+          onPress: () => navigation.goBack(),
+        }}
+        trailingText={t('onboarding.stepShort', { step: 2, total: 3 })}
+      />
+
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.body}>
+          <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
+            {t('onboarding.dob.eyebrow')}
+          </Text>
+          <Text variant="title" style={styles.title}>
+            {t('onboarding.dob.titleWithName', { name })}
+          </Text>
+          <Text variant="callout" tone="secondary" style={styles.subtitle}>
+            {t('onboarding.dob.subtitle')}
+          </Text>
+
+          <View style={styles.ageWrap}>
+            <Text variant="display" tone="primary" style={styles.ageValue}>
+              {liveAge}
+            </Text>
+          </View>
         </View>
-      ) : (
-        <View>
-          <Pressable
-            onPress={() => setAndroidOpen(true)}
-            style={({ pressed }) => [styles.androidRow, pressed && styles.pressed]}
-          >
-            <Text variant="callout" tone="secondary">
-              {t('onboarding.dob.selectedDate')}
-            </Text>
-            <Text variant="body" tone="primary" tabular>
-              {formatted}
-            </Text>
-          </Pressable>
-          {androidOpen ? (
+
+        <View style={styles.ctaWrap}>
+          <Button title={t('common.continue')} onPress={goNext} />
+        </View>
+
+        <View style={styles.pickerWrap}>
+          {Platform.OS === 'ios' ? (
             <DateTimePicker
               value={dob}
               mode="date"
-              display="default"
+              display="spinner"
               maximumDate={new Date()}
               minimumDate={new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 6)}
-              onChange={(_, value) => {
-                setAndroidOpen(false);
-                if (value) setDob(value);
-              }}
+              textColor={colors.text.primary}
+              themeVariant="dark"
+              onChange={(_, value) => value && setDob(value)}
             />
-          ) : null}
+          ) : (
+            <View style={styles.androidWrap}>
+              <Pressable
+                onPress={() => setAndroidOpen(true)}
+                style={({ pressed }) => [styles.androidRow, pressed && styles.pressed]}
+              >
+                <Text variant="callout" tone="secondary">
+                  {t('onboarding.dob.tapToPick')}
+                </Text>
+                <Text variant="body" tone="primary" tabular>
+                  {dob.toLocaleDateString()}
+                </Text>
+              </Pressable>
+              {androidOpen ? (
+                <DateTimePicker
+                  value={dob}
+                  mode="date"
+                  display="default"
+                  maximumDate={new Date()}
+                  minimumDate={new Date(Date.now() - 1000 * 60 * 60 * 24 * 365 * 6)}
+                  onChange={(_, value) => {
+                    setAndroidOpen(false);
+                    if (value) setDob(value);
+                  }}
+                />
+              ) : null}
+            </View>
+          )}
         </View>
-      )}
-      {Platform.OS === 'ios' ? (
-        <Text variant="footnote" tone="tertiary" align="center" style={styles.hint}>
-          {formatted}
-        </Text>
-      ) : null}
-    </OnboardingShell>
+      </KeyboardAvoidingView>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  pickerWrap: {
+  flex: { flex: 1 },
+  body: {
+    paddingHorizontal: screenGutter,
+    paddingTop: spacing.lg,
+  },
+  eyebrow: {
+    marginBottom: spacing.md,
+  },
+  title: {
+    color: colors.text.primary,
+  },
+  subtitle: {
+    marginTop: spacing.md,
+  },
+  ageWrap: {
+    flex: 1,
+    minHeight: spacing.xxl,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: spacing.xl,
   },
-  hint: {
-    marginTop: spacing.base,
+  ageValue: {
+    fontFamily: fonts.medium,
+    fontSize: 36,
+    lineHeight: 42,
+    textAlign: 'center',
+  },
+  ctaWrap: {
+    paddingHorizontal: screenGutter,
+    paddingBottom: spacing.md,
+  },
+  pickerWrap: {
+    paddingBottom: spacing.lg,
+    alignItems: 'center',
+  },
+  androidWrap: {
+    paddingHorizontal: screenGutter,
+    width: '100%',
   },
   androidRow: {
     backgroundColor: colors.bg.elevated,

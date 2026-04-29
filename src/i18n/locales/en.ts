@@ -230,6 +230,7 @@ export const en = {
     dob: {
       eyebrow: 'DATE OF BIRTH',
       title: 'When were they born?',
+      titleWithName: 'When was {name} born?',
       subtitle: 'This helps Mimi calculate their sleep windows.',
       selectedDate: 'Selected date',
       tapToPick: 'Tap to choose',

@@ -232,6 +232,7 @@ export const es: Translations = {
     dob: {
       eyebrow: 'FECHA DE NACIMIENTO',
       title: '¿Cuándo nació?',
+      titleWithName: '¿Cuándo nació {name}?',
       subtitle: 'Esto ayuda a Mimi a calcular sus ventanas de sueño.',
       selectedDate: 'Fecha seleccionada',
       tapToPick: 'Toca para elegir',
