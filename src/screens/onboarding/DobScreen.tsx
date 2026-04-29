@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Screen, HeaderBar, Text, Button } from '@/components';
 import { colors, fonts, radii, spacing, screenGutter } from '@/theme';
@@ -43,9 +44,10 @@ export const DobScreen: React.FC = () => {
       <HeaderBar
         title={t('onboarding.newBabyTitle')}
         leading={{
-          icon: 'arrow-back',
-          label: t('common.back'),
-          onPress: () => navigation.goBack(),
+          icon: 'close',
+          label: t('common.close'),
+          onPress: () =>
+            navigation.reset({ index: 0, routes: [{ name: 'Root' }] }),
         }}
         trailingText={t('onboarding.stepShort', { step: 2, total: 3 })}
       />
@@ -71,7 +73,20 @@ export const DobScreen: React.FC = () => {
 
       {/* Bottom: CTA, then picker docked at the very bottom */}
       <View style={styles.ctaWrap}>
-        <Button title={t('common.continue')} onPress={goNext} />
+        <Pressable
+          onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
+          style={({ pressed }) => [
+            styles.prevBtn,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Ionicons name="arrow-back" size={22} color={colors.text.primary} />
+        </Pressable>
+        <View style={styles.ctaFlex}>
+          <Button title={t('common.continue')} onPress={goNext} />
+        </View>
       </View>
 
       <View
@@ -157,6 +172,20 @@ const styles = StyleSheet.create({
   ctaWrap: {
     paddingHorizontal: screenGutter,
     paddingBottom: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  ctaFlex: { flex: 1 },
+  prevBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(168, 165, 230, 0.35)',
+    backgroundColor: 'rgba(168, 165, 230, 0.08)',
   },
   pickerWrap: {
     alignItems: 'center',

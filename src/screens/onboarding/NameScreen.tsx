@@ -24,7 +24,7 @@ export const NameScreen: React.FC = () => {
       eyebrow={t('onboarding.name.eyebrow')}
       bodyTitle={t('onboarding.name.title')}
       subtitle={t('onboarding.name.subtitle')}
-      onBack={() => navigation.goBack()}
+      onClose={() => navigation.goBack()}
       onCta={next}
       ctaDisabled={trimmed.length === 0}
     >

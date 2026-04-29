@@ -43,7 +43,10 @@ export const PrematurityScreen: React.FC = () => {
       eyebrow={t('onboarding.prematurity.eyebrow')}
       bodyTitle={t('onboarding.prematurity.title')}
       subtitle={t('onboarding.prematurity.subtitle')}
-      onBack={() => navigation.goBack()}
+      onClose={() =>
+        navigation.reset({ index: 0, routes: [{ name: 'Root' }] })
+      }
+      onPrevStep={() => navigation.goBack()}
       onCta={finish}
       ctaTitle={t('onboarding.prematurity.finishSetup')}
     >

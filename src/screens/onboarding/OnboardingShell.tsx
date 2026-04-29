@@ -2,9 +2,11 @@ import React from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   StyleSheet,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Screen, Text, Button, HeaderBar } from '@/components';
 import { spacing, screenGutter, colors } from '@/theme';
 import { t } from '@/i18n';
@@ -21,7 +23,10 @@ interface OnboardingShellProps {
   ctaTitle?: string;
   ctaDisabled?: boolean;
   onCta: () => void;
-  onBack?: () => void;
+  /** Header close (X) — exits the whole flow. */
+  onClose?: () => void;
+  /** Round back button next to the CTA — pops one step. */
+  onPrevStep?: () => void;
   secondaryTitle?: string;
   onSecondary?: () => void;
 }
@@ -36,7 +41,8 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
   ctaTitle,
   ctaDisabled,
   onCta,
-  onBack,
+  onClose,
+  onPrevStep,
   secondaryTitle,
   onSecondary,
 }) => {
@@ -47,8 +53,8 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
       <HeaderBar
         title={resolvedTitle}
         leading={
-          onBack
-            ? { icon: 'arrow-back', label: t('common.back'), onPress: onBack }
+          onClose
+            ? { icon: 'close', label: t('common.close'), onPress: onClose }
             : undefined
         }
         trailingText={
@@ -83,7 +89,28 @@ export const OnboardingShell: React.FC<OnboardingShellProps> = ({
         </View>
 
         <View style={styles.ctaWrap}>
-          <Button title={resolvedCta} onPress={onCta} disabled={ctaDisabled} />
+          <View style={styles.ctaRow}>
+            {onPrevStep ? (
+              <Pressable
+                onPress={onPrevStep}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.back')}
+                style={({ pressed }) => [
+                  styles.prevBtn,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Ionicons
+                  name="arrow-back"
+                  size={22}
+                  color={colors.text.primary}
+                />
+              </Pressable>
+            ) : null}
+            <View style={styles.ctaFlex}>
+              <Button title={resolvedCta} onPress={onCta} disabled={ctaDisabled} />
+            </View>
+          </View>
           {secondaryTitle && onSecondary ? (
             <>
               <View style={{ height: spacing.sm }} />
@@ -125,4 +152,21 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
     paddingTop: spacing.md,
   },
+  ctaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  ctaFlex: { flex: 1 },
+  prevBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(168, 165, 230, 0.35)',
+    backgroundColor: 'rgba(168, 165, 230, 0.08)',
+  },
+  pressed: { opacity: 0.6 },
 });
