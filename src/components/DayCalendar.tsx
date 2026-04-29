@@ -9,6 +9,7 @@ import {
 import Animated, {
   Extrapolation,
   interpolate,
+  runOnJS,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
@@ -170,9 +171,24 @@ export const DayCalendar: React.FC<DayCalendarProps> = ({
     return () => clearTimeout(id);
   }, [selectedIndex, width]);
 
+  const lastTickIndex = useSharedValue(0);
+  const cellSpan = DAY_CELL_WIDTH + DAY_CELL_GAP;
+
+  const tickHaptic = () => {
+    haptics.selection();
+  };
+
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (e) => {
       scrollX.value = e.contentOffset.x;
+      // Fire a selection tick every time we cross a cell boundary,
+      // so dragging the strip in either direction "clicks" through
+      // the dates.
+      const idx = Math.round(e.contentOffset.x / cellSpan);
+      if (idx !== lastTickIndex.value) {
+        lastTickIndex.value = idx;
+        runOnJS(tickHaptic)();
+      }
     },
   });
 
