@@ -9,7 +9,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -34,7 +33,7 @@ const NAME_FONT_SIZE = 34;
 const NAME_LINE_HEIGHT = 38;
 const AGE_FONT_SIZE = 14;
 const AGE_LINE_HEIGHT = 18;
-const ITEM_GAP = spacing.sm;
+const ITEM_GAP = spacing.sm + 8;
 const ANIM_OPEN = 320;
 const ANIM_CLOSE = 220;
 const ITEM_STAGGER = 60;
@@ -92,7 +91,7 @@ export const BabyDropdown: React.FC<Props> = ({
         maskElement={
           <LinearGradient
             colors={['rgba(0,0,0,1)', 'rgba(0,0,0,1)', 'rgba(0,0,0,0)']}
-            locations={[0, 0.55, 1]}
+            locations={[0, 0.35, 0.65]}
             style={StyleSheet.absoluteFill}
           />
         }
@@ -122,11 +121,7 @@ export const BabyDropdown: React.FC<Props> = ({
           <CascadeRow index={0} progress={progress}>
             <View style={styles.block}>
               <View style={styles.activeNameRow}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={20}
-                  color={colors.accent.base}
-                />
+                <View style={styles.activeDot} />
                 <Text tone="primary" style={styles.name} numberOfLines={1}>
                   {active.name}
                 </Text>
@@ -204,6 +199,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+  },
+  activeDot: {
+    width: 2,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: colors.accent.base,
   },
   name: {
     fontFamily: fonts.medium,

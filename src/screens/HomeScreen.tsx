@@ -707,6 +707,7 @@ export const HomeScreen: React.FC = () => {
         nameTopY={insets.top + 17}
         onSelect={(id) => {
           setActiveBabyId(id);
+          useCelebrationStore.getState().trigger(id);
           setBabySwitcherOpen(false);
         }}
         onClose={() => setBabySwitcherOpen(false)}
