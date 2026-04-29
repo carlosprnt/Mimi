@@ -133,6 +133,7 @@ const CascadeItem: React.FC<{
       opacity: local,
       transform: [
         { translateX: interpolate(local, [0, 1], [-60, 0]) },
+        { scale: interpolate(local, [0, 1], [0.95, 1]) },
       ],
     };
   });
