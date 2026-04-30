@@ -41,6 +41,8 @@ export const en = {
     tokensUnreadable: 'Could not read tokens from the redirect.',
     sessionFailed: 'Could not set the session.',
     notConfigured: 'Supabase not configured.',
+    appleUnsupported: 'Sign in with Apple is only available on iOS.',
+    appleNoToken: 'Apple did not return the identity token.',
   },
   home: {
     today: 'TODAY’S SUMMARY',

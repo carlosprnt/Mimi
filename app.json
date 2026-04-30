@@ -10,6 +10,7 @@
     "icon": "./assets/icon.png",
     "plugins": [
       "expo-web-browser",
+      "expo-apple-authentication",
       "@bacons/apple-targets"
     ],
     "ios": {
@@ -18,6 +19,7 @@
       "buildNumber": "5",
       "userInterfaceStyle": "dark",
       "icon": "./assets/icon.png",
+      "usesAppleSignIn": true,
       "entitlements": {
         "com.apple.security.application-groups": ["group.com.carlospariente.mimi"]
       },

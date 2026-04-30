@@ -1,5 +1,7 @@
+import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { supabase, isSupabaseConfigured } from './supabase';
 import type { Session } from '@supabase/supabase-js';
 import { t } from '@/i18n';
@@ -94,6 +96,90 @@ export const signInWithGoogle = async (): Promise<SignInResult> => {
     };
   }
   return { ok: true, session: setData.session };
+};
+
+export const isAppleSignInAvailable = async (): Promise<boolean> => {
+  if (Platform.OS !== 'ios') return false;
+  try {
+    return await AppleAuthentication.isAvailableAsync();
+  } catch {
+    return false;
+  }
+};
+
+export const signInWithApple = async (): Promise<SignInResult> => {
+  if (!isSupabaseConfigured()) {
+    return {
+      ok: false,
+      reason: 'config',
+      message: t('auth.configMissing'),
+    };
+  }
+  if (Platform.OS !== 'ios') {
+    return {
+      ok: false,
+      reason: 'config',
+      message: t('auth.appleUnsupported'),
+    };
+  }
+
+  try {
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+    });
+
+    const idToken = credential.identityToken;
+    if (!idToken) {
+      return {
+        ok: false,
+        reason: 'error',
+        message: t('auth.appleNoToken'),
+      };
+    }
+
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: 'apple',
+      token: idToken,
+    });
+
+    if (error || !data.session) {
+      return {
+        ok: false,
+        reason: 'error',
+        message: error?.message ?? t('auth.sessionFailed'),
+      };
+    }
+
+    // Apple only sends fullName the first time. Backfill the user's
+    // metadata with it so the UI shows a friendly name.
+    const fullName = [
+      credential.fullName?.givenName,
+      credential.fullName?.familyName,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+    if (fullName) {
+      await supabase.auth
+        .updateUser({ data: { full_name: fullName, name: fullName } })
+        .catch(() => {});
+    }
+
+    return { ok: true, session: data.session };
+  } catch (err) {
+    const e = err as { code?: string; message?: string };
+    if (e.code === 'ERR_REQUEST_CANCELED' || e.code === 'ERR_CANCELED') {
+      return { ok: false, reason: 'cancelled' };
+    }
+    return {
+      ok: false,
+      reason: 'error',
+      message: e.message ?? t('auth.flowIncomplete'),
+    };
+  }
 };
 
 export const signOut = async (): Promise<void> => {

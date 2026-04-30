@@ -11,7 +11,11 @@ import { ActionMenu, type ActionMenuItem } from '@/components/ActionMenu';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import { useAuthStore } from '@/state/authStore';
 import { useBabyStore } from '@/state/babyStore';
-import { signInWithGoogle } from '@/services/auth';
+import {
+  isAppleSignInAvailable,
+  signInWithApple,
+  signInWithGoogle,
+} from '@/services/auth';
 import { listBabies } from '@/services/babies';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
@@ -22,20 +26,25 @@ export const WelcomeScreen: React.FC = () => {
   const startedAt = useOnboardingDraft((s) => s.startedAt);
   const [signInOpen, setSignInOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
 
   useEffect(() => {
     if (!startedAt) setDraft({ startedAt: new Date().toISOString() });
   }, [startedAt, setDraft]);
 
+  useEffect(() => {
+    void isAppleSignInAvailable().then(setAppleAvailable);
+  }, []);
+
   const authedUser = useAuthStore((s) => s.user);
   const setBabies = useBabyStore((s) => s.setBabies);
   const isFocused = useIsFocused();
 
-  // After Google OAuth completes the auth store flips to signed-in.
-  // - The session bootstrap hook already pulled babies from Supabase
-  //   into the local store. If any exist, jump to Root.
-  // - Otherwise show an honest alert: this Google account has no babies
-  //   yet on the backend, so we can't skip onboarding.
+  // After OAuth (Google or Apple) completes, the auth store flips to
+  // signed-in. Pull this user's babies from Supabase:
+  //   - If any exist, jump to Root (the dashboard).
+  //   - Otherwise hand off to onboarding so the user can create their
+  //     first baby. No alert — the transition is automatic.
   useEffect(() => {
     if (!isFocused || !authedUser) return;
     setSignInOpen(false);
@@ -48,27 +57,22 @@ export const WelcomeScreen: React.FC = () => {
         );
         return;
       }
-      Alert.alert(
-        t('onboarding.welcome.noDataAlertTitle'),
-        t('onboarding.welcome.noDataAlertBody', {
-          name: authedUser.name ?? authedUser.email ?? '',
-        }),
-        [
-          {
-            text: t('onboarding.welcome.noDataAlertCta'),
-            onPress: () => navigation.navigate('OnboardingDob'),
-          },
-        ],
-      );
+      navigation.navigate('OnboardingDob');
     })();
   }, [isFocused, authedUser, navigation, setBabies]);
 
-  const onApple = () => {
+  const onApple = async () => {
+    if (busy) return;
     setSignInOpen(false);
-    Alert.alert(
-      t('onboarding.welcome.appleAlertTitle'),
-      t('onboarding.welcome.appleAlertBody'),
-    );
+    setBusy(true);
+    const result = await signInWithApple();
+    setBusy(false);
+    if (!result.ok && result.reason !== 'cancelled') {
+      Alert.alert(
+        t('onboarding.welcome.appleAlertTitle'),
+        result.message ?? t('onboarding.welcome.googleErrorFallback'),
+      );
+    }
   };
 
   const onGoogle = async () => {
@@ -86,12 +90,16 @@ export const WelcomeScreen: React.FC = () => {
   };
 
   const signInItems: ActionMenuItem[] = [
-    {
-      id: 'apple',
-      label: t('onboarding.summary.apple'),
-      icon: 'logo-apple',
-      onPress: onApple,
-    },
+    ...(appleAvailable
+      ? [
+          {
+            id: 'apple',
+            label: t('onboarding.summary.apple'),
+            icon: 'logo-apple' as const,
+            onPress: onApple,
+          },
+        ]
+      : []),
     {
       id: 'google',
       label: t('onboarding.summary.google'),

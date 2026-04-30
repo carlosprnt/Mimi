@@ -44,6 +44,8 @@ export const es: Translations = {
     tokensUnreadable: 'No se pudieron leer los tokens del redirect.',
     sessionFailed: 'No se pudo establecer la sesión.',
     notConfigured: 'Supabase no configurado.',
+    appleUnsupported: 'Sign in with Apple solo está disponible en iOS.',
+    appleNoToken: 'Apple no devolvió el token de identidad.',
   },
   home: {
     today: 'RESUMEN DE HOY',

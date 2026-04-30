@@ -18,7 +18,11 @@ import {
 } from '@/state/onboardingDraft';
 import { useBabyStore } from '@/state/babyStore';
 import { useAuthStore } from '@/state/authStore';
-import { signInWithGoogle } from '@/services/auth';
+import {
+  isAppleSignInAvailable,
+  signInWithApple,
+  signInWithGoogle,
+} from '@/services/auth';
 import { insertBabyFromDraft, upsertProfile } from '@/services/babies';
 import { spacing } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
@@ -47,6 +51,11 @@ export const OnboardingSummaryScreen: React.FC = () => {
   const authedUser = useAuthStore((s) => s.user);
   const isFocused = useIsFocused();
   const [busy, setBusy] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+
+  useEffect(() => {
+    void isAppleSignInAvailable().then(setAppleAvailable);
+  }, []);
   const finalizedRef = useRef(false);
 
   const sexLabel =
@@ -126,11 +135,17 @@ export const OnboardingSummaryScreen: React.FC = () => {
     clearDraft,
   ]);
 
-  const onApple = () => {
-    Alert.alert(
-      t('onboarding.welcome.appleAlertTitle'),
-      t('onboarding.welcome.appleAlertBody'),
-    );
+  const onApple = async () => {
+    if (busy) return;
+    setBusy(true);
+    const result = await signInWithApple();
+    setBusy(false);
+    if (!result.ok && result.reason !== 'cancelled') {
+      Alert.alert(
+        t('onboarding.welcome.appleAlertTitle'),
+        result.message ?? t('onboarding.welcome.googleErrorFallback'),
+      );
+    }
   };
 
   const onGoogle = async () => {
@@ -193,11 +208,13 @@ export const OnboardingSummaryScreen: React.FC = () => {
       </Text>
 
       <View style={styles.auth}>
-        <AuthButton
-          provider="apple"
-          label={t('onboarding.summary.apple')}
-          onPress={onApple}
-        />
+        {appleAvailable ? (
+          <AuthButton
+            provider="apple"
+            label={t('onboarding.summary.apple')}
+            onPress={onApple}
+          />
+        ) : null}
         <AuthButton
           provider="google"
           label={t('onboarding.summary.google')}
