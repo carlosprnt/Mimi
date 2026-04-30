@@ -19,6 +19,7 @@ export type RootStackParamList = {
   OnboardingAtTerm: undefined;
   OnboardingDueDate: undefined;
   OnboardingIdentity: undefined;
+  OnboardingSex: undefined;
   OnboardingSummary: undefined;
   // Legacy routes kept for the addChild flow from the drawer.
   OnboardingName: { mode?: 'addChild' } | undefined;

@@ -1,5 +1,9 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import { computePrematureWeeks, type OnboardingDraft } from '@/state/onboardingDraft';
+import {
+  computePrematureWeeks,
+  normalizeSexForBaby,
+  type OnboardingDraft,
+} from '@/state/onboardingDraft';
 import type { Baby } from '@/logic/age';
 import { makeId } from '@/utils/id';
 
@@ -52,7 +56,7 @@ export const insertBabyFromDraft = async (
       id,
       user_id: userId,
       name: draft.name.trim(),
-      sex: draft.sex ?? null,
+      sex: normalizeSexForBaby(draft.sex) ?? null,
       dob,
       born_at_term: draft.atTerm,
       due_date: dueDate,

@@ -279,6 +279,20 @@ export const en = {
       girl: 'Girl',
       boy: 'Boy',
     },
+    sex: {
+      eyebrow: 'ABOUT YOUR BABY',
+      title: 'Girl or boy?',
+      subtitle: 'Mimi tailors the illustration. You can skip if you prefer.',
+      girl: 'Girl',
+      boy: 'Boy',
+      preferNotToSay: 'Prefer not to say',
+    },
+    finalize: {
+      cta: 'Finish',
+      sheetTitle: 'Create your account',
+      sheetBody:
+        'Save your baby’s sleep to your account and recover it on any device.',
+    },
     summary: {
       eyebrow: 'ALL SET',
       title: 'Mimi has what it needs.',

@@ -1,89 +1,181 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { OnboardingScene } from '@/components/onboarding/OnboardingScene';
-import { OnboardingTextField } from '@/components/onboarding/OnboardingTextField';
-import { ChoiceCard } from '@/components/onboarding/ChoiceCard';
-import { Text } from '@/components/Text';
-import { useOnboardingDraft, Sex } from '@/state/onboardingDraft';
-import { spacing } from '@/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Screen, Text, Button } from '@/components';
+import { useOnboardingDraft } from '@/state/onboardingDraft';
+import { haptics } from '@/logic/haptics';
+import { colors, fonts, screenGutter, spacing } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
+const TOTAL_STEPS = 6;
 const MIN_NAME_LENGTH = 2;
 
 export const OnboardingIdentityScreen: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
   const name = useOnboardingDraft((s) => s.name) ?? '';
-  const sex = useOnboardingDraft((s) => s.sex);
   const setDraft = useOnboardingDraft((s) => s.set);
+  const inputRef = useRef<TextInput>(null);
+
+  // Re-focus the input each time the screen appears so the keyboard
+  // is always up. Using a small timeout because instant focus during
+  // navigation transitions is sometimes ignored on iOS.
+  useEffect(() => {
+    const id = setTimeout(() => inputRef.current?.focus(), 80);
+    return () => clearTimeout(id);
+  }, []);
 
   const trimmed = name.trim();
-  const canContinue = trimmed.length >= MIN_NAME_LENGTH && sex !== undefined;
+  const canContinue = trimmed.length >= MIN_NAME_LENGTH;
 
-  const chooseSex = (next: Sex) => setDraft({ sex: next });
+  const goNext = () => {
+    if (!canContinue) return;
+    haptics.light();
+    navigation.navigate('OnboardingSex');
+  };
 
   return (
-    <OnboardingScene
-      step={4}
-      total={6}
-      eyebrow={t('onboarding.identity.eyebrow')}
-      title={t('onboarding.identity.title')}
-      subtitle={t('onboarding.identity.subtitle')}
-      onBack={() => navigation.goBack()}
-      cta={{
-        label: t('onboarding.common.continue'),
-        onPress: () => navigation.navigate('OnboardingSummary'),
-        disabled: !canContinue,
-      }}
-      illustrationSex={sex}
-      scrollable
-    >
-      <OnboardingTextField
-        value={name}
-        onChangeText={(v) => setDraft({ name: v })}
-        placeholder={t('onboarding.identity.placeholder')}
-      />
-
-      <View style={styles.sexBlock}>
-        <Text variant="eyebrow" tone="tertiary" style={styles.sexLabel}>
-          {t('onboarding.identity.sexLabel')}
-        </Text>
-        <View style={styles.sexChoices}>
-          <View style={styles.sexCell}>
-            <ChoiceCard
-              label={t('onboarding.identity.girl')}
-              selected={sex === 'girl'}
-              onPress={() => chooseSex('girl')}
+    <Screen backdrop="night" edges={['left', 'right']}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            hitSlop={12}
+            style={({ pressed }) => [
+              styles.backBtn,
+              pressed && styles.pressed,
+            ]}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={22}
+              color={colors.text.primary}
             />
-          </View>
-          <View style={styles.sexCell}>
-            <ChoiceCard
-              label={t('onboarding.identity.boy')}
-              selected={sex === 'boy'}
-              onPress={() => chooseSex('boy')}
+          </Pressable>
+          <Text variant="footnote" tone="tertiary" style={styles.stepLabel}>
+            {t('onboarding.stepOf', { step: 4, total: TOTAL_STEPS })}
+          </Text>
+        </View>
+
+        <View style={styles.body}>
+          <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
+            {t('onboarding.identity.eyebrow')}
+          </Text>
+          <Text variant="title" align="center" style={styles.title}>
+            {t('onboarding.identity.title')}
+          </Text>
+          <Text
+            variant="callout"
+            tone="secondary"
+            align="center"
+            style={styles.subtitle}
+          >
+            {t('onboarding.identity.subtitle')}
+          </Text>
+
+          <View style={styles.inputWrap}>
+            <TextInput
+              ref={inputRef}
+              value={name}
+              onChangeText={(v) => setDraft({ name: v })}
+              placeholder={t('onboarding.identity.placeholder')}
+              placeholderTextColor={colors.text.tertiary}
+              autoCapitalize="words"
+              autoCorrect={false}
+              selectionColor={colors.accent.base}
+              returnKeyType="next"
+              onSubmitEditing={goNext}
+              style={styles.input}
             />
           </View>
         </View>
-      </View>
-    </OnboardingScene>
+
+        <View
+          style={[
+            styles.ctaWrap,
+            { paddingBottom: Math.max(insets.bottom, spacing.lg) },
+          ]}
+        >
+          <Button
+            title={t('onboarding.common.continue')}
+            onPress={goNext}
+            disabled={!canContinue}
+          />
+        </View>
+      </KeyboardAvoidingView>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  sexBlock: {
-    marginTop: spacing.xxl,
-  },
-  sexLabel: {
-    textAlign: 'center',
-    marginBottom: spacing.md,
-  },
-  sexChoices: {
+  flex: { flex: 1 },
+  topBar: {
     flexDirection: 'row',
-    gap: spacing.md,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: screenGutter,
+    paddingBottom: spacing.sm,
   },
-  sexCell: {
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepLabel: {
+    paddingRight: spacing.sm,
+  },
+  body: {
     flex: 1,
+    paddingHorizontal: screenGutter,
+    paddingTop: spacing.lg,
+  },
+  eyebrow: {
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  title: {
+    paddingHorizontal: spacing.sm,
+  },
+  subtitle: {
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.xxl,
+  },
+  inputWrap: {
+    paddingHorizontal: spacing.md,
+  },
+  input: {
+    color: colors.text.primary,
+    fontFamily: fonts.medium,
+    fontSize: 36,
+    lineHeight: 44,
+    paddingVertical: spacing.md,
+    borderBottomColor: 'rgba(255,255,255,0.16)',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    textAlign: 'center',
+  },
+  ctaWrap: {
+    paddingHorizontal: screenGutter,
+    paddingTop: spacing.md,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

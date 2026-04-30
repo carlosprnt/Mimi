@@ -11,6 +11,7 @@ import { OnboardingDobScreen } from '@/screens/onboarding/OnboardingDobScreen';
 import { OnboardingAtTermScreen } from '@/screens/onboarding/OnboardingAtTermScreen';
 import { OnboardingDueDateScreen } from '@/screens/onboarding/OnboardingDueDateScreen';
 import { OnboardingIdentityScreen } from '@/screens/onboarding/OnboardingIdentityScreen';
+import { OnboardingSexScreen } from '@/screens/onboarding/OnboardingSexScreen';
 import { OnboardingSummaryScreen } from '@/screens/onboarding/OnboardingSummaryScreen';
 import { NameScreen } from '@/screens/onboarding/NameScreen';
 import { DobScreen } from '@/screens/onboarding/DobScreen';
@@ -91,6 +92,7 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="OnboardingAtTerm" component={OnboardingAtTermScreen} />
         <Stack.Screen name="OnboardingDueDate" component={OnboardingDueDateScreen} />
         <Stack.Screen name="OnboardingIdentity" component={OnboardingIdentityScreen} />
+        <Stack.Screen name="OnboardingSex" component={OnboardingSexScreen} />
         <Stack.Screen name="OnboardingSummary" component={OnboardingSummaryScreen} />
         <Stack.Screen name="OnboardingName" component={NameScreen} />
         <Stack.Screen name="OnboardingDobLegacy" component={DobScreen} />

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { mimiStorage } from './persist';
 
-export type Sex = 'girl' | 'boy';
+export type Sex = 'girl' | 'boy' | 'unspecified';
 
 export interface OnboardingDraft {
   dob?: string;
@@ -54,6 +54,17 @@ export const useOnboardingDraft = create<OnboardingDraftState>()(
     },
   ),
 );
+
+/**
+ * The Baby record stores sex as 'girl' | 'boy' | undefined (the
+ * illustrations only branch on those two). Onboarding additionally
+ * surfaces an explicit "prefiero no decirlo" choice ('unspecified')
+ * so we know the user actively skipped versus hasn't answered yet.
+ * Normalise back to the Baby shape when persisting.
+ */
+export const normalizeSexForBaby = (
+  s?: Sex,
+): 'girl' | 'boy' | undefined => (s === 'girl' || s === 'boy' ? s : undefined);
 
 const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
 

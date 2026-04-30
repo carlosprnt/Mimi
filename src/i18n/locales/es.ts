@@ -283,6 +283,20 @@ export const es: Translations = {
       girl: 'Niña',
       boy: 'Niño',
     },
+    sex: {
+      eyebrow: 'SOBRE TU BEBÉ',
+      title: '¿Es niña o niño?',
+      subtitle: 'Mimi adapta la ilustración. Si prefieres, puedes saltar.',
+      girl: 'Niña',
+      boy: 'Niño',
+      preferNotToSay: 'Prefiero no decirlo',
+    },
+    finalize: {
+      cta: 'Finalizar',
+      sheetTitle: 'Crea tu cuenta',
+      sheetBody:
+        'Guarda el sueño de tu bebé en tu cuenta. Recupéralo en cualquier dispositivo.',
+    },
     summary: {
       eyebrow: 'TODO LISTO',
       title: 'Mimi ya tiene lo que necesita.',
