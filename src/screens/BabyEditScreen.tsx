@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
@@ -8,12 +14,13 @@ import {
   Card,
   ListRow,
   Button,
-  NameEditSheet,
+  Text,
+  Divider,
   DobEditSheet,
   PrematurityEditSheet,
   DeleteChildSheet,
 } from '@/components';
-import { spacing, screenGutter } from '@/theme';
+import { colors, fonts, spacing, screenGutter } from '@/theme';
 import { useBabyStore } from '@/state/babyStore';
 import { useSleepStore } from '@/state/sleepStore';
 import { useCareEventStore } from '@/state/careEventStore';
@@ -21,7 +28,7 @@ import { ageLabel } from '@/logic/age';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
-type EditingField = 'name' | 'dob' | 'prematurity' | 'delete' | null;
+type EditingField = 'dob' | 'prematurity' | 'delete' | null;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BabyEdit'>;
 
@@ -38,6 +45,18 @@ export const BabyEditScreen: React.FC = () => {
   const dropBabyCareEvents = useCareEventStore((s) => s.dropBaby);
 
   const [editing, setEditing] = useState<EditingField>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const nameInputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    if (editingName) {
+      setNameDraft(baby?.name ?? '');
+      // Focus on next tick so the TextInput has mounted.
+      setTimeout(() => nameInputRef.current?.focus(), 0);
+    }
+  }, [editingName, baby?.name]);
+
   const close = () => setEditing(null);
 
   if (!baby) return null;
@@ -45,10 +64,14 @@ export const BabyEditScreen: React.FC = () => {
   const dob = new Date(baby.dateOfBirth);
   const dismiss = () => navigation.goBack();
 
-  const onSaveName = (name: string) => {
-    updateBaby(baby.id, { name });
-    close();
+  const commitName = () => {
+    const trimmed = nameDraft.trim();
+    if (trimmed.length > 0 && trimmed !== baby.name) {
+      updateBaby(baby.id, { name: trimmed });
+    }
+    setEditingName(false);
   };
+
   const onSaveDob = (date: Date) => {
     updateBaby(baby.id, { dateOfBirth: date.toISOString() });
     close();
@@ -80,14 +103,44 @@ export const BabyEditScreen: React.FC = () => {
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <Card padded={false} tone="night" style={styles.card}>
           <View style={styles.inner}>
-            <ListRow
-              label={t('profile.name')}
-              value={baby.name}
-              onPress={() => setEditing('name')}
-            />
+            <Pressable
+              onPress={() => setEditingName(true)}
+              style={styles.nameRow}
+            >
+              <Text variant="body" tone="secondary" style={styles.nameLabel}>
+                {t('profile.name')}
+              </Text>
+              {editingName ? (
+                <TextInput
+                  ref={nameInputRef}
+                  value={nameDraft}
+                  onChangeText={setNameDraft}
+                  onBlur={commitName}
+                  onSubmitEditing={commitName}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  selectionColor={colors.accent.base}
+                  returnKeyType="done"
+                  style={styles.nameInput}
+                />
+              ) : (
+                <Text
+                  variant="body"
+                  tone="primary"
+                  align="right"
+                  numberOfLines={1}
+                  style={styles.nameValue}
+                >
+                  {baby.name}
+                </Text>
+              )}
+            </Pressable>
+            <Divider />
+
             <ListRow
               label={t('profile.dob')}
               value={dob.toLocaleDateString(undefined, {
@@ -124,12 +177,6 @@ export const BabyEditScreen: React.FC = () => {
         />
       </ScrollView>
 
-      <NameEditSheet
-        visible={editing === 'name'}
-        initial={baby.name}
-        onClose={close}
-        onSave={onSaveName}
-      />
       <DobEditSheet
         visible={editing === 'dob'}
         initial={dob}
@@ -163,6 +210,27 @@ const styles = StyleSheet.create({
   },
   inner: {
     paddingHorizontal: spacing.lg,
+  },
+  nameRow: {
+    minHeight: 52,
+    paddingVertical: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  nameLabel: {
+    paddingRight: spacing.md,
+  },
+  nameValue: {
+    flex: 1,
+  },
+  nameInput: {
+    flex: 1,
+    color: colors.text.primary,
+    fontFamily: fonts.regular,
+    fontSize: 16,
+    textAlign: 'right',
+    paddingVertical: 0,
   },
   deleteButton: {
     alignSelf: 'stretch',

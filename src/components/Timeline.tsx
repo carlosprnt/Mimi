@@ -320,7 +320,6 @@ export const Timeline: React.FC<TimelineProps> = ({
               ]}
             >
               <View style={styles.rail}>
-                <SolidLine hidden={isFirst} variant="overnight" />
                 <View style={styles.dotContainer}>
                   <View style={[styles.dot, styles.dotPlaceholder]}>
                     <Ionicons
@@ -402,14 +401,6 @@ export const Timeline: React.FC<TimelineProps> = ({
         const row = (
           <>
             <View style={styles.rail}>
-              <SolidLine
-                hidden={isFirst}
-                variant={railVariant(
-                  isInterruption,
-                  aboveSuggested,
-                  aboveOvernight,
-                )}
-              />
               <View style={styles.dotContainer}>
                 {isNext ? <PulsingGlow /> : null}
                 <View
@@ -626,8 +617,13 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingLeft: spacing.md,
-    paddingVertical: spacing.sm,
-    justifyContent: 'center',
+    // 9px top padding makes the title's vertical center align with the
+    // 40px dot's vertical center (dot center y=20 = paddingTop 9 +
+    // body lineHeight 22 / 2 ≈ 20). The dot sits at the top of the
+    // rail (no SolidLine above it), so titles are now consistently
+    // anchored to the icon regardless of row height.
+    paddingTop: 9,
+    paddingBottom: spacing.sm,
   },
   titleRow: {
     flexDirection: 'row',

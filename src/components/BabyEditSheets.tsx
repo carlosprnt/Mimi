@@ -224,13 +224,13 @@ export const DeleteChildSheet: React.FC<DeleteSheetProps> = ({
         {t('profile.deleteChildConfirmBody')}
       </Text>
       <View style={styles.actions}>
+        <Button title={t('profile.cancel')} onPress={onClose} />
+        <View style={{ height: spacing.sm }} />
         <Button
           title={t('profile.delete')}
           variant="destructive"
           onPress={onConfirm}
         />
-        <View style={{ height: spacing.sm }} />
-        <Button title={t('profile.cancel')} variant="dangerGhost" onPress={onClose} />
       </View>
     </Sheet>
   );
