@@ -289,6 +289,10 @@ export const en = {
       apple: 'Continue with Apple',
       google: 'Continue with Google',
       authComingSoon: 'Sign-in coming soon',
+      existingAccountTitle: 'You already have an account',
+      existingAccountBody:
+        'This account already has data. We are taking you to the dashboard with your existing info — no new baby is created.',
+      existingAccountCta: 'Continue',
       rowDob: 'Date of birth',
       rowAtTerm: 'At term',
       rowAtTermYes: 'Yes, at term',

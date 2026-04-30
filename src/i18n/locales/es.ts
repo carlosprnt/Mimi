@@ -293,6 +293,10 @@ export const es: Translations = {
       apple: 'Continuar con Apple',
       google: 'Continuar con Google',
       authComingSoon: 'Inicio de sesión próximamente',
+      existingAccountTitle: 'Ya tienes una cuenta',
+      existingAccountBody:
+        'Esta cuenta ya tenía datos guardados. Te llevamos al panel con tu información — no se crea ningún bebé nuevo.',
+      existingAccountCta: 'Entrar',
       rowDob: 'Fecha de nacimiento',
       rowAtTerm: 'A término',
       rowAtTermYes: 'Sí, a término',

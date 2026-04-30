@@ -23,7 +23,12 @@ import {
   signInWithApple,
   signInWithGoogle,
 } from '@/services/auth';
-import { insertBabyFromDraft, upsertProfile } from '@/services/babies';
+import {
+  insertBabyFromDraft,
+  listBabies,
+  upsertProfile,
+} from '@/services/babies';
+import { pushLocalToRemote } from '@/services/pushLocalToRemote';
 import { spacing } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
@@ -47,6 +52,7 @@ export const OnboardingSummaryScreen: React.FC = () => {
   const draft = useOnboardingDraft();
   const addBaby = useBabyStore((s) => s.addBaby);
   const addBabyWithId = useBabyStore((s) => s.addBabyWithId);
+  const setBabies = useBabyStore((s) => s.setBabies);
   const clearDraft = useOnboardingDraft((s) => s.clear);
   const authedUser = useAuthStore((s) => s.user);
   const isFocused = useIsFocused();
@@ -91,8 +97,13 @@ export const OnboardingSummaryScreen: React.FC = () => {
     return true;
   };
 
-  // Once Google auth completes (authedUser flips on this focused screen)
-  // persist the baby to Supabase, mirror it locally, and reset to Root.
+  // Once auth completes (authedUser flips on this focused screen):
+  //   1. If the user already has bebés in Supabase, this isn't a new
+  //      registration — alert them, adopt the existing data, and skip
+  //      creating the draft baby.
+  //   2. Otherwise persist the draft baby + push any other local data
+  //      (sessions/events that the user accumulated as a guest) up to
+  //      the new account, then reset to Root.
   // Guarded with a ref so a re-focus doesn't double-write.
   useEffect(() => {
     if (!isFocused || !authedUser || finalizedRef.current) return;
@@ -104,6 +115,25 @@ export const OnboardingSummaryScreen: React.FC = () => {
         displayName: authedUser.name,
         provider: authedUser.provider,
       });
+
+      const existing = await listBabies(authedUser.id);
+      if (existing.length > 0) {
+        const enterExisting = (): void => {
+          setBabies(existing);
+          clearDraft();
+          navigation.dispatch(
+            CommonActions.reset({ index: 0, routes: [{ name: 'Root' }] }),
+          );
+        };
+        Alert.alert(
+          t('onboarding.summary.existingAccountTitle'),
+          t('onboarding.summary.existingAccountBody'),
+          [{ text: t('onboarding.summary.existingAccountCta'), onPress: enterExisting }],
+          { cancelable: false },
+        );
+        return;
+      }
+
       const baby = await insertBabyFromDraft(authedUser.id, draft);
       if (baby) {
         addBabyWithId(baby);
@@ -120,6 +150,9 @@ export const OnboardingSummaryScreen: React.FC = () => {
           sex: draft.sex,
         });
       }
+      // Push any other local data (sessions, events, prefs) that the
+      // user accumulated as a guest before this registration.
+      await pushLocalToRemote(authedUser.id);
       clearDraft();
       navigation.dispatch(
         CommonActions.reset({ index: 0, routes: [{ name: 'Root' }] }),
@@ -132,6 +165,7 @@ export const OnboardingSummaryScreen: React.FC = () => {
     navigation,
     addBaby,
     addBabyWithId,
+    setBabies,
     clearDraft,
   ]);
 

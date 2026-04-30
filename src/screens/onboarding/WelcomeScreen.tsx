@@ -40,6 +40,7 @@ import {
   signInWithGoogle,
 } from '@/services/auth';
 import { listBabies } from '@/services/babies';
+import { pushLocalToRemote } from '@/services/pushLocalToRemote';
 import { haptics } from '@/logic/haptics';
 import { colors, fonts, screenGutter, spacing } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
@@ -92,9 +93,12 @@ export const WelcomeScreen: React.FC = () => {
   const isFocused = useIsFocused();
 
   // After OAuth (Google or Apple) finishes, the auth store flips to
-  // signed-in. Pull this user's babies from Supabase:
-  //   - If any exist, jump straight to the dashboard.
-  //   - Otherwise, hand off to onboarding.
+  // signed-in. Decide where to go based on what already exists:
+  //   1. Remote has babies → adopt them and jump to the dashboard.
+  //   2. Remote empty + local has babies (the user was running as a
+  //      guest) → push that local data up to bind it to the new
+  //      account and jump to the dashboard.
+  //   3. Brand new account, nothing local → hand off to onboarding.
   useEffect(() => {
     if (!isFocused || !authedUser) return;
     setAuthPanelOpen(false);
@@ -102,6 +106,14 @@ export const WelcomeScreen: React.FC = () => {
       const remote = await listBabies(authedUser.id);
       if (remote.length > 0) {
         setBabies(remote);
+        navigation.dispatch(
+          CommonActions.reset({ index: 0, routes: [{ name: 'Root' }] }),
+        );
+        return;
+      }
+      const localBabies = useBabyStore.getState().babies;
+      if (localBabies.length > 0) {
+        await pushLocalToRemote(authedUser.id);
         navigation.dispatch(
           CommonActions.reset({ index: 0, routes: [{ name: 'Root' }] }),
         );
