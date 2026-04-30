@@ -13,7 +13,6 @@ import { Screen } from '../Screen';
 import { Text } from '../Text';
 import { Button } from '../Button';
 import { colors, screenGutter, spacing } from '@/theme';
-import { IllustrationStage } from './IllustrationStage';
 import { t } from '@/i18n';
 
 interface OnboardingSceneProps {
@@ -34,7 +33,6 @@ interface OnboardingSceneProps {
     onPress: () => void;
   };
   children?: React.ReactNode;
-  illustrationSex?: 'girl' | 'boy';
   scrollable?: boolean;
 }
 
@@ -48,7 +46,6 @@ export const OnboardingScene: React.FC<OnboardingSceneProps> = ({
   cta,
   secondaryCta,
   children,
-  illustrationSex,
   scrollable = false,
 }) => {
   const insets = useSafeAreaInsets();
@@ -97,8 +94,6 @@ export const OnboardingScene: React.FC<OnboardingSceneProps> = ({
             {t('onboarding.stepOf', { step, total })}
           </Text>
         </View>
-
-        <IllustrationStage step={step} total={total} sex={illustrationSex} />
 
         <Body {...bodyProps}>
           {eyebrow ? (

@@ -30,7 +30,6 @@ export const OnboardingSexScreen: React.FC = () => {
       title={t('onboarding.sex.title')}
       subtitle={t('onboarding.sex.subtitle')}
       onBack={() => navigation.goBack()}
-      illustrationSex={sex === 'girl' || sex === 'boy' ? sex : undefined}
     >
       <View style={styles.choices}>
         <ChoiceCard

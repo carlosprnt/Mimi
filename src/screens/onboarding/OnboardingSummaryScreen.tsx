@@ -23,7 +23,6 @@ import {
   Sheet,
   OrbitShine,
 } from '@/components';
-import { IllustrationStage } from '@/components/onboarding/IllustrationStage';
 import {
   useOnboardingDraft,
   computePrematureWeeks,
@@ -225,8 +224,6 @@ export const OnboardingSummaryScreen: React.FC = () => {
     setAuthSheetOpen(true);
   };
 
-  const illustrationSex = normalizeSexForBaby(draft.sex);
-
   return (
     <Screen backdrop="night" edges={['left', 'right']}>
       <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
@@ -256,8 +253,6 @@ export const OnboardingSummaryScreen: React.FC = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <IllustrationStage step={6} total={TOTAL_STEPS} sex={illustrationSex} />
-
         <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
           {t('onboarding.summary.eyebrow')}
         </Text>
