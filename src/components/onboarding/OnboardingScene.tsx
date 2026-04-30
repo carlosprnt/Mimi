@@ -13,8 +13,8 @@ import { Screen } from '../Screen';
 import { Text } from '../Text';
 import { Button } from '../Button';
 import { colors, screenGutter, spacing } from '@/theme';
-import { ProgressDots } from './ProgressDots';
 import { IllustrationStage } from './IllustrationStage';
+import { t } from '@/i18n';
 
 interface OnboardingSceneProps {
   step: number;
@@ -93,7 +93,9 @@ export const OnboardingScene: React.FC<OnboardingSceneProps> = ({
           ) : (
             <View style={styles.backBtn} />
           )}
-          <ProgressDots total={total} current={step} />
+          <Text variant="footnote" tone="tertiary" style={styles.stepLabel}>
+            {t('onboarding.stepOf', { step, total })}
+          </Text>
         </View>
 
         <IllustrationStage step={step} total={total} sex={illustrationSex} />
@@ -174,6 +176,9 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.5,
+  },
+  stepLabel: {
+    paddingRight: spacing.sm,
   },
   body: {
     flex: 1,
