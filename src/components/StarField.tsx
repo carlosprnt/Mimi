@@ -56,11 +56,11 @@ const buildStars = (count: number, seed: number, heightFraction: number): Star[]
 };
 
 export const StarField: React.FC<StarFieldProps> = ({
-  density = 95,
+  density = 130,
   seed = 7,
   twinkle = true,
   style,
-  heightFraction = 0.6,
+  heightFraction = 1,
 }) => {
   const stars = useMemo(
     () => buildStars(density, seed, heightFraction),
@@ -91,9 +91,11 @@ export const StarField: React.FC<StarFieldProps> = ({
         ),
       );
     };
-    loop(phase0, 4200, 0.55, 0);
-    loop(phase1, 5400, 0.5, 1400);
-    loop(phase2, 6200, 0.65, 2800);
+    // Faster periods + lower dim values mean the twinkle reads as a
+    // visible breathing pulse rather than the previous slow drift.
+    loop(phase0, 1800, 0.18, 0);
+    loop(phase1, 2400, 0.25, 700);
+    loop(phase2, 3000, 0.32, 1500);
   }, [twinkle, phase0, phase1, phase2]);
 
   const group0Style = useAnimatedStyle(() => ({ opacity: phase0.value }));
