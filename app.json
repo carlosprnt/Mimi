@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.carlospariente.mimi",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "userInterfaceStyle": "dark",
       "icon": "./assets/icon.png",
       "entitlements": {
