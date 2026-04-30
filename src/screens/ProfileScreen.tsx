@@ -1,5 +1,23 @@
-import React, { useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import Animated, {
+  Easing,
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -24,6 +42,10 @@ import { haptics } from '@/logic/haptics';
 import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
+const CONFIRM_PANEL_HEIGHT = 280;
+const ANIM_OPEN = 380;
+const ANIM_CLOSE = 260;
+
 export const ProfileScreen: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<MainStackParamList, 'Profile'>>();
@@ -36,10 +58,53 @@ export const ProfileScreen: React.FC = () => {
   const clearOnboardingDraft = useOnboardingDraft((s) => s.clear);
 
   const authedUser = useAuthStore((s) => s.user);
+  const { height: screenHeight } = useWindowDimensions();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [signOutOpen, setSignOutOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const slide = useSharedValue(0);
+
+  useEffect(() => {
+    slide.value = withTiming(confirmOpen ? 1 : 0, {
+      duration: confirmOpen ? ANIM_OPEN : ANIM_CLOSE,
+      easing: confirmOpen
+        ? Easing.out(Easing.cubic)
+        : Easing.in(Easing.cubic),
+    });
+  }, [confirmOpen, slide]);
+
+  const bodyStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY: interpolate(
+          slide.value,
+          [0, 1],
+          [0, -CONFIRM_PANEL_HEIGHT],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+  }));
+
+  const blurStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(slide.value, [0, 1], [0, 1], Extrapolation.CLAMP),
+  }));
+
+  const panelStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(slide.value, [0, 0.6, 1], [0, 0.4, 1], Extrapolation.CLAMP),
+    transform: [
+      {
+        translateY: interpolate(
+          slide.value,
+          [0, 1],
+          [40, 0],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+  }));
 
   const onConfirmSignOut = () => {
     haptics.warning();
@@ -54,6 +119,11 @@ export const ProfileScreen: React.FC = () => {
         routes: [{ name: 'OnboardingWelcome' }],
       }),
     );
+  };
+
+  const closeConfirm = () => {
+    if (deleting) return;
+    setConfirmOpen(false);
   };
 
   const onConfirmDelete = async () => {
@@ -92,123 +162,180 @@ export const ProfileScreen: React.FC = () => {
         }}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
-        <SectionLabel label={t('profile.preferences')} />
-        <Card padded={false} tone="night" style={styles.card}>
-          <View style={styles.inner}>
-            <ListRow
-              label={t('profile.clock24h')}
-              trailing={
-                <Switch
-                  value={preferences.use24h}
-                  onValueChange={(v) => setPreferences({ use24h: v })}
-                  trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
-                  thumbColor={colors.text.primary}
-                  ios_backgroundColor={colors.border.strong}
-                />
-              }
-            />
-            <ListRow
-              label={t('profile.reminders')}
-              trailing={
-                <Switch
-                  value={preferences.remindersEnabled}
-                  onValueChange={(v) => setPreferences({ remindersEnabled: v })}
-                  trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
-                  thumbColor={colors.text.primary}
-                  ios_backgroundColor={colors.border.strong}
-                />
-              }
-            />
-            <ListRow
-              label={t('profile.bedtimeReminder')}
-              trailing={
-                <Switch
-                  value={preferences.bedtimeReminder}
-                  onValueChange={(v) => setPreferences({ bedtimeReminder: v })}
-                  trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
-                  thumbColor={colors.text.primary}
-                  ios_backgroundColor={colors.border.strong}
-                />
-              }
-              showDivider={false}
-            />
-          </View>
-        </Card>
+      <View style={styles.bodyArea}>
+        {/* Confirmation panel sits at the bottom of the body area,
+            behind the scroll content. When the user taps "Eliminar
+            cuenta" the scroll lifts up to reveal it. */}
+        <Animated.View
+          pointerEvents={confirmOpen ? 'auto' : 'none'}
+          style={[styles.confirmPanel, panelStyle]}
+        >
+          <Text variant="title" align="center" style={styles.confirmTitle}>
+            {t('profile.deleteAccountConfirmTitle')}
+          </Text>
+          <Text
+            variant="callout"
+            tone="secondary"
+            align="center"
+            style={styles.confirmBody}
+          >
+            {t('profile.deleteAccountConfirmBody')}
+          </Text>
+          <Button title={t('profile.cancel')} onPress={closeConfirm} />
+          <View style={styles.confirmGap} />
+          <Button
+            title={t('profile.deleteAccountConfirmCta')}
+            variant="destructive"
+            onPress={onConfirmDelete}
+            loading={deleting}
+          />
+        </Animated.View>
 
-        <SectionLabel label={t('drawer.account')} />
-        <Card padded={false} tone="night" style={styles.card}>
-          <View style={styles.accountInner}>
-            <View style={styles.accountTop}>
-              {authedUser?.picture ? (
-                <Image source={{ uri: authedUser.picture }} style={styles.accountAvatar} />
-              ) : (
-                <View style={styles.accountAvatar}>
-                  <Text variant="body" tone="onAccent" style={styles.accountInitials}>
-                    {(authedUser?.name ?? authedUser?.email ?? '·')
-                      .trim()
-                      .slice(0, 2)
-                      .toUpperCase()}
-                  </Text>
+        {/* Scrollable settings content — translates up when confirm
+            opens. The blur overlay on top dims the screen visually
+            while the user makes a choice. */}
+        <Animated.View style={[StyleSheet.absoluteFill, bodyStyle]}>
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={!confirmOpen}
+          >
+            <SectionLabel label={t('profile.preferences')} />
+            <Card padded={false} tone="night" style={styles.card}>
+              <View style={styles.inner}>
+                <ListRow
+                  label={t('profile.clock24h')}
+                  trailing={
+                    <Switch
+                      value={preferences.use24h}
+                      onValueChange={(v) => setPreferences({ use24h: v })}
+                      trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
+                      thumbColor={colors.text.primary}
+                      ios_backgroundColor={colors.border.strong}
+                    />
+                  }
+                />
+                <ListRow
+                  label={t('profile.reminders')}
+                  trailing={
+                    <Switch
+                      value={preferences.remindersEnabled}
+                      onValueChange={(v) => setPreferences({ remindersEnabled: v })}
+                      trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
+                      thumbColor={colors.text.primary}
+                      ios_backgroundColor={colors.border.strong}
+                    />
+                  }
+                />
+                <ListRow
+                  label={t('profile.bedtimeReminder')}
+                  trailing={
+                    <Switch
+                      value={preferences.bedtimeReminder}
+                      onValueChange={(v) => setPreferences({ bedtimeReminder: v })}
+                      trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
+                      thumbColor={colors.text.primary}
+                      ios_backgroundColor={colors.border.strong}
+                    />
+                  }
+                  showDivider={false}
+                />
+              </View>
+            </Card>
+
+            <SectionLabel label={t('drawer.account')} />
+            <Card padded={false} tone="night" style={styles.card}>
+              <View style={styles.accountInner}>
+                <View style={styles.accountTop}>
+                  {authedUser?.picture ? (
+                    <Image source={{ uri: authedUser.picture }} style={styles.accountAvatar} />
+                  ) : (
+                    <View style={styles.accountAvatar}>
+                      <Text variant="body" tone="onAccent" style={styles.accountInitials}>
+                        {(authedUser?.name ?? authedUser?.email ?? '·')
+                          .trim()
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.accountInfo}>
+                    <Text variant="body" tone="primary" numberOfLines={1}>
+                      {authedUser?.email ?? t('drawer.accountLocal')}
+                    </Text>
+                    {!authedUser ? (
+                      <Text variant="footnote" tone="tertiary" numberOfLines={1}>
+                        {t('drawer.accountLocalCaption')}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
-              )}
-              <View style={styles.accountInfo}>
-                <Text variant="body" tone="primary" numberOfLines={1}>
-                  {authedUser?.email ?? t('drawer.accountLocal')}
-                </Text>
-                {!authedUser ? (
-                  <Text variant="footnote" tone="tertiary" numberOfLines={1}>
-                    {t('drawer.accountLocalCaption')}
-                  </Text>
+                {authedUser ? (
+                  <>
+                    <View style={styles.accountDivider} />
+                    <Pressable
+                      onPress={() => setSignOutOpen(true)}
+                      style={({ pressed }) => [
+                        styles.signOutRow,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <SignOutIcon size={18} />
+                      <Text variant="body" tone="danger">
+                        {t('drawer.signOut')}
+                      </Text>
+                    </Pressable>
+                  </>
                 ) : null}
               </View>
-            </View>
-            {authedUser ? (
-              <>
-                <View style={styles.accountDivider} />
-                <Pressable
-                  onPress={() => setSignOutOpen(true)}
-                  style={({ pressed }) => [
-                    styles.signOutRow,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <SignOutIcon size={18} />
-                  <Text variant="body" tone="danger">
-                    {t('drawer.signOut')}
-                  </Text>
-                </Pressable>
-              </>
-            ) : null}
-          </View>
-        </Card>
+            </Card>
 
-        <SectionLabel label={t('profile.about')} />
-        <Card padded={false} tone="night" style={styles.card}>
-          <View style={styles.inner}>
-            <ListRow label={t('profile.version')} value="0.1.0" showDivider={false} />
-          </View>
-        </Card>
+            <SectionLabel label={t('profile.about')} />
+            <Card padded={false} tone="night" style={styles.card}>
+              <View style={styles.inner}>
+                <ListRow label={t('profile.version')} value="0.1.0" showDivider={false} />
+              </View>
+            </Card>
 
-        <Text
-          variant="footnote"
-          tone="tertiary"
-          align="center"
-          style={styles.note}
-        >
-          {t('profile.disclaimer')}
-        </Text>
+            <Text
+              variant="footnote"
+              tone="tertiary"
+              align="center"
+              style={styles.note}
+            >
+              {t('profile.disclaimer')}
+            </Text>
 
-        <Button
-          title={t('profile.deleteAccount')}
-          variant="dangerGhost"
-          onPress={() => setConfirmOpen(true)}
-          style={styles.deleteAccount}
-        />
-      </ScrollView>
+            <Button
+              title={t('profile.deleteAccount')}
+              variant="dangerGhost"
+              onPress={() => setConfirmOpen(true)}
+              style={styles.deleteAccount}
+            />
+          </ScrollView>
+
+          <Animated.View
+            pointerEvents={confirmOpen ? 'auto' : 'none'}
+            style={[StyleSheet.absoluteFillObject, blurStyle]}
+          >
+            <BlurView
+              intensity={28}
+              tint="dark"
+              experimentalBlurMethod="dimezisBlurView"
+              style={StyleSheet.absoluteFill}
+              pointerEvents="none"
+            />
+            <View
+              style={[StyleSheet.absoluteFillObject, styles.tint]}
+              pointerEvents="none"
+            />
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={closeConfirm}
+            />
+          </Animated.View>
+        </Animated.View>
+      </View>
 
       <Sheet visible={signOutOpen} onClose={() => setSignOutOpen(false)}>
         <Text variant="title" align="center" style={styles.sheetTitle}>
@@ -217,43 +344,12 @@ export const ProfileScreen: React.FC = () => {
         <Text variant="callout" tone="secondary" align="center" style={styles.sheetBody}>
           {t('drawer.signOutConfirmBody')}
         </Text>
+        <Button title={t('common.no')} onPress={() => setSignOutOpen(false)} />
+        <View style={styles.sheetGap} />
         <Button
           title={t('drawer.signOutConfirmCta')}
           variant="destructive"
           onPress={onConfirmSignOut}
-        />
-        <View style={styles.sheetGap} />
-        <Button
-          title={t('common.no')}
-          variant="dangerGhost"
-          onPress={() => setSignOutOpen(false)}
-        />
-      </Sheet>
-
-      <Sheet visible={confirmOpen} onClose={() => setConfirmOpen(false)}>
-        <Text variant="title" align="center" style={styles.sheetTitle}>
-          {t('profile.deleteAccountConfirmTitle')}
-        </Text>
-        <Text
-          variant="callout"
-          tone="secondary"
-          align="center"
-          style={styles.sheetBody}
-        >
-          {t('profile.deleteAccountConfirmBody')}
-        </Text>
-        <Button
-          title={t('profile.deleteAccountConfirmCta')}
-          variant="destructive"
-          onPress={onConfirmDelete}
-          loading={deleting}
-        />
-        <View style={styles.sheetGap} />
-        <Button
-          title={t('profile.cancel')}
-          variant="dangerGhost"
-          onPress={() => setConfirmOpen(false)}
-          disabled={deleting}
         />
       </Sheet>
     </Screen>
@@ -261,6 +357,10 @@ export const ProfileScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  bodyArea: {
+    flex: 1,
+    overflow: 'hidden',
+  },
   scroll: {
     paddingHorizontal: screenGutter,
     paddingBottom: spacing.huge,
@@ -278,6 +378,30 @@ const styles = StyleSheet.create({
   deleteAccount: {
     alignSelf: 'stretch',
     marginTop: spacing.xl,
+  },
+  confirmPanel: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: CONFIRM_PANEL_HEIGHT,
+    paddingHorizontal: screenGutter,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
+    justifyContent: 'flex-start',
+  },
+  confirmTitle: {
+    marginBottom: spacing.sm,
+  },
+  confirmBody: {
+    marginBottom: spacing.xl,
+    paddingHorizontal: spacing.md,
+  },
+  confirmGap: {
+    height: spacing.sm,
+  },
+  tint: {
+    backgroundColor: 'rgba(7, 11, 31, 0.30)',
   },
   sheetTitle: {
     marginTop: spacing.sm,
