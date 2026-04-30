@@ -11,6 +11,11 @@ interface ChoiceCardProps {
   selected?: boolean;
   icon?: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
+  /** Visual layout. 'row' (default) is the wide horizontal card with
+   *  the icon on the left and the checkmark on the right; 'column'
+   *  stacks the icon on top and centers the label below — designed
+   *  for two-column grids. */
+  layout?: 'row' | 'column';
 }
 
 export const ChoiceCard: React.FC<ChoiceCardProps> = ({
@@ -19,40 +24,58 @@ export const ChoiceCard: React.FC<ChoiceCardProps> = ({
   selected,
   icon,
   onPress,
+  layout = 'row',
 }) => {
   const handlePress = () => {
     lightImpact();
     onPress();
   };
+  const isColumn = layout === 'column';
   return (
     <Pressable
       onPress={handlePress}
       style={({ pressed }) => [
         styles.card,
+        isColumn && styles.cardColumn,
         selected && styles.cardSelected,
         pressed && styles.cardPressed,
       ]}
     >
       {icon ? (
-        <View style={[styles.iconWrap, selected && styles.iconWrapSelected]}>
+        <View
+          style={[
+            styles.iconWrap,
+            isColumn && styles.iconWrapColumn,
+            selected && styles.iconWrapSelected,
+          ]}
+        >
           <Ionicons
             name={icon}
-            size={20}
+            size={isColumn ? 24 : 20}
             color={selected ? colors.accent.base : colors.text.secondary}
           />
         </View>
       ) : null}
-      <View style={styles.body}>
-        <Text variant="body" tone={selected ? 'primary' : 'secondary'}>
+      <View style={[styles.body, isColumn && styles.bodyColumn]}>
+        <Text
+          variant="body"
+          tone={selected ? 'primary' : 'secondary'}
+          align={isColumn ? 'center' : undefined}
+        >
           {label}
         </Text>
         {caption ? (
-          <Text variant="footnote" tone="tertiary" style={styles.caption}>
+          <Text
+            variant="footnote"
+            tone="tertiary"
+            align={isColumn ? 'center' : undefined}
+            style={styles.caption}
+          >
             {caption}
           </Text>
         ) : null}
       </View>
-      {selected ? (
+      {selected && !isColumn ? (
         <View style={styles.checkmark}>
           <Ionicons name="checkmark" size={16} color={colors.text.onAccent} />
         </View>
@@ -72,6 +95,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     gap: spacing.md,
+  },
+  cardColumn: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.md,
+    gap: spacing.md,
+  },
+  iconWrapColumn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  bodyColumn: {
+    flex: 0,
+    alignItems: 'center',
   },
   cardSelected: {
     backgroundColor: 'rgba(168, 165, 230, 0.10)',

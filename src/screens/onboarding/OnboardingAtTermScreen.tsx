@@ -29,18 +29,24 @@ export const OnboardingAtTermScreen: React.FC = () => {
       onBack={() => navigation.goBack()}
     >
       <View style={styles.choices}>
-        <ChoiceCard
-          label={t('onboarding.atTerm.yes')}
-          icon="checkmark-circle-outline"
-          selected={atTerm === true}
-          onPress={() => choose(true)}
-        />
-        <ChoiceCard
-          label={t('onboarding.atTerm.no')}
-          icon="time-outline"
-          selected={atTerm === false}
-          onPress={() => choose(false)}
-        />
+        <View style={styles.cell}>
+          <ChoiceCard
+            label={t('onboarding.atTerm.yes')}
+            icon="checkmark-circle-outline"
+            layout="column"
+            selected={atTerm === true}
+            onPress={() => choose(true)}
+          />
+        </View>
+        <View style={styles.cell}>
+          <ChoiceCard
+            label={t('onboarding.atTerm.no')}
+            icon="time-outline"
+            layout="column"
+            selected={atTerm === false}
+            onPress={() => choose(false)}
+          />
+        </View>
       </View>
     </OnboardingScene>
   );
@@ -48,7 +54,11 @@ export const OnboardingAtTermScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   choices: {
+    flexDirection: 'row',
     gap: spacing.md,
     paddingTop: spacing.md,
+  },
+  cell: {
+    flex: 1,
   },
 });
