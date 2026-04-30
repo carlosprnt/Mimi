@@ -103,8 +103,10 @@ export const Sheet: React.FC<SheetProps> = ({
                 tint="systemUltraThinMaterialDark"
                 experimentalBlurMethod="dimezisBlurView"
                 style={StyleSheet.absoluteFill}
+                pointerEvents="none"
               />
               <View
+                pointerEvents="none"
                 style={[
                   StyleSheet.absoluteFill,
                   { backgroundColor: 'rgba(7, 11, 31, 0.18)' },
