@@ -10,8 +10,7 @@
     "icon": "./assets/icon.png",
     "plugins": [
       "expo-web-browser",
-      "expo-apple-authentication",
-      "@bacons/apple-targets"
+      "expo-apple-authentication"
     ],
     "ios": {
       "supportsTablet": false,
