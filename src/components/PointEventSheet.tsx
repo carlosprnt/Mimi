@@ -115,6 +115,7 @@ export const PointEventSheet: React.FC<PointEventSheetProps> = ({
         </>
       ) : (
         <TimeWheelView
+          key={picker}
           initial={pickerInitial}
           use24h={use24h}
           onClose={() => setPicker(null)}

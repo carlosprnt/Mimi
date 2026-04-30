@@ -150,6 +150,7 @@ export const TimelineEditSheet: React.FC<TimelineEditSheetProps> = ({
         </>
       ) : (
         <TimeWheelView
+          key={picker}
           initial={pickerInitial}
           use24h={use24h}
           onClose={() => setPicker(null)}

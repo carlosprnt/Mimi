@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -39,11 +39,11 @@ const NativeIOSPicker: React.FC<TimeWheelViewProps> = ({
   onClose,
   onConfirm,
 }) => {
-  const [value, setValue] = useState<Date>(initial);
-
-  useEffect(() => {
-    setValue(initial);
-  }, [initial]);
+  // Lazy init so `initial` is only consulted on first mount. After
+  // that, the wheel's internal value is the source of truth — we
+  // never reset it on prop changes (parent re-renders from a `now`
+  // tick used to wipe the user's selection mid-spin).
+  const [value, setValue] = useState<Date>(() => initial);
 
   const handleConfirm = () => {
     lightImpact();
@@ -102,13 +102,9 @@ const CustomWheelPicker: React.FC<TimeWheelViewProps> = ({
   onClose,
   onConfirm,
 }) => {
-  const [hour, setHour] = useState(initial.getHours());
-  const [minute, setMinute] = useState(initial.getMinutes());
-
-  useEffect(() => {
-    setHour(initial.getHours());
-    setMinute(initial.getMinutes());
-  }, [initial]);
+  // See NativeIOSPicker — never reset wheel state from prop changes.
+  const [hour, setHour] = useState(() => initial.getHours());
+  const [minute, setMinute] = useState(() => initial.getMinutes());
 
   const hourItems = useMemo(() => {
     if (use24h) {
