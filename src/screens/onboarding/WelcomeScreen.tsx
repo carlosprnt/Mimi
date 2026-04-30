@@ -11,11 +11,13 @@ import Animated, {
   Easing,
   Extrapolation,
   interpolate,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -148,6 +150,20 @@ export const WelcomeScreen: React.FC = () => {
     opacity: interpolate(slide.value, [0, 1], [0, 1], Extrapolation.CLAMP),
   }));
 
+  // Drag the lifted scene downwards (anywhere on it) to dismiss the
+  // auth panel. activeOffsetY(15) lets short jitters pass through to
+  // children (so taps still register) — only a deliberate vertical
+  // pull beyond 15px takes over.
+  const dismissGesture = Gesture.Pan()
+    .enabled(authPanelOpen)
+    .activeOffsetY(15)
+    .failOffsetX([-20, 20])
+    .onEnd((e) => {
+      if (e.translationY > 0) {
+        runOnJS(setAuthPanelOpen)(false);
+      }
+    });
+
   const panelStyle = useAnimatedStyle(() => ({
     opacity: interpolate(slide.value, [0, 0.5, 1], [0, 0.3, 1], Extrapolation.CLAMP),
     transform: [
@@ -244,8 +260,10 @@ export const WelcomeScreen: React.FC = () => {
       {/* Main scene — lifts up when the auth panel opens. The wrapper
           adds a hairline border + scale-down + blurred overlay so the
           lifted screen reads as 'paused' while the auth options are
-          revealed below. */}
-      <Animated.View style={[styles.scene, styles.sceneFrame, sceneStyle]}>
+          revealed below. While the panel is open, tapping anywhere on
+          the lifted scene OR dragging it down dismisses the panel. */}
+      <GestureDetector gesture={dismissGesture}>
+        <Animated.View style={[styles.scene, styles.sceneFrame, sceneStyle]}>
         <View style={[styles.body, { paddingTop: insets.top + spacing.xxl }]}>
           <View style={styles.imageWrap}>
             <Image
@@ -295,20 +313,31 @@ export const WelcomeScreen: React.FC = () => {
         {/* Frosted overlay layered on top of the lifted scene. Only
             visible while the auth panel is open. Lives inside the
             Animated.View so it scales/translates together with the
-            scene and gives a unified 'paused' feel. */}
+            scene and gives a unified 'paused' feel. The Pressable
+            captures taps anywhere on the lifted scene and closes the
+            panel. */}
         <Animated.View
-          pointerEvents="none"
+          pointerEvents={authPanelOpen ? 'auto' : 'none'}
           style={[StyleSheet.absoluteFillObject, sceneOverlayStyle]}
         >
           <BlurView
-            intensity={10}
+            intensity={4}
             tint="dark"
             experimentalBlurMethod="dimezisBlurView"
             style={StyleSheet.absoluteFill}
+            pointerEvents="none"
           />
-          <View style={[StyleSheet.absoluteFillObject, styles.sceneTint]} />
+          <View
+            style={[StyleSheet.absoluteFillObject, styles.sceneTint]}
+            pointerEvents="none"
+          />
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setAuthPanelOpen(false)}
+          />
         </Animated.View>
-      </Animated.View>
+        </Animated.View>
+      </GestureDetector>
     </Screen>
   );
 };
