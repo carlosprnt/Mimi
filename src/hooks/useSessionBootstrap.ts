@@ -1,8 +1,13 @@
 import { useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '@/services/supabase';
 import { listBabies } from '@/services/babies';
+import { listSessionsByBaby } from '@/services/sessions';
+import { listCareEventsByBaby } from '@/services/careEvents';
+import { getPreferencesRemote } from '@/services/preferences';
 import { useAuthStore, type AuthUser } from '@/state/authStore';
 import { useBabyStore } from '@/state/babyStore';
+import { useSleepStore } from '@/state/sleepStore';
+import { useCareEventStore } from '@/state/careEventStore';
 import type { Session, User } from '@supabase/supabase-js';
 
 const userFromSession = (user: User): AuthUser => {
@@ -28,22 +33,47 @@ const userFromSession = (user: User): AuthUser => {
   };
 };
 
-const hydrateBabies = async (
+const hydrateFromBackend = async (
   userId: string,
   previousUserId: string | null,
 ): Promise<void> => {
-  const remote = await listBabies(userId);
-  // If the signed-in user changed, blow away the previous user's babies
-  // unconditionally — even if `remote` is empty — so a fresh account
-  // doesn't see the prior user's data leaked through.
+  // Pull everything in parallel.
+  const [babies, sessionsByBaby, eventsByBaby, prefs] = await Promise.all([
+    listBabies(userId),
+    listSessionsByBaby(userId),
+    listCareEventsByBaby(userId),
+    getPreferencesRemote(userId),
+  ]);
+
+  // Babies: blow away on user change. Same user → keep local cache if
+  // server has nothing yet (first sync from a new install).
   if (previousUserId && previousUserId !== userId) {
-    useBabyStore.getState().setBabies(remote);
-    return;
+    useBabyStore.getState().setBabies(babies);
+  } else if (babies.length > 0) {
+    useBabyStore.getState().setBabies(babies);
   }
-  // Same user re-signing in: only overwrite when there's something to
-  // overwrite with, otherwise the local cache stays as-is.
-  if (remote.length > 0) {
-    useBabyStore.getState().setBabies(remote);
+
+  // Sessions / care events: same rule. We trust the server as the
+  // source of truth when it has data, otherwise leave the local cache
+  // alone so an offline user doesn't lose stuff.
+  if (previousUserId && previousUserId !== userId) {
+    useSleepStore.getState().hydrateAll(sessionsByBaby);
+    useCareEventStore.getState().hydrateAll(eventsByBaby);
+  } else {
+    if (Object.keys(sessionsByBaby).length > 0) {
+      useSleepStore.getState().hydrateAll(sessionsByBaby);
+    }
+    if (Object.keys(eventsByBaby).length > 0) {
+      useCareEventStore.getState().hydrateAll(eventsByBaby);
+    }
+  }
+
+  // Preferences: server wins when present.
+  if (prefs.preferences) {
+    useBabyStore.getState().setPreferences(prefs.preferences);
+  }
+  if (prefs.activeBabyId) {
+    useBabyStore.getState().setActiveBabyId(prefs.activeBabyId);
   }
 };
 
@@ -56,7 +86,7 @@ const applySession = async (session: Session | null): Promise<void> => {
   const previousUserId = auth.user?.id ?? null;
   const user = userFromSession(session.user);
   auth.signIn(user);
-  await hydrateBabies(user.id, previousUserId);
+  await hydrateFromBackend(user.id, previousUserId);
 };
 
 export const useSessionBootstrap = (): void => {

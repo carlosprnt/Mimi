@@ -3,6 +3,16 @@ import { persist } from 'zustand/middleware';
 import { mimiStorage } from './persist';
 import { Baby } from '@/logic/age';
 import { makeId } from '@/utils/id';
+import {
+  deleteBabyRemote,
+  updateBabyRemote,
+  upsertBabyRemote,
+} from '@/services/babies';
+import { setPreferencesRemote } from '@/services/preferences';
+import { useAuthStore } from './authStore';
+
+const currentUserId = (): string | null =>
+  useAuthStore.getState().user?.id ?? null;
 
 export interface Preferences {
   use24h: boolean;
@@ -45,6 +55,8 @@ export const useBabyStore = create<BabyState>()(
           babies: [...state.babies, baby],
           activeBabyId: state.activeBabyId ?? baby.id,
         }));
+        const userId = currentUserId();
+        if (userId) void upsertBabyRemote(userId, baby);
         return baby;
       },
       addBabyWithId: (baby) => {
@@ -54,6 +66,8 @@ export const useBabyStore = create<BabyState>()(
             : [...state.babies, baby],
           activeBabyId: state.activeBabyId ?? baby.id,
         }));
+        const userId = currentUserId();
+        if (userId) void upsertBabyRemote(userId, baby);
         return baby;
       },
       setBabies: (next) =>
@@ -65,13 +79,16 @@ export const useBabyStore = create<BabyState>()(
               ? state.activeBabyId
               : (next[0]?.id ?? null),
         })),
-      updateBaby: (id, patch) =>
+      updateBaby: (id, patch) => {
         set((state) => ({
           babies: state.babies.map((b) =>
             b.id === id ? { ...b, ...patch } : b,
           ),
-        })),
-      removeBaby: (id) =>
+        }));
+        const userId = currentUserId();
+        if (userId) void updateBabyRemote(id, patch);
+      },
+      removeBaby: (id) => {
         set((state) => {
           const remaining = state.babies.filter((b) => b.id !== id);
           const nextActive =
@@ -79,10 +96,29 @@ export const useBabyStore = create<BabyState>()(
               ? (remaining[0]?.id ?? null)
               : state.activeBabyId;
           return { babies: remaining, activeBabyId: nextActive };
-        }),
-      setActiveBabyId: (id) => set({ activeBabyId: id }),
-      setPreferences: (patch) =>
-        set((state) => ({ preferences: { ...state.preferences, ...patch } })),
+        });
+        const userId = currentUserId();
+        if (userId) void deleteBabyRemote(id);
+      },
+      setActiveBabyId: (id) => {
+        set({ activeBabyId: id });
+        const userId = currentUserId();
+        if (userId) {
+          const prefs = get().preferences;
+          void setPreferencesRemote(userId, prefs, id);
+        }
+      },
+      setPreferences: (patch) => {
+        set((state) => ({
+          preferences: { ...state.preferences, ...patch },
+        }));
+        const userId = currentUserId();
+        if (userId) {
+          const next = get().preferences;
+          const activeId = get().activeBabyId;
+          void setPreferencesRemote(userId, next, activeId);
+        }
+      },
       reset: () =>
         set({
           babies: [],

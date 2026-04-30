@@ -4,6 +4,14 @@ import { mimiStorage } from './persist';
 import { SleepKind, SleepSession } from '@/logic/recommendation';
 import { classifyByStart } from '@/logic/classify';
 import { makeId } from '@/utils/id';
+import {
+  deleteSessionRemote,
+  upsertSession,
+} from '@/services/sessions';
+import { useAuthStore } from './authStore';
+
+const currentUserId = (): string | null =>
+  useAuthStore.getState().user?.id ?? null;
 
 type SessionsByBaby = Record<string, SleepSession[]>;
 
@@ -25,6 +33,7 @@ interface SleepState {
   clearAll: (babyId: string) => void;
   dropBaby: (babyId: string) => void;
   resetAll: () => void;
+  hydrateAll: (sessionsByBaby: SessionsByBaby) => void;
 }
 
 const sessionsFor = (state: SleepState, babyId: string): SleepSession[] =>
@@ -51,6 +60,8 @@ export const useSleepStore = create<SleepState>()(
             [babyId]: [session, ...current],
           },
         }));
+        const userId = currentUserId();
+        if (userId) void upsertSession(userId, babyId, session);
         return session;
       },
       endSleep: (babyId, at = new Date(), kindOverride) => {
@@ -69,31 +80,44 @@ export const useSleepStore = create<SleepState>()(
             [babyId]: current.map((s) => (s.id === active.id ? updated : s)),
           },
         }));
+        const userId = currentUserId();
+        if (userId) void upsertSession(userId, babyId, updated);
         return updated;
       },
-      updateSession: (babyId, id, patch) =>
+      updateSession: (babyId, id, patch) => {
+        let updated: SleepSession | undefined;
         set((state) => ({
           sessionsByBaby: {
             ...state.sessionsByBaby,
-            [babyId]: sessionsFor(state, babyId).map((s) =>
-              s.id === id ? { ...s, ...patch } : s,
-            ),
+            [babyId]: sessionsFor(state, babyId).map((s) => {
+              if (s.id !== id) return s;
+              updated = { ...s, ...patch };
+              return updated;
+            }),
           },
-        })),
-      addSession: (babyId, session) =>
+        }));
+        const userId = currentUserId();
+        if (userId && updated) void upsertSession(userId, babyId, updated);
+      },
+      addSession: (babyId, session) => {
         set((state) => ({
           sessionsByBaby: {
             ...state.sessionsByBaby,
             [babyId]: [session, ...sessionsFor(state, babyId)],
           },
-        })),
-      removeSession: (babyId, id) =>
+        }));
+        const userId = currentUserId();
+        if (userId) void upsertSession(userId, babyId, session);
+      },
+      removeSession: (babyId, id) => {
         set((state) => ({
           sessionsByBaby: {
             ...state.sessionsByBaby,
             [babyId]: sessionsFor(state, babyId).filter((s) => s.id !== id),
           },
-        })),
+        }));
+        if (currentUserId()) void deleteSessionRemote(id);
+      },
       clearAll: (babyId) =>
         set((state) => ({
           sessionsByBaby: { ...state.sessionsByBaby, [babyId]: [] },
@@ -105,6 +129,7 @@ export const useSleepStore = create<SleepState>()(
           return { sessionsByBaby: next };
         }),
       resetAll: () => set({ sessionsByBaby: {} }),
+      hydrateAll: (sessionsByBaby) => set({ sessionsByBaby }),
     }),
     {
       name: 'mimi-sleep',

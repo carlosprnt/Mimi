@@ -2,6 +2,14 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { mimiStorage } from './persist';
 import { CareEvent } from '@/logic/careEvents';
+import {
+  deleteCareEventRemote,
+  upsertCareEvent,
+} from '@/services/careEvents';
+import { useAuthStore } from './authStore';
+
+const currentUserId = (): string | null =>
+  useAuthStore.getState().user?.id ?? null;
 
 type CareEventsByBaby = Record<string, CareEvent[]>;
 
@@ -16,6 +24,7 @@ interface CareEventState {
   removeCareEvent: (babyId: string, id: string) => void;
   dropBaby: (babyId: string) => void;
   resetAll: () => void;
+  hydrateAll: (eventsByBaby: CareEventsByBaby) => void;
 }
 
 const eventsFor = (state: CareEventState, babyId: string): CareEvent[] =>
@@ -25,29 +34,40 @@ export const useCareEventStore = create<CareEventState>()(
   persist(
     (set) => ({
       eventsByBaby: {},
-      addCareEvent: (babyId, event) =>
+      addCareEvent: (babyId, event) => {
         set((state) => ({
           eventsByBaby: {
             ...state.eventsByBaby,
             [babyId]: [event, ...eventsFor(state, babyId)],
           },
-        })),
-      updateCareEvent: (babyId, id, patch) =>
+        }));
+        const userId = currentUserId();
+        if (userId) void upsertCareEvent(userId, babyId, event);
+      },
+      updateCareEvent: (babyId, id, patch) => {
+        let updated: CareEvent | undefined;
         set((state) => ({
           eventsByBaby: {
             ...state.eventsByBaby,
-            [babyId]: eventsFor(state, babyId).map((e) =>
-              e.id === id ? { ...e, ...patch } : e,
-            ),
+            [babyId]: eventsFor(state, babyId).map((e) => {
+              if (e.id !== id) return e;
+              updated = { ...e, ...patch };
+              return updated;
+            }),
           },
-        })),
-      removeCareEvent: (babyId, id) =>
+        }));
+        const userId = currentUserId();
+        if (userId && updated) void upsertCareEvent(userId, babyId, updated);
+      },
+      removeCareEvent: (babyId, id) => {
         set((state) => ({
           eventsByBaby: {
             ...state.eventsByBaby,
             [babyId]: eventsFor(state, babyId).filter((e) => e.id !== id),
           },
-        })),
+        }));
+        if (currentUserId()) void deleteCareEventRemote(id);
+      },
       dropBaby: (babyId) =>
         set((state) => {
           const next = { ...state.eventsByBaby };
@@ -55,6 +75,7 @@ export const useCareEventStore = create<CareEventState>()(
           return { eventsByBaby: next };
         }),
       resetAll: () => set({ eventsByBaby: {} }),
+      hydrateAll: (eventsByBaby) => set({ eventsByBaby }),
     }),
     {
       name: 'mimi-care-events',

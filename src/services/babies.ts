@@ -93,3 +93,79 @@ export const upsertProfile = async (
       { onConflict: 'user_id' },
     );
 };
+
+/** Update mutable fields on a baby (name, dob, prematurity). */
+export const updateBabyRemote = async (
+  id: string,
+  patch: Partial<Omit<Baby, 'id'>>,
+): Promise<void> => {
+  if (!isSupabaseConfigured()) return;
+  const payload: Record<string, unknown> = {};
+  if (patch.name !== undefined) payload.name = patch.name;
+  if (patch.sex !== undefined) payload.sex = patch.sex ?? null;
+  if (patch.dateOfBirth !== undefined) {
+    const day = isoDay(patch.dateOfBirth);
+    if (day) payload.dob = day;
+  }
+  if (patch.prematureWeeks !== undefined) {
+    payload.premature_weeks = patch.prematureWeeks ?? null;
+    payload.born_at_term = !patch.prematureWeeks;
+  }
+  if (Object.keys(payload).length === 0) return;
+  await supabase
+    .from('babies')
+    .update(payload)
+    .eq('id', id)
+    .then(({ error }) => {
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.warn('[babies.update]', error.message);
+      }
+    });
+};
+
+/** Delete a baby. Cascades to sessions and care events server-side. */
+export const deleteBabyRemote = async (id: string): Promise<void> => {
+  if (!isSupabaseConfigured()) return;
+  await supabase
+    .from('babies')
+    .delete()
+    .eq('id', id)
+    .then(({ error }) => {
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.warn('[babies.delete]', error.message);
+      }
+    });
+};
+
+/** Insert a baby with an existing local id (used by addChild flow). */
+export const upsertBabyRemote = async (
+  userId: string,
+  baby: Baby,
+): Promise<void> => {
+  if (!isSupabaseConfigured()) return;
+  const dob = isoDay(baby.dateOfBirth);
+  if (!dob) return;
+  await supabase
+    .from('babies')
+    .upsert(
+      {
+        id: baby.id,
+        user_id: userId,
+        name: baby.name,
+        sex: baby.sex ?? null,
+        dob,
+        born_at_term: !baby.prematureWeeks,
+        due_date: null,
+        premature_weeks: baby.prematureWeeks ?? null,
+      },
+      { onConflict: 'id' },
+    )
+    .then(({ error }) => {
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.warn('[babies.upsert]', error.message);
+      }
+    });
+};
