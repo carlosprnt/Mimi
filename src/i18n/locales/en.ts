@@ -28,6 +28,9 @@ export const en = {
     account: 'ACCOUNT',
     accountLocal: 'Local only',
     accountLocalCaption: 'Saved on this device',
+    signInToSync: 'Sign in to sync',
+    signInCaption:
+      'Your data moves into your account and you can recover it on any other device.',
     signOut: 'Sign out',
     signOutConfirmTitle: 'Sign out?',
     signOutConfirmBody:

@@ -17,6 +17,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -36,7 +37,14 @@ import { useSleepStore } from '@/state/sleepStore';
 import { useCareEventStore } from '@/state/careEventStore';
 import { useAuthStore } from '@/state/authStore';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
-import { deleteAccount, signOut as supabaseSignOut } from '@/services/auth';
+import {
+  deleteAccount,
+  isAppleSignInAvailable,
+  signInWithApple,
+  signInWithGoogle,
+  signOut as supabaseSignOut,
+} from '@/services/auth';
+import { pushLocalToRemote } from '@/services/pushLocalToRemote';
 import { haptics } from '@/logic/haptics';
 import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
@@ -61,6 +69,55 @@ export const ProfileScreen: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [signOutOpen, setSignOutOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    void isAppleSignInAvailable().then(setAppleAvailable);
+  }, []);
+
+  // After a guest user signs in from this screen, push their local
+  // bebés / sesiones / eventos / preferencias up to Supabase so they're
+  // bound to the new account. We only fire once per signed-in user
+  // change; the auth store's user.id is the dependency.
+  const lastPushedUserIdRef = React.useRef<string | null>(null);
+  useEffect(() => {
+    if (!authedUser) {
+      lastPushedUserIdRef.current = null;
+      return;
+    }
+    if (lastPushedUserIdRef.current === authedUser.id) return;
+    lastPushedUserIdRef.current = authedUser.id;
+    void pushLocalToRemote(authedUser.id);
+  }, [authedUser]);
+
+  const onApple = async () => {
+    if (busy) return;
+    haptics.light();
+    setBusy(true);
+    const result = await signInWithApple();
+    setBusy(false);
+    if (!result.ok && result.reason !== 'cancelled') {
+      Alert.alert(
+        t('onboarding.welcome.appleAlertTitle'),
+        result.message ?? t('onboarding.welcome.googleErrorFallback'),
+      );
+    }
+  };
+
+  const onGoogle = async () => {
+    if (busy) return;
+    haptics.light();
+    setBusy(true);
+    const result = await signInWithGoogle();
+    setBusy(false);
+    if (!result.ok && result.reason !== 'cancelled') {
+      Alert.alert(
+        t('onboarding.welcome.googleAlertTitle'),
+        result.message ?? t('onboarding.welcome.googleErrorFallback'),
+      );
+    }
+  };
 
   const slide = useSharedValue(0);
 
@@ -230,28 +287,82 @@ export const ProfileScreen: React.FC = () => {
                   )}
                   <View style={styles.accountInfo}>
                     <Text variant="body" tone="primary" numberOfLines={1}>
-                      {authedUser?.email ?? t('drawer.accountLocal')}
+                      {authedUser?.email ??
+                        authedUser?.name ??
+                        t('drawer.accountLocal')}
                     </Text>
-                    {!authedUser ? (
-                      <Text variant="footnote" tone="tertiary" numberOfLines={1}>
-                        {t('drawer.accountLocalCaption')}
-                      </Text>
-                    ) : null}
                   </View>
                 </View>
                 <View style={styles.accountDivider} />
-                <Pressable
-                  onPress={() => setSignOutOpen(true)}
-                  style={({ pressed }) => [
-                    styles.signOutRow,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <SignOutIcon size={18} />
-                  <Text variant="body" tone="danger">
-                    {t('drawer.signOut')}
-                  </Text>
-                </Pressable>
+                {authedUser ? (
+                  <Pressable
+                    onPress={() => setSignOutOpen(true)}
+                    style={({ pressed }) => [
+                      styles.signOutRow,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <SignOutIcon size={18} />
+                    <Text variant="body" tone="danger">
+                      {t('drawer.signOut')}
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <View style={styles.signInBlock}>
+                    <Text
+                      variant="callout"
+                      tone="primary"
+                      style={styles.signInTitle}
+                    >
+                      {t('drawer.signInToSync')}
+                    </Text>
+                    <Text
+                      variant="footnote"
+                      tone="tertiary"
+                      style={styles.signInCaption}
+                    >
+                      {t('drawer.signInCaption')}
+                    </Text>
+                    {appleAvailable ? (
+                      <Pressable
+                        onPress={onApple}
+                        disabled={busy}
+                        style={({ pressed }) => [
+                          styles.authBtn,
+                          pressed && styles.authBtnPressed,
+                          busy && styles.authBtnDisabled,
+                        ]}
+                      >
+                        <Ionicons
+                          name="logo-apple"
+                          size={18}
+                          color="#000000"
+                        />
+                        <Text style={styles.authBtnLabel}>
+                          {t('onboarding.summary.apple')}
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                    <Pressable
+                      onPress={onGoogle}
+                      disabled={busy}
+                      style={({ pressed }) => [
+                        styles.authBtn,
+                        pressed && styles.authBtnPressed,
+                        busy && styles.authBtnDisabled,
+                      ]}
+                    >
+                      <Ionicons
+                        name="logo-google"
+                        size={18}
+                        color="#000000"
+                      />
+                      <Text style={styles.authBtnLabel}>
+                        {t('onboarding.summary.google')}
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
               </View>
             </Card>
 
@@ -438,6 +549,36 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.06)',
     marginVertical: spacing.sm,
+  },
+  signInBlock: {
+    paddingTop: spacing.xs,
+    gap: spacing.sm,
+  },
+  signInTitle: {
+    fontFamily: fonts.semibold,
+  },
+  signInCaption: {
+    marginBottom: spacing.xs,
+  },
+  authBtn: {
+    height: 44,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  authBtnPressed: {
+    opacity: 0.85,
+  },
+  authBtnDisabled: {
+    opacity: 0.5,
+  },
+  authBtnLabel: {
+    color: '#0E0F12',
+    fontFamily: fonts.medium,
+    fontSize: 15,
   },
   signOutRow: {
     flexDirection: 'row',

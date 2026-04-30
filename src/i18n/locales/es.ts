@@ -30,6 +30,9 @@ export const es: Translations = {
     account: 'CUENTA',
     accountLocal: 'Solo local',
     accountLocalCaption: 'Guardado en este dispositivo',
+    signInToSync: 'Inicia sesión para sincronizar',
+    signInCaption:
+      'Tus datos pasarán a tu cuenta y los recuperarás en cualquier otro dispositivo.',
     signOut: 'Cerrar sesión',
     signOutConfirmTitle: '¿Cerrar sesión?',
     signOutConfirmBody:

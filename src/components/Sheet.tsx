@@ -72,11 +72,15 @@ export const Sheet: React.FC<SheetProps> = ({
     opacity: backdrop.value,
   }));
 
-  // Pan gesture on the grabber: drag the sheet down to dismiss. We let
-  // it travel only downwards so an upward pull doesn't fight the spring
-  // animation. On release we either close (if past the threshold or
-  // flicked) or spring back to rest.
+  // Pan gesture on the entire sheet body: drag down to dismiss. The
+  // 15px activation threshold means small vertical movements pass
+  // through to children (e.g. the time-picker wheel keeps spinning
+  // freely; only a deliberate downward swipe of >15px takes over and
+  // starts dismissing). Past 110px or a fast flick it closes; else
+  // springs back.
   const dragGesture = Gesture.Pan()
+    .activeOffsetY(15)
+    .failOffsetX([-25, 25])
     .onUpdate((e) => {
       translate.value = Math.max(0, e.translationY);
       backdrop.value = Math.max(0, 1 - e.translationY / 280);
@@ -143,14 +147,14 @@ export const Sheet: React.FC<SheetProps> = ({
               />
             </>
           ) : null}
-          <SafeAreaView edges={['bottom']}>
-            <GestureDetector gesture={dragGesture}>
+          <GestureDetector gesture={dragGesture}>
+            <SafeAreaView edges={['bottom']}>
               <View style={styles.grabberWrap}>
                 <View style={styles.grabber} />
               </View>
-            </GestureDetector>
-            <View style={styles.content}>{children}</View>
-          </SafeAreaView>
+              <View style={styles.content}>{children}</View>
+            </SafeAreaView>
+          </GestureDetector>
         </Animated.View>
       </View>
     </Modal>

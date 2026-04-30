@@ -15,6 +15,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -44,6 +45,12 @@ import { colors, fonts, screenGutter, spacing } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
+// Distance the main scene lifts when the auth panel opens. Calibrated
+// (with the 0.95 scale below) so the first auth button sits ~40px
+// below the visual bottom of the lifted+scaled scene on a standard
+// iPhone.
+const SCENE_LIFT = 165;
+const SCENE_SCALE = 0.95;
 const AUTH_PANEL_HEIGHT = 220;
 const ANIM_OPEN = 380;
 const ANIM_CLOSE = 260;
@@ -110,11 +117,23 @@ export const WelcomeScreen: React.FC = () => {
         translateY: interpolate(
           slide.value,
           [0, 1],
-          [0, -AUTH_PANEL_HEIGHT],
+          [0, -SCENE_LIFT],
+          Extrapolation.CLAMP,
+        ),
+      },
+      {
+        scale: interpolate(
+          slide.value,
+          [0, 1],
+          [1, SCENE_SCALE],
           Extrapolation.CLAMP,
         ),
       },
     ],
+  }));
+
+  const sceneOverlayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(slide.value, [0, 1], [0, 1], Extrapolation.CLAMP),
   }));
 
   const panelStyle = useAnimatedStyle(() => ({
@@ -210,8 +229,11 @@ export const WelcomeScreen: React.FC = () => {
         </Pressable>
       </Animated.View>
 
-      {/* Main scene — lifts up when the auth panel opens. */}
-      <Animated.View style={[styles.scene, sceneStyle]}>
+      {/* Main scene — lifts up when the auth panel opens. The wrapper
+          adds a hairline border + scale-down + blurred overlay so the
+          lifted screen reads as 'paused' while the auth options are
+          revealed below. */}
+      <Animated.View style={[styles.scene, styles.sceneFrame, sceneStyle]}>
         <View style={[styles.body, { paddingTop: insets.top + spacing.xxl }]}>
           <View style={styles.imageWrap}>
             <Image
@@ -250,20 +272,30 @@ export const WelcomeScreen: React.FC = () => {
             />
           </OrbitShine>
           <View style={styles.ctaGap} />
-          {authPanelOpen ? (
-            <Button
-              title={t('common.close')}
-              variant="subtle"
-              onPress={() => setAuthPanelOpen(false)}
-            />
-          ) : (
-            <Button
-              title={t('onboarding.welcome.signIn')}
-              variant="subtle"
-              onPress={() => setAuthPanelOpen(true)}
-            />
-          )}
+          <Button
+            title={t('onboarding.welcome.signIn')}
+            variant="subtle"
+            onPress={() => setAuthPanelOpen((open) => !open)}
+            style={authPanelOpen ? styles.signInBtnDimmed : undefined}
+          />
         </View>
+
+        {/* Frosted overlay layered on top of the lifted scene. Only
+            visible while the auth panel is open. Lives inside the
+            Animated.View so it scales/translates together with the
+            scene and gives a unified 'paused' feel. */}
+        <Animated.View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFillObject, sceneOverlayStyle]}
+        >
+          <BlurView
+            intensity={10}
+            tint="dark"
+            experimentalBlurMethod="dimezisBlurView"
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={[StyleSheet.absoluteFillObject, styles.sceneTint]} />
+        </Animated.View>
       </Animated.View>
     </Screen>
   );
@@ -272,6 +304,18 @@ export const WelcomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   scene: {
     flex: 1,
+  },
+  sceneFrame: {
+    borderRadius: 28,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  sceneTint: {
+    backgroundColor: 'rgba(7, 11, 31, 0.18)',
+  },
+  signInBtnDimmed: {
+    opacity: 0.5,
   },
   body: {
     flex: 1,
