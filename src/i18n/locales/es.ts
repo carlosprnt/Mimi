@@ -228,7 +228,7 @@ export const es: Translations = {
       back: 'Atrás',
     },
     welcome: {
-      title: 'Tranquilidad para las noches de tu bebé.',
+      title: 'Tranquilidad para el sueño de tu bebé',
       subtitle:
         'Mimi te acompaña con sugerencias suaves de sueño, según su edad y cómo va el día.',
       cta: 'Empezar',

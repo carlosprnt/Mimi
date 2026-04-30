@@ -225,7 +225,7 @@ export const en = {
       back: 'Back',
     },
     welcome: {
-      title: 'Calm nights for your baby.',
+      title: 'Peaceful sleep for your baby',
       subtitle:
         'Mimi guides you with gentle sleep suggestions based on age and the day so far.',
       cta: 'Begin',
