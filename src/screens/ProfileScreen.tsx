@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Switch,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import Animated, {
   Easing,
@@ -58,7 +57,6 @@ export const ProfileScreen: React.FC = () => {
   const clearOnboardingDraft = useOnboardingDraft((s) => s.clear);
 
   const authedUser = useAuthStore((s) => s.user);
-  const { height: screenHeight } = useWindowDimensions();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [signOutOpen, setSignOutOpen] = useState(false);
@@ -163,37 +161,8 @@ export const ProfileScreen: React.FC = () => {
       />
 
       <View style={styles.bodyArea}>
-        {/* Confirmation panel sits at the bottom of the body area,
-            behind the scroll content. When the user taps "Eliminar
-            cuenta" the scroll lifts up to reveal it. */}
-        <Animated.View
-          pointerEvents={confirmOpen ? 'auto' : 'none'}
-          style={[styles.confirmPanel, panelStyle]}
-        >
-          <Text variant="title" align="center" style={styles.confirmTitle}>
-            {t('profile.deleteAccountConfirmTitle')}
-          </Text>
-          <Text
-            variant="callout"
-            tone="secondary"
-            align="center"
-            style={styles.confirmBody}
-          >
-            {t('profile.deleteAccountConfirmBody')}
-          </Text>
-          <Button title={t('profile.cancel')} onPress={closeConfirm} />
-          <View style={styles.confirmGap} />
-          <Button
-            title={t('profile.deleteAccountConfirmCta')}
-            variant="destructive"
-            onPress={onConfirmDelete}
-            loading={deleting}
-          />
-        </Animated.View>
-
         {/* Scrollable settings content — translates up when confirm
-            opens. The blur overlay on top dims the screen visually
-            while the user makes a choice. */}
+            opens. */}
         <Animated.View style={[StyleSheet.absoluteFill, bodyStyle]}>
           <ScrollView
             contentContainerStyle={styles.scroll}
@@ -309,29 +278,61 @@ export const ProfileScreen: React.FC = () => {
               style={styles.deleteAccount}
             />
           </ScrollView>
-
-          <Animated.View
-            pointerEvents={confirmOpen ? 'auto' : 'none'}
-            style={[StyleSheet.absoluteFillObject, blurStyle]}
-          >
-            <BlurView
-              intensity={28}
-              tint="dark"
-              experimentalBlurMethod="dimezisBlurView"
-              style={StyleSheet.absoluteFill}
-              pointerEvents="none"
-            />
-            <View
-              style={[StyleSheet.absoluteFillObject, styles.tint]}
-              pointerEvents="none"
-            />
-            <Pressable
-              style={StyleSheet.absoluteFill}
-              onPress={closeConfirm}
-            />
-          </Animated.View>
         </Animated.View>
       </View>
+
+      {/* Blur overlay covers the whole Screen (including the header) so
+          the entire surface reads as deactivated while the confirm
+          panel is open. Lives outside bodyArea so the header is also
+          dimmed. */}
+      <Animated.View
+        pointerEvents={confirmOpen ? 'auto' : 'none'}
+        style={[StyleSheet.absoluteFillObject, blurStyle]}
+      >
+        <BlurView
+          intensity={14}
+          tint="dark"
+          experimentalBlurMethod="dimezisBlurView"
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        <View
+          style={[StyleSheet.absoluteFillObject, styles.tint]}
+          pointerEvents="none"
+        />
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={closeConfirm}
+        />
+      </Animated.View>
+
+      {/* Confirmation panel sits at the bottom on top of the blur, so it
+          stays interactive while the rest of the screen reads as
+          deactivated. */}
+      <Animated.View
+        pointerEvents={confirmOpen ? 'auto' : 'none'}
+        style={[styles.confirmPanel, panelStyle]}
+      >
+        <Text variant="title" align="center" style={styles.confirmTitle}>
+          {t('profile.deleteAccountConfirmTitle')}
+        </Text>
+        <Text
+          variant="callout"
+          tone="secondary"
+          align="center"
+          style={styles.confirmBody}
+        >
+          {t('profile.deleteAccountConfirmBody')}
+        </Text>
+        <Button title={t('profile.cancel')} onPress={closeConfirm} />
+        <View style={styles.confirmGap} />
+        <Button
+          title={t('profile.deleteAccountConfirmCta')}
+          variant="destructive"
+          onPress={onConfirmDelete}
+          loading={deleting}
+        />
+      </Animated.View>
 
       <Sheet visible={signOutOpen} onClose={() => setSignOutOpen(false)}>
         <Text variant="title" align="center" style={styles.sheetTitle}>

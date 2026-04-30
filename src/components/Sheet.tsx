@@ -14,11 +14,12 @@ import Animated, {
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, radii, spacing, motion } from '@/theme';
 
-type SheetVariant = 'surface' | 'frosted';
+type SheetVariant = 'surface' | 'frosted' | 'night';
 
 interface SheetProps {
   visible: boolean;
@@ -27,6 +28,9 @@ interface SheetProps {
   variant?: SheetVariant;
   snap?: 'spring' | 'timing';
 }
+
+const DISMISS_DISTANCE = 110;
+const DISMISS_VELOCITY = 850;
 
 export const Sheet: React.FC<SheetProps> = ({
   visible,
@@ -68,7 +72,28 @@ export const Sheet: React.FC<SheetProps> = ({
     opacity: backdrop.value,
   }));
 
+  // Pan gesture on the grabber: drag the sheet down to dismiss. We let
+  // it travel only downwards so an upward pull doesn't fight the spring
+  // animation. On release we either close (if past the threshold or
+  // flicked) or spring back to rest.
+  const dragGesture = Gesture.Pan()
+    .onUpdate((e) => {
+      translate.value = Math.max(0, e.translationY);
+      backdrop.value = Math.max(0, 1 - e.translationY / 280);
+    })
+    .onEnd((e) => {
+      const shouldClose =
+        e.translationY > DISMISS_DISTANCE || e.velocityY > DISMISS_VELOCITY;
+      if (shouldClose) {
+        runOnJS(onClose)();
+      } else {
+        translate.value = withTiming(0, { duration: motion.duration.fast });
+        backdrop.value = withTiming(1, { duration: motion.duration.fast });
+      }
+    });
+
   const isFrosted = variant === 'frosted';
+  const isNight = variant === 'night';
 
   return (
     <Modal
@@ -92,7 +117,11 @@ export const Sheet: React.FC<SheetProps> = ({
         <Animated.View
           style={[
             styles.sheet,
-            isFrosted ? styles.sheetFrosted : styles.sheetSurface,
+            isFrosted
+              ? styles.sheetFrosted
+              : isNight
+                ? styles.sheetNight
+                : styles.sheetSurface,
             sheetStyle,
           ]}
         >
@@ -115,9 +144,11 @@ export const Sheet: React.FC<SheetProps> = ({
             </>
           ) : null}
           <SafeAreaView edges={['bottom']}>
-            <View style={styles.grabberWrap}>
-              <View style={styles.grabber} />
-            </View>
+            <GestureDetector gesture={dragGesture}>
+              <View style={styles.grabberWrap}>
+                <View style={styles.grabber} />
+              </View>
+            </GestureDetector>
             <View style={styles.content}>{children}</View>
           </SafeAreaView>
         </Animated.View>
@@ -160,10 +191,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
+  sheetNight: {
+    backgroundColor: colors.night.top,
+  },
   grabberWrap: {
     alignItems: 'center',
     paddingTop: spacing.md,
-    paddingBottom: spacing.xs,
+    paddingBottom: spacing.sm,
   },
   grabber: {
     width: 36,

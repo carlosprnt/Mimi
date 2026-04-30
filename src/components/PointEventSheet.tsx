@@ -71,7 +71,7 @@ export const PointEventSheet: React.FC<PointEventSheetProps> = ({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} variant="frosted">
+    <Sheet visible={visible} onClose={onClose} variant="night">
       {picker === null ? (
         <>
           <Text variant="title" style={styles.title}>
