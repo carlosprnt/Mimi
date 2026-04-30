@@ -100,24 +100,6 @@ export const OnboardingSummaryScreen: React.FC = () => {
         ? t('onboarding.summary.rowAtTermNo')
         : '—';
 
-  const finalizeLocal = (): void => {
-    if (!draftIsComplete(draft)) return;
-    const prematureWeeks =
-      draft.atTerm === false
-        ? computePrematureWeeks(draft.dob!, draft.dueDate)
-        : undefined;
-    addBaby({
-      name: draft.name!.trim(),
-      dateOfBirth: draft.dob!,
-      prematureWeeks,
-      sex: normalizeSexForBaby(draft.sex),
-    });
-    clearDraft();
-    navigation.dispatch(
-      CommonActions.reset({ index: 0, routes: [{ name: 'Root' }] }),
-    );
-  };
-
   // Once auth completes (authedUser flips on this focused screen):
   //   1. If the user already has bebés in Supabase, this isn't a new
   //      registration — alert them, adopt the existing data, and skip
@@ -302,17 +284,6 @@ export const OnboardingSummaryScreen: React.FC = () => {
         >
           {t('onboarding.summary.disclaimer')}
         </Text>
-
-        <View style={styles.devSkip}>
-          <Text
-            variant="footnote"
-            tone="accent"
-            align="center"
-            onPress={finalizeLocal}
-          >
-            {t('onboarding.common.continue')} →
-          </Text>
-        </View>
       </ScrollView>
 
       <View
@@ -425,9 +396,6 @@ const styles = StyleSheet.create({
   disclaimer: {
     paddingHorizontal: spacing.md,
     marginBottom: spacing.xl,
-  },
-  devSkip: {
-    paddingVertical: spacing.md,
   },
   footer: {
     position: 'absolute',

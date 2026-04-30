@@ -178,11 +178,13 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     paddingHorizontal: screenGutter,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   scrollContent: {
     paddingHorizontal: screenGutter,
     paddingBottom: spacing.lg,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   eyebrow: {
     textAlign: 'center',

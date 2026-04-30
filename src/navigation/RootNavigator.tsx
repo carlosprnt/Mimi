@@ -88,12 +88,24 @@ export const RootNavigator: React.FC = () => {
         initialRouteName={hasBaby ? 'Root' : 'OnboardingWelcome'}
       >
         <Stack.Screen name="OnboardingWelcome" component={WelcomeScreen} />
-        <Stack.Screen name="OnboardingDob" component={OnboardingDobScreen} />
+        <Stack.Screen
+          name="OnboardingDob"
+          component={OnboardingDobScreen}
+          options={{ animation: 'slide_from_bottom' }}
+        />
         <Stack.Screen name="OnboardingAtTerm" component={OnboardingAtTermScreen} />
-        <Stack.Screen name="OnboardingDueDate" component={OnboardingDueDateScreen} />
+        <Stack.Screen
+          name="OnboardingDueDate"
+          component={OnboardingDueDateScreen}
+          options={{ animation: 'slide_from_bottom' }}
+        />
         <Stack.Screen name="OnboardingIdentity" component={OnboardingIdentityScreen} />
         <Stack.Screen name="OnboardingSex" component={OnboardingSexScreen} />
-        <Stack.Screen name="OnboardingSummary" component={OnboardingSummaryScreen} />
+        <Stack.Screen
+          name="OnboardingSummary"
+          component={OnboardingSummaryScreen}
+          options={{ animation: 'fade', animationDuration: 380 }}
+        />
         <Stack.Screen name="OnboardingName" component={NameScreen} />
         <Stack.Screen name="OnboardingDobLegacy" component={DobScreen} />
         <Stack.Screen name="OnboardingPrematurity" component={PrematurityScreen} />
