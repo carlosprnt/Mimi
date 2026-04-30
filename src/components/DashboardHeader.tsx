@@ -113,7 +113,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     return { opacity: p };
   });
 
-  const backdropHeight = insets.top + 200;
+  const backdropHeight = insets.top + 160;
 
   return (
     <View style={styles.container} pointerEvents="box-none">
