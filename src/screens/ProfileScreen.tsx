@@ -270,23 +270,19 @@ export const ProfileScreen: React.FC = () => {
                     ) : null}
                   </View>
                 </View>
-                {authedUser ? (
-                  <>
-                    <View style={styles.accountDivider} />
-                    <Pressable
-                      onPress={() => setSignOutOpen(true)}
-                      style={({ pressed }) => [
-                        styles.signOutRow,
-                        pressed && styles.pressed,
-                      ]}
-                    >
-                      <SignOutIcon size={18} />
-                      <Text variant="body" tone="danger">
-                        {t('drawer.signOut')}
-                      </Text>
-                    </Pressable>
-                  </>
-                ) : null}
+                <View style={styles.accountDivider} />
+                <Pressable
+                  onPress={() => setSignOutOpen(true)}
+                  style={({ pressed }) => [
+                    styles.signOutRow,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <SignOutIcon size={18} />
+                  <Text variant="body" tone="danger">
+                    {t('drawer.signOut')}
+                  </Text>
+                </Pressable>
               </View>
             </Card>
 
