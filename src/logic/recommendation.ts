@@ -756,7 +756,8 @@ function floatToTime(day: Date, hoursFloat: number): Date {
 }
 
 function formatElapsed(ms: number): string {
-  const totalMinutes = Math.floor(ms / MINUTE);
+  const safe = Math.max(0, ms);
+  const totalMinutes = Math.floor(safe / MINUTE);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   if (hours === 0) return `${minutes}m`;
