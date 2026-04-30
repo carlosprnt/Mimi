@@ -34,6 +34,14 @@ export const en = {
       'Your data is saved to your account. You will get it back when you sign in again.',
     signOutConfirmCta: 'Yes, sign out',
   },
+  auth: {
+    configMissing: 'Missing EXPO_PUBLIC_SUPABASE_URL / ANON_KEY in .env.',
+    noAuthUrl: 'Supabase did not return an authorization URL.',
+    flowIncomplete: 'Auth flow did not complete.',
+    tokensUnreadable: 'Could not read tokens from the redirect.',
+    sessionFailed: 'Could not set the session.',
+    notConfigured: 'Supabase not configured.',
+  },
   home: {
     today: 'TODAY’S SUMMARY',
     totalSleep: 'Total sleep',
@@ -220,6 +228,14 @@ export const en = {
         'Mimi guides you with gentle sleep suggestions based on age and the day so far.',
       cta: 'Begin',
       signIn: 'I already have an account',
+      noDataAlertTitle: 'No data on your account',
+      noDataAlertBody:
+        "Hi {name}. This account doesn't have any babies saved yet. Complete onboarding to start.",
+      noDataAlertCta: 'Continue',
+      appleAlertTitle: 'Apple',
+      appleAlertBody: 'Apple Sign-In requires a dev build. Coming later.',
+      googleAlertTitle: 'Google',
+      googleErrorFallback: 'Could not sign in.',
     },
     name: {
       eyebrow: 'YOUR BABY',

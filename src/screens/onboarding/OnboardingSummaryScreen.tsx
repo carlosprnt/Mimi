@@ -128,8 +128,8 @@ export const OnboardingSummaryScreen: React.FC = () => {
 
   const onApple = () => {
     Alert.alert(
-      'Apple',
-      'Apple Sign-In requiere un dev build. Llega después.',
+      t('onboarding.welcome.appleAlertTitle'),
+      t('onboarding.welcome.appleAlertBody'),
     );
   };
 
@@ -139,7 +139,10 @@ export const OnboardingSummaryScreen: React.FC = () => {
     const result = await signInWithGoogle();
     setBusy(false);
     if (!result.ok && result.reason !== 'cancelled') {
-      Alert.alert('Google', result.message ?? 'No se pudo iniciar sesión.');
+      Alert.alert(
+        t('onboarding.welcome.googleAlertTitle'),
+        result.message ?? t('onboarding.welcome.googleErrorFallback'),
+      );
     }
   };
 

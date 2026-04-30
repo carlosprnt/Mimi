@@ -36,6 +36,15 @@ export const es: Translations = {
       'Tus datos están guardados en tu cuenta. Los recuperarás al volver a entrar.',
     signOutConfirmCta: 'Sí, cerrar sesión',
   },
+  auth: {
+    configMissing:
+      'Falta configurar EXPO_PUBLIC_SUPABASE_URL / ANON_KEY en .env.',
+    noAuthUrl: 'Supabase no devolvió una URL de autorización.',
+    flowIncomplete: 'Auth flow no completó.',
+    tokensUnreadable: 'No se pudieron leer los tokens del redirect.',
+    sessionFailed: 'No se pudo establecer la sesión.',
+    notConfigured: 'Supabase no configurado.',
+  },
   home: {
     today: 'RESUMEN DE HOY',
     totalSleep: 'Sueño total',
@@ -222,6 +231,15 @@ export const es: Translations = {
         'Mimi te acompaña con sugerencias suaves de sueño, según su edad y cómo va el día.',
       cta: 'Empezar',
       signIn: 'Ya tengo cuenta',
+      noDataAlertTitle: 'Sin datos en tu cuenta',
+      noDataAlertBody:
+        'Hola {name}. Esta cuenta no tiene bebés guardados todavía. Completa el onboarding para empezar.',
+      noDataAlertCta: 'Continuar',
+      appleAlertTitle: 'Apple',
+      appleAlertBody:
+        'Apple Sign-In requiere un dev build. Llega después.',
+      googleAlertTitle: 'Google',
+      googleErrorFallback: 'No se pudo iniciar sesión.',
     },
     name: {
       eyebrow: 'TU BEBÉ',

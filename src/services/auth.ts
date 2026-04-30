@@ -2,6 +2,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { supabase, isSupabaseConfigured } from './supabase';
 import type { Session } from '@supabase/supabase-js';
+import { t } from '@/i18n';
 
 export type SignInResult =
   | { ok: true; session: Session }
@@ -38,8 +39,7 @@ export const signInWithGoogle = async (): Promise<SignInResult> => {
     return {
       ok: false,
       reason: 'config',
-      message:
-        'Falta configurar EXPO_PUBLIC_SUPABASE_URL / ANON_KEY en .env.',
+      message: t('auth.configMissing'),
     };
   }
   const redirectTo = buildRedirectTo();
@@ -61,7 +61,7 @@ export const signInWithGoogle = async (): Promise<SignInResult> => {
     return {
       ok: false,
       reason: 'error',
-      message: error?.message ?? 'Supabase no devolvió una URL de autorización.',
+      message: error?.message ?? t('auth.noAuthUrl'),
     };
   }
 
@@ -70,7 +70,7 @@ export const signInWithGoogle = async (): Promise<SignInResult> => {
     return { ok: false, reason: 'cancelled' };
   }
   if (result.type !== 'success' || !result.url) {
-    return { ok: false, reason: 'error', message: 'Auth flow no completó.' };
+    return { ok: false, reason: 'error', message: t('auth.flowIncomplete') };
   }
 
   const tokens = parseTokensFromUrl(result.url);
@@ -78,7 +78,7 @@ export const signInWithGoogle = async (): Promise<SignInResult> => {
     return {
       ok: false,
       reason: 'error',
-      message: 'No se pudieron leer los tokens del redirect.',
+      message: t('auth.tokensUnreadable'),
     };
   }
 
@@ -90,7 +90,7 @@ export const signInWithGoogle = async (): Promise<SignInResult> => {
     return {
       ok: false,
       reason: 'error',
-      message: setErr?.message ?? 'No se pudo establecer la sesión.',
+      message: setErr?.message ?? t('auth.sessionFailed'),
     };
   }
   return { ok: true, session: setData.session };
@@ -110,7 +110,7 @@ export const signOut = async (): Promise<void> => {
  */
 export const deleteAccount = async (): Promise<{ ok: boolean; message?: string }> => {
   if (!isSupabaseConfigured()) {
-    return { ok: false, message: 'Supabase no configurado.' };
+    return { ok: false, message: t('auth.notConfigured') };
   }
   const { error } = await supabase.functions.invoke('delete-account');
   if (error) {

@@ -49,11 +49,13 @@ export const WelcomeScreen: React.FC = () => {
         return;
       }
       Alert.alert(
-        'Sin datos en tu cuenta',
-        `Hola ${authedUser.name ?? authedUser.email ?? ''}. Esta cuenta no tiene bebés guardados todavía. Completa el onboarding para empezar.`,
+        t('onboarding.welcome.noDataAlertTitle'),
+        t('onboarding.welcome.noDataAlertBody', {
+          name: authedUser.name ?? authedUser.email ?? '',
+        }),
         [
           {
-            text: 'Continuar',
+            text: t('onboarding.welcome.noDataAlertCta'),
             onPress: () => navigation.navigate('OnboardingDob'),
           },
         ],
@@ -64,8 +66,8 @@ export const WelcomeScreen: React.FC = () => {
   const onApple = () => {
     setSignInOpen(false);
     Alert.alert(
-      'Apple',
-      'Apple Sign-In requiere un dev build. Llega después.',
+      t('onboarding.welcome.appleAlertTitle'),
+      t('onboarding.welcome.appleAlertBody'),
     );
   };
 
@@ -76,7 +78,10 @@ export const WelcomeScreen: React.FC = () => {
     const result = await signInWithGoogle();
     setBusy(false);
     if (!result.ok && result.reason !== 'cancelled') {
-      Alert.alert('Google', result.message ?? 'No se pudo iniciar sesión.');
+      Alert.alert(
+        t('onboarding.welcome.googleAlertTitle'),
+        result.message ?? t('onboarding.welcome.googleErrorFallback'),
+      );
     }
   };
 
