@@ -116,7 +116,12 @@ export const ProfileScreen: React.FC = () => {
   const onConfirmSignOut = async () => {
     haptics.warning();
     setMode('closed');
-    void supabaseSignOut();
+    // Wait for Supabase to fully clear its session BEFORE we touch
+    // the local state — otherwise the auth listener may fire one
+    // last "session present" event in flight and re-sign the user
+    // in, bouncing them back to the dashboard.
+    await supabaseSignOut();
+    signOutAuth();
     // Wipe the device's snapshot of this account so that
     //   1. another person handed the phone doesn't see the previous
     //      user's bebés / sessions while signed-out, and
@@ -127,7 +132,6 @@ export const ProfileScreen: React.FC = () => {
     resetSleep();
     resetCare();
     clearOnboardingDraft();
-    signOutAuth();
     await wipeLocalData();
     const parent = navigation.getParent();
     parent?.dispatch(

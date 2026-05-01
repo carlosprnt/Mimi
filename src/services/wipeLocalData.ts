@@ -21,6 +21,8 @@ const PERSIST_KEYS = [
  * flows so a guest who logs in later starts from a clean slate.
  *
  *   - AsyncStorage entries written by Zustand persist middleware
+ *   - Supabase auth-token entries (anything starting with `sb-`)
+ *     so a stale session can't auto-resume on the next launch
  *   - Widget App Group payload (sleep timer / suggestion / weekly
  *     stats) so the widget doesn't keep showing stale data after
  *     deletion
@@ -33,6 +35,15 @@ export const wipeLocalData = async (): Promise<void> => {
     await AsyncStorage.multiRemove(PERSIST_KEYS);
   } catch {
     // Swallow — best-effort wipe.
+  }
+  try {
+    const allKeys = await AsyncStorage.getAllKeys();
+    const supabaseKeys = allKeys.filter((k) => k.startsWith('sb-'));
+    if (supabaseKeys.length > 0) {
+      await AsyncStorage.multiRemove(supabaseKeys);
+    }
+  } catch {
+    // ignore
   }
   await clearWidget();
 };

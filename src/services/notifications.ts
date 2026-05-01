@@ -23,14 +23,22 @@ const ID_PREFIX = 'mimi-bedtime-';
 
 // Foreground notification handler: when the app is open we still want
 // the OS banner/sound (otherwise iOS swallows the notification).
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Wrapped in try/catch because in environments without the native
+// module linked (e.g. Expo Go on iOS) the call throws synchronously
+// at import time and would crash the whole app.
+try {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+} catch {
+  // expo-notifications native module not available — features below
+  // become best-effort no-ops via their own try/catch wrappers.
+}
 
 const idFor = (babyId: string): string => `${ID_PREFIX}${babyId}`;
 
