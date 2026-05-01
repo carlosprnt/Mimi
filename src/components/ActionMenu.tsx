@@ -154,10 +154,10 @@ const styles = StyleSheet.create({
   },
   card: {
     height: CARD_HEIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    gap: spacing.sm,
+    paddingVertical: spacing.md,
     borderRadius: radii.xl,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderWidth: 1,
@@ -183,6 +183,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.medium,
-    textAlign: 'center',
+    textAlign: 'left',
   },
 });
