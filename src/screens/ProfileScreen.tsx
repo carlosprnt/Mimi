@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Image,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -354,6 +355,29 @@ export const ProfileScreen: React.FC = () => {
                   </Pressable>
                 </View>
               )}
+            </View>
+          </Card>
+
+          <SectionLabel label={t('legal.sectionLabel')} />
+          <Card padded={false} tone="night" style={styles.card}>
+            <View style={styles.inner}>
+              <ListRow
+                label={t('legal.privacyRow')}
+                onPress={() =>
+                  navigation.getParent()?.navigate('LegalPrivacy')
+                }
+              />
+              <ListRow
+                label={t('legal.termsRow')}
+                onPress={() =>
+                  navigation.getParent()?.navigate('LegalTerms')
+                }
+              />
+              <ListRow
+                label={t('legal.supportRow')}
+                onPress={() => Linking.openURL('mailto:hola@mimi.app')}
+                showDivider={false}
+              />
             </View>
           </Card>
 

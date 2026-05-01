@@ -45,6 +45,12 @@ export const en = {
     permissionDeniedBody:
       'Turn on notifications for Mimi in Settings → Notifications so we can warn you before bedtime.',
   },
+  legal: {
+    sectionLabel: 'LEGAL',
+    privacyRow: 'Privacy policy',
+    termsRow: 'Terms of use',
+    supportRow: 'Support',
+  },
   auth: {
     configMissing: 'Missing EXPO_PUBLIC_SUPABASE_URL / ANON_KEY in .env.',
     noAuthUrl: 'Supabase did not return an authorization URL.',

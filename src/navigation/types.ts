@@ -26,4 +26,6 @@ export type RootStackParamList = {
   OnboardingDobLegacy: { name: string; mode?: 'addChild' };
   OnboardingPrematurity: { name: string; dob: string; mode?: 'addChild' };
   BabyEdit: { babyId: string };
+  LegalPrivacy: undefined;
+  LegalTerms: undefined;
 };

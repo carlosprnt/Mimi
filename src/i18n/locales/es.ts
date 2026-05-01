@@ -47,6 +47,12 @@ export const es: Translations = {
     permissionDeniedBody:
       'Activa las notificaciones para Mimi en Ajustes → Notificaciones para que podamos avisarte antes de la hora de dormir.',
   },
+  legal: {
+    sectionLabel: 'LEGAL',
+    privacyRow: 'Política de privacidad',
+    termsRow: 'Términos de uso',
+    supportRow: 'Soporte',
+  },
   auth: {
     configMissing:
       'Falta configurar EXPO_PUBLIC_SUPABASE_URL / ANON_KEY en .env.',

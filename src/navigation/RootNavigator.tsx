@@ -11,6 +11,7 @@ import { HomeScreen } from '@/screens/HomeScreen';
 import { HistoryScreen } from '@/screens/HistoryScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { BabyEditScreen } from '@/screens/BabyEditScreen';
+import { LegalDocumentScreen } from '@/screens/LegalDocumentScreen';
 import { WelcomeScreen } from '@/screens/onboarding/WelcomeScreen';
 import { OnboardingDobScreen } from '@/screens/onboarding/OnboardingDobScreen';
 import { OnboardingAtTermScreen } from '@/screens/onboarding/OnboardingAtTermScreen';
@@ -159,6 +160,8 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="OnboardingPrematurity" component={PrematurityScreen} />
         <Stack.Screen name="Root" component={RootMainStack} />
         <Stack.Screen name="BabyEdit" component={BabyEditScreen} />
+        <Stack.Screen name="LegalPrivacy" component={LegalDocumentScreen} />
+        <Stack.Screen name="LegalTerms" component={LegalDocumentScreen} />
       </Stack.Navigator>
       <OnboardingHeader
         routeName={routeName}
