@@ -12,12 +12,20 @@
       "expo-web-browser",
       "expo-apple-authentication",
       "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#020410",
+          "image": "./assets/splash.png",
+          "resizeMode": "cover"
+        }
+      ],
       "./plugins/withMimiWidget"
     ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.carlospariente.mimi",
-      "buildNumber": "28",
+      "buildNumber": "29",
       "userInterfaceStyle": "dark",
       "icon": "./assets/icon.png",
       "usesAppleSignIn": true,
