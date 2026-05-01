@@ -152,6 +152,7 @@ export const es: Translations = {
     hidePreviousNight: 'Ocultar noche anterior',
     nightWakeAwakeFor: 'Despertó · {duration}',
     microNapTag: 'Microsueño',
+    microNap: 'Microsueño',
     startTime: 'Inicio',
     endTime: 'Fin',
     time: 'Hora',

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import Svg, {
   Circle,
   Defs,
@@ -10,6 +11,7 @@ import Svg, {
 } from 'react-native-svg';
 import Animated, {
   Easing,
+  FadeIn,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -62,6 +64,7 @@ const labelFor = (
   kind: TimelineKind,
   segment?: 'start' | 'resumed',
   overnightChain?: boolean,
+  microNap?: boolean,
 ): string => {
   switch (kind) {
     case 'wake':
@@ -70,7 +73,7 @@ const labelFor = (
       if (segment === 'start') return t('timeline.bedtimeStart');
       return t('timeline.bedtime');
     case 'nap':
-      return t('timeline.nap');
+      return microNap ? t('timeline.microNap') : t('timeline.nap');
     case 'feeding':
       return t('timeline.feeding');
     case 'diaper':
@@ -127,8 +130,10 @@ const formatRightDuration = (
   return null;
 };
 
-const formatExtraCaption = (event: TimelineEvent): string | null => {
-  if (event.microNap) return t('timeline.microNapTag');
+const formatExtraCaption = (_event: TimelineEvent): string | null => {
+  // Microsleeps used to surface a redundant "Microsueño" tag in addition
+  // to their title; the title now reads "Microsueño" directly so we
+  // suppress the extra caption to keep the row tight.
   return null;
 };
 
@@ -184,10 +189,55 @@ const OVERNIGHT_OPACITY = 0.5;
 //   interrupted > suggested > overnight > normal
 type RailVariant = 'normal' | 'overnight' | 'suggested' | 'interrupted';
 
+/** Subtle white "you are here" pulse painted over the rail segment
+ *  that contains the current moment (the gap between the last past
+ *  event and the next upcoming one). Brightest in the centre and
+ *  fading to 0 at both ends so it reads as an internal glow rather
+ *  than a hard line. */
+const NowGlow: React.FC = () => {
+  const opacity = useSharedValue(0.55);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.85, {
+          duration: 1400,
+          easing: Easing.inOut(Easing.quad),
+        }),
+        withTiming(0.4, {
+          duration: 1400,
+          easing: Easing.inOut(Easing.quad),
+        }),
+      ),
+      -1,
+      false,
+    );
+  }, [opacity]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View pointerEvents="none" style={[styles.nowGlow, animStyle]}>
+      <LinearGradient
+        colors={[
+          'rgba(255, 255, 255, 0)',
+          'rgba(255, 255, 255, 0.55)',
+          'rgba(255, 255, 255, 0)',
+        ]}
+        locations={[0, 0.5, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+    </Animated.View>
+  );
+};
+
 const SolidLine: React.FC<{
   hidden?: boolean;
   variant?: RailVariant;
-}> = ({ hidden, variant = 'normal' }) => {
+  isNow?: boolean;
+}> = ({ hidden, variant = 'normal', isNow }) => {
   if (hidden) return <View style={styles.lineSpacer} />;
   if (variant === 'suggested') {
     return (
@@ -195,6 +245,7 @@ const SolidLine: React.FC<{
         {Array.from({ length: DASH_COUNT }).map((_, i) => (
           <View key={i} style={styles.dash} />
         ))}
+        {isNow ? <NowGlow /> : null}
       </View>
     );
   }
@@ -205,7 +256,9 @@ const SolidLine: React.FC<{
         variant === 'overnight' && styles.lineOvernight,
         variant === 'interrupted' && styles.lineInterrupted,
       ]}
-    />
+    >
+      {isNow ? <NowGlow /> : null}
+    </View>
   );
 };
 
@@ -280,6 +333,11 @@ const PulsingGlow: React.FC = () => {
   );
 };
 
+const eventEndTime = (e: TimelineEvent): Date | null =>
+  e.to ?? e.at ?? e.from ?? null;
+const eventStartTime = (e: TimelineEvent): Date | null =>
+  e.from ?? e.at ?? e.to ?? null;
+
 export const Timeline: React.FC<TimelineProps> = ({
   events,
   use24h = true,
@@ -300,47 +358,74 @@ export const Timeline: React.FC<TimelineProps> = ({
     (e) => e.status === 'suggested' || e.status === 'active',
   );
 
+  // Find the rail segment that "contains" the current moment — i.e.
+  // the gap between the last past event and the next upcoming one.
+  // The line below visibleEvents[nowSegmentIndex] gets the NowGlow
+  // overlay. -1 disables the glow.
+  const nowSegmentIndex = (() => {
+    const t = now.getTime();
+    for (let i = 0; i < visibleEvents.length - 1; i++) {
+      const cur = visibleEvents[i];
+      const nxt = visibleEvents[i + 1];
+      const end = eventEndTime(cur);
+      const start = eventStartTime(nxt);
+      if (!end || !start) continue;
+      if (t >= end.getTime() && t < start.getTime()) return i;
+    }
+    return -1;
+  })();
+
   return (
     <View style={styles.wrap}>
       {visibleEvents.map((event, index) => {
         const isFirst = index === 0;
         const isLast = index === visibleEvents.length - 1;
 
+        const isNowSegment = index === nowSegmentIndex;
+
         // Tappable placeholder rows (e.g. "Añadir datos de la noche",
         // "Añadir despertar nocturno"). Render with a dashed accent dot
         // and an accent label, no time on the right.
         if (event.placeholder) {
           return (
-            <Pressable
+            <Animated.View
               key={event.id}
-              onPress={() => onPressEvent?.(event)}
-              style={({ pressed }) => [
-                styles.row,
-                pressed && styles.pressed,
-              ]}
+              entering={FadeIn.delay(index * 50).duration(280)}
             >
-              <View style={styles.rail}>
-                <View style={styles.dotContainer}>
-                  <View style={[styles.dot, styles.dotPlaceholder]}>
-                    <Ionicons
-                      name="add"
-                      size={16}
-                      color={colors.accent.base}
-                    />
+              <Pressable
+                onPress={() => onPressEvent?.(event)}
+                style={({ pressed }) => [
+                  styles.row,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View style={styles.rail}>
+                  <View style={styles.dotContainer}>
+                    <View style={[styles.dot, styles.dotPlaceholder]}>
+                      <Ionicons
+                        name="add"
+                        size={16}
+                        color={colors.accent.base}
+                      />
+                    </View>
+                  </View>
+                  <SolidLine
+                    hidden={isLast}
+                    variant="overnight"
+                    isNow={isNowSegment}
+                  />
+                </View>
+                <View style={styles.content}>
+                  <View style={styles.titleRow}>
+                    <Text variant="body" tone="accent" style={styles.title}>
+                      {event.placeholder === 'addBedtime'
+                        ? t('timeline.addBedtimeData')
+                        : t('timeline.addNightWakePlaceholder')}
+                    </Text>
                   </View>
                 </View>
-                <SolidLine hidden={isLast} variant="overnight" />
-              </View>
-              <View style={styles.content}>
-                <View style={styles.titleRow}>
-                  <Text variant="body" tone="accent" style={styles.title}>
-                    {event.placeholder === 'addBedtime'
-                      ? t('timeline.addBedtimeData')
-                      : t('timeline.addNightWakePlaceholder')}
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
+              </Pressable>
+            </Animated.View>
           );
         }
 
@@ -406,7 +491,6 @@ export const Timeline: React.FC<TimelineProps> = ({
                 <View
                   style={[
                     styles.dot,
-                    event.microNap && styles.dotMicro,
                     {
                       backgroundColor: isNext ? 'transparent' : dc.background,
                       borderColor: dc.border,
@@ -453,6 +537,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                   belowSuggested,
                   belowOvernight,
                 )}
+                isNow={isNowSegment}
               />
             </View>
 
@@ -471,7 +556,12 @@ export const Timeline: React.FC<TimelineProps> = ({
                   }
                   style={styles.title}
                 >
-                  {labelFor(event.kind, event.segment, event.overnightChain)}
+                  {labelFor(
+                    event.kind,
+                    event.segment,
+                    event.overnightChain,
+                    event.microNap,
+                  )}
                 </Text>
                 {rightDuration ? (
                   <Text
@@ -520,23 +610,31 @@ export const Timeline: React.FC<TimelineProps> = ({
 
         if (editable) {
           return (
-            <Pressable
+            <Animated.View
               key={event.id}
-              onPress={() => onPressEvent(event)}
-              style={({ pressed }) => [
-                styles.row,
-                pressed && styles.pressed,
-              ]}
+              entering={FadeIn.delay(index * 50).duration(280)}
             >
-              {row}
-            </Pressable>
+              <Pressable
+                onPress={() => onPressEvent(event)}
+                style={({ pressed }) => [
+                  styles.row,
+                  pressed && styles.pressed,
+                ]}
+              >
+                {row}
+              </Pressable>
+            </Animated.View>
           );
         }
 
         return (
-          <View key={event.id} style={styles.row}>
+          <Animated.View
+            key={event.id}
+            entering={FadeIn.delay(index * 50).duration(280)}
+            style={styles.row}
+          >
             {row}
-          </View>
+          </Animated.View>
         );
       })}
     </View>
@@ -603,11 +701,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  dotMicro: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  },
   dotPlaceholder: {
     backgroundColor: 'transparent',
     borderColor: colors.accent.base,
@@ -617,18 +710,13 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingLeft: spacing.md,
-    // 9px top padding makes the title's vertical center align with the
-    // 40px dot's vertical center (dot center y=20 = paddingTop 9 +
-    // body lineHeight 22 / 2 ≈ 20). The dot sits at the top of the
-    // rail (no SolidLine above it), so titles are now consistently
-    // anchored to the icon regardless of row height.
-    paddingTop: 9,
     paddingBottom: spacing.sm,
   },
   titleRow: {
+    height: DOT_SIZE,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'baseline',
+    alignItems: 'center',
   },
   title: {
     flex: 1,
@@ -641,5 +729,13 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.5,
+  },
+  nowGlow: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: -3,
+    right: -3,
+    overflow: 'hidden',
   },
 });

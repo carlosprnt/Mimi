@@ -149,6 +149,7 @@ export const en = {
     hidePreviousNight: 'Hide last night',
     nightWakeAwakeFor: 'Awake · {duration}',
     microNapTag: 'Short nap',
+    microNap: 'Short nap',
     startTime: 'Start',
     endTime: 'End',
     time: 'Time',

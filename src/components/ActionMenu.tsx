@@ -28,6 +28,7 @@ interface ActionMenuProps {
 }
 
 const EXIT_TOTAL_MS = 160;
+const CARD_HEIGHT = 116;
 
 export const ActionMenu: React.FC<ActionMenuProps> = ({
   visible,
@@ -90,40 +91,36 @@ export const ActionMenu: React.FC<ActionMenuProps> = ({
           edges={['bottom']}
           pointerEvents="box-none"
         >
-          <View style={styles.list} pointerEvents="box-none">
+          <View style={styles.grid} pointerEvents="box-none">
             {items.map((item, i) => (
               <Animated.View
                 key={item.id}
                 entering={FadeInDown.delay(i * 25).duration(160)}
                 exiting={FadeOutDown.duration(120)}
+                style={styles.cell}
               >
                 <Pressable
                   onPress={item.onPress}
                   style={({ pressed }) => [
-                    styles.row,
+                    styles.card,
                     pressed && styles.pressed,
                   ]}
                 >
                   <BlurView
                     intensity={Platform.OS === 'ios' ? 24 : 14}
                     tint="dark"
-                    style={[StyleSheet.absoluteFill, styles.rowBlur]}
+                    style={[StyleSheet.absoluteFill, styles.cardBlur]}
                   />
                   <View style={styles.iconWell}>
                     <Ionicons
                       name={item.icon}
-                      size={20}
+                      size={22}
                       color={colors.pure.white}
                     />
                   </View>
                   <Text variant="body" tone="primary" style={styles.label}>
                     {item.label}
                   </Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={16}
-                    color="rgba(255, 255, 255, 0.45)"
-                  />
                 </Pressable>
               </Animated.View>
             ))}
@@ -148,39 +145,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
   },
-  list: {
+  grid: {
+    flexDirection: 'row',
     gap: spacing.sm,
   },
-  row: {
-    flexDirection: 'row',
+  cell: {
+    flex: 1,
+  },
+  card: {
+    height: CARD_HEIGHT,
     alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
     borderRadius: radii.xl,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.22)',
     overflow: 'hidden',
   },
-  rowBlur: {
+  cardBlur: {
     borderRadius: radii.xl,
   },
   pressed: {
     opacity: 0.6,
   },
   iconWell: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.16)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(255, 255, 255, 0.55)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
   label: {
-    flex: 1,
     fontFamily: fonts.medium,
+    textAlign: 'center',
   },
 });
