@@ -188,11 +188,22 @@ export const signOut = async (): Promise<void> => {
 };
 
 /**
- * Permanently deletes the current user's account and all their data.
- * Requires a Supabase Edge Function named "delete-account" that uses the
- * service role key to call `auth.admin.deleteUser`. RLS-managed tables
- * (babies, sleep_sessions, care_events, profiles) are expected to cascade
- * via `on delete cascade` on the user_id foreign keys.
+ * Permanently deletes the current user's account and all their data
+ * — App Store guideline 5.1.1(v) compliant.
+ *
+ * Server side: invokes the `delete-account` Supabase Edge Function
+ * (see supabase/functions/delete-account/index.ts) which uses the
+ * service-role key to call auth.admin.deleteUser(user.id). All
+ * user-owned tables (profiles, babies, sleep_sessions, care_events,
+ * preferences) cascade via `on delete cascade` on user_id, so a
+ * single auth deletion wipes them in one shot.
+ *
+ * Client side: the local AsyncStorage / widget App Group state is
+ * wiped by the caller via wipeLocalData() once this returns ok.
+ *
+ * Apple Sign In token revocation (best practice for users that
+ * signed in via Apple) is performed by the Edge Function on the
+ * server side using the Apple key configured in Supabase Auth.
  */
 export const deleteAccount = async (): Promise<{ ok: boolean; message?: string }> => {
   if (!isSupabaseConfigured()) {

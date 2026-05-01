@@ -36,6 +36,7 @@ import {
   signOut as supabaseSignOut,
 } from '@/services/auth';
 import { pushLocalToRemote } from '@/services/pushLocalToRemote';
+import { wipeLocalData } from '@/services/wipeLocalData';
 import { haptics } from '@/logic/haptics';
 import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
@@ -112,12 +113,22 @@ export const ProfileScreen: React.FC = () => {
     setMode('closed');
   };
 
-  const onConfirmSignOut = () => {
+  const onConfirmSignOut = async () => {
     haptics.warning();
     setMode('closed');
     void supabaseSignOut();
+    // Wipe the device's snapshot of this account so that
+    //   1. another person handed the phone doesn't see the previous
+    //      user's bebés / sessions while signed-out, and
+    //   2. a guest onboarding from this device doesn't accidentally
+    //      push the previous user's data into a brand-new account.
+    // The next sign-in re-hydrates everything from Supabase.
+    resetBabies();
+    resetSleep();
+    resetCare();
     clearOnboardingDraft();
     signOutAuth();
+    await wipeLocalData();
     const parent = navigation.getParent();
     parent?.dispatch(
       CommonActions.reset({
@@ -138,11 +149,15 @@ export const ProfileScreen: React.FC = () => {
       Alert.alert(t('profile.deleteAccountFailed'), result.message);
       return;
     }
+    // Server-side data is gone. Now scrub every local trace before
+    // routing back to onboarding: in-memory stores, persisted Zustand
+    // slices in AsyncStorage, and the widget App Group payload.
     resetBabies();
     resetSleep();
     resetCare();
     clearOnboardingDraft();
     signOutAuth();
+    await wipeLocalData();
     const parent = navigation.getParent();
     parent?.dispatch(
       CommonActions.reset({
