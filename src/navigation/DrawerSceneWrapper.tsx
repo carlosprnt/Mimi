@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
+import { useRoute } from '@react-navigation/native';
 import { useMenuStore } from '@/state/menuStore';
 import { MenuPanel } from './MenuPanel';
 
@@ -41,14 +42,16 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
     opacity: interpolate(progress.value, [0, 1], [0, 1], Extrapolation.CLAMP),
   }));
 
-  // Edge-swipe to open the menu. We let the native pan activate after
-  // 20px of horizontal motion (so vertical scrolls inside the screen
-  // don't trigger it) and only commit if the gesture began near the
-  // left edge of the screen and travelled far enough to the right.
+  // Edge-swipe to open the menu — only on the dashboard (Home). On
+  // the inner stack screens (History / Profile / etc.) the system
+  // back gesture stays enabled so swiping right from the edge takes
+  // you back to the dashboard naturally.
+  const route = useRoute();
+  const isHome = route.name === 'Home';
   const edgeStartX = useSharedValue(-1);
   const openMenu = () => setOpen(true);
   const edgeOpenGesture = Gesture.Pan()
-    .enabled(!isOpen)
+    .enabled(!isOpen && isHome)
     .activeOffsetX(20)
     .failOffsetY([-25, 25])
     .onBegin((e) => {

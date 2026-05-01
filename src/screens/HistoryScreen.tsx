@@ -248,7 +248,7 @@ export const HistoryScreen: React.FC = () => {
         leading={{
           icon: 'arrow-back',
           label: t('common.back'),
-          onPress: () => navigation.replace('Home'),
+          onPress: () => navigation.goBack(),
         }}
       />
 

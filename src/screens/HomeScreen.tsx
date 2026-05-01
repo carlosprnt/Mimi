@@ -624,7 +624,7 @@ export const HomeScreen: React.FC = () => {
         />
       ) : null}
 
-      <Sheet visible={confirmEnd} onClose={() => setConfirmEnd(false)}>
+      <Sheet visible={confirmEnd} onClose={() => setConfirmEnd(false)} variant="night">
         <Text variant="title" style={styles.sheetTitle}>
           {t('home.endConfirmTitle')}
         </Text>

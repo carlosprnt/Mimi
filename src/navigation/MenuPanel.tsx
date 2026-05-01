@@ -68,13 +68,15 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({ progress }) => {
   const goHistory = () => {
     haptics.selection();
     close();
-    navigation.replace('History');
+    // navigate (not replace) so Home stays in the stack and the
+    // system swipe-back gesture takes the user back to the dashboard.
+    navigation.navigate('History');
   };
 
   const goSettings = () => {
     haptics.selection();
     close();
-    navigation.replace('Profile');
+    navigation.navigate('Profile');
   };
 
   const items: MenuItem[] = [

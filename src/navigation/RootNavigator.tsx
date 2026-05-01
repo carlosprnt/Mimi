@@ -60,14 +60,17 @@ const RootMainStack: React.FC = () => {
         headerShown: false,
         contentStyle: { backgroundColor: 'transparent' },
         animation: 'slide_from_right',
-        // Edge-swipe back is replaced by an "open menu" gesture wired
-        // up in DrawerSceneWrapper. Disabling the system gesture here
-        // prevents the dashboard from accidentally back-navigating into
-        // a stale Profile / History entry.
-        gestureEnabled: false,
       }}
     >
-      <MainStack.Screen name="Home" component={HomeScene} />
+      <MainStack.Screen
+        name="Home"
+        component={HomeScene}
+        // Home is the root of the main stack — there's nothing to
+        // navigate back to. Disabling the gesture here lets the
+        // edge-swipe trigger the menu (handled in DrawerSceneWrapper)
+        // without conflicting with the system back-swipe.
+        options={{ gestureEnabled: false }}
+      />
       <MainStack.Screen name="History" component={HistoryScene} />
       <MainStack.Screen name="Profile" component={ProfileScene} />
     </MainStack.Navigator>
