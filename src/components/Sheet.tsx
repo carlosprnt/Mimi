@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, radii, spacing, motion } from '@/theme';
 
@@ -147,6 +148,32 @@ export const Sheet: React.FC<SheetProps> = ({
               />
             </>
           ) : null}
+          {isNight ? (
+            <>
+              {/* Soft blur for the modern glassy feel — translucent
+                  enough that the gradient on top reads as a tinted
+                  layer, not a hard fill. */}
+              <BlurView
+                intensity={Platform.OS === 'ios' ? 60 : 36}
+                tint="dark"
+                experimentalBlurMethod="dimezisBlurView"
+                style={StyleSheet.absoluteFill}
+                pointerEvents="none"
+              />
+              {/* Dark-blue → blue-black gradient. Top stays #14235A
+                  with ~88% alpha so a hint of the blur reads through;
+                  bottom fades to a deeper #020410 at 96% alpha. */}
+              <LinearGradient
+                colors={[
+                  'rgba(20, 35, 90, 0.88)',
+                  'rgba(2, 4, 16, 0.96)',
+                ]}
+                locations={[0, 1]}
+                style={StyleSheet.absoluteFill}
+                pointerEvents="none"
+              />
+            </>
+          ) : null}
           <GestureDetector gesture={dragGesture}>
             <SafeAreaView edges={['bottom']}>
               <View style={styles.grabberWrap}>
@@ -196,11 +223,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.08)',
   },
   sheetNight: {
-    backgroundColor: colors.night.top,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.42)',
+    // Background painted by the BlurView + LinearGradient stack
+    // injected for the night variant. Stroke is a soft hairline so it
+    // reads as a frame without competing with the gradient.
+    backgroundColor: 'transparent',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
   },
   grabberWrap: {
     alignItems: 'center',
