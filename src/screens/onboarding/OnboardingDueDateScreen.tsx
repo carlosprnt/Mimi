@@ -7,16 +7,11 @@ import {
   View,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Text, Button } from '@/components';
 import { ONBOARDING_HEADER_HEIGHT } from '@/components/onboarding/OnboardingHeader';
-import {
-  ONBOARDING_ENTER,
-  ONBOARDING_EXIT,
-} from '@/components/onboarding/onboardingMotion';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import { haptics } from '@/logic/haptics';
 import { colors, fonts, screenGutter, spacing } from '@/theme';
@@ -76,11 +71,6 @@ export const OnboardingDueDateScreen: React.FC = () => {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Animated.View
-          style={styles.flex}
-          entering={ONBOARDING_ENTER}
-          exiting={ONBOARDING_EXIT}
-        >
         <View
           style={[
             styles.headingWrap,
@@ -170,7 +160,6 @@ export const OnboardingDueDateScreen: React.FC = () => {
             </View>
           )}
         </View>
-        </Animated.View>
       </KeyboardAvoidingView>
     </Screen>
   );

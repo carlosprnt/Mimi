@@ -6,7 +6,6 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -27,10 +26,6 @@ import {
   Sparkles,
 } from '@/components';
 import { ONBOARDING_HEADER_HEIGHT } from '@/components/onboarding/OnboardingHeader';
-import {
-  ONBOARDING_ENTER,
-  ONBOARDING_EXIT,
-} from '@/components/onboarding/onboardingMotion';
 import {
   useOnboardingDraft,
   computePrematureWeeks,
@@ -242,11 +237,6 @@ export const OnboardingSummaryScreen: React.FC = () => {
         destructiveLabel={t('onboarding.finalize.cancelConfirmCta')}
         onConfirm={onConfirmCancel}
       >
-        <Animated.View
-          style={styles.flex}
-          entering={ONBOARDING_ENTER}
-          exiting={ONBOARDING_EXIT}
-        >
         <View style={styles.flex}>
           <ScrollView
             contentContainerStyle={[
@@ -348,7 +338,6 @@ export const OnboardingSummaryScreen: React.FC = () => {
             <Sparkles active={celebrating} count={70} />
           </View>
         </View>
-        </Animated.View>
       </LiftConfirm>
 
       <Sheet visible={authSheetOpen} onClose={() => setAuthSheetOpen(false)}>

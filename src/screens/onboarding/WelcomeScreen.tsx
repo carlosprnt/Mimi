@@ -17,9 +17,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import {
-  ONBOARDING_ENTER,
-} from '@/components/onboarding/onboardingMotion';
 import { BlurView } from 'expo-blur';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
@@ -306,10 +303,7 @@ export const WelcomeScreen: React.FC = () => {
           the lifted scene OR dragging it down dismisses the panel. */}
       <GestureDetector gesture={dismissGesture}>
         <Animated.View style={[styles.scene, styles.sceneFrame, sceneStyle]}>
-        <Animated.View
-          style={[styles.body, { paddingTop: insets.top + spacing.xxl }]}
-          entering={ONBOARDING_ENTER}
-        >
+        <View style={[styles.body, { paddingTop: insets.top + spacing.xxl }]}>
           <GestureDetector gesture={imagePanGesture}>
             <Animated.View style={[styles.imageWrap, imageDragStyle]}>
               <Image
@@ -337,7 +331,7 @@ export const WelcomeScreen: React.FC = () => {
           >
             {t('onboarding.welcome.subtitle')}
           </Text>
-        </Animated.View>
+        </View>
 
         <View
           style={[
