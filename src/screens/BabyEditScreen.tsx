@@ -82,11 +82,13 @@ export const BabyEditScreen: React.FC = () => {
   };
   const onConfirmDelete = () => {
     const id = baby.id;
-    close();
+    // Navigate back FIRST so the LiftConfirm closing animation is
+    // never interrupted mid-flight by the screen unmount — that
+    // race was crashing Reanimated on the native side.
+    dismiss();
     removeBaby(id);
     dropBabySessions(id);
     dropBabyCareEvents(id);
-    dismiss();
   };
 
   return (

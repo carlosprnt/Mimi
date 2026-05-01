@@ -113,26 +113,12 @@ export const ProfileScreen: React.FC = () => {
     setMode('closed');
   };
 
-  const onConfirmSignOut = async () => {
+  const onConfirmSignOut = () => {
     haptics.warning();
-    setMode('closed');
-    // Wait for Supabase to fully clear its session BEFORE we touch
-    // the local state — otherwise the auth listener may fire one
-    // last "session present" event in flight and re-sign the user
-    // in, bouncing them back to the dashboard.
-    await supabaseSignOut();
-    signOutAuth();
-    // Wipe the device's snapshot of this account so that
-    //   1. another person handed the phone doesn't see the previous
-    //      user's bebés / sessions while signed-out, and
-    //   2. a guest onboarding from this device doesn't accidentally
-    //      push the previous user's data into a brand-new account.
-    // The next sign-in re-hydrates everything from Supabase.
-    resetBabies();
-    resetSleep();
-    resetCare();
-    clearOnboardingDraft();
-    await wipeLocalData();
+    // Navigate FIRST so ProfileScreen + LiftConfirm unmount cleanly.
+    // Doing it after async work was triggering a Reanimated crash
+    // when the closing-panel animation was interrupted by the
+    // unmount.
     const parent = navigation.getParent();
     parent?.dispatch(
       CommonActions.reset({
@@ -140,6 +126,23 @@ export const ProfileScreen: React.FC = () => {
         routes: [{ name: 'OnboardingWelcome' }],
       }),
     );
+    // Local state cleanup — synchronous, fast, no UI depends on the
+    // outcome (ProfileScreen is already unmounting).
+    signOutAuth();
+    resetBabies();
+    resetSleep();
+    resetCare();
+    clearOnboardingDraft();
+    // Async cleanup in the background. If supabaseSignOut or the
+    // AsyncStorage wipe throw, they can't take down a mounted view.
+    void (async () => {
+      try {
+        await supabaseSignOut();
+        await wipeLocalData();
+      } catch {
+        // best effort
+      }
+    })();
   };
 
   const onConfirmDelete = async () => {
@@ -148,20 +151,13 @@ export const ProfileScreen: React.FC = () => {
     setDeleting(true);
     const result = await deleteAccount();
     setDeleting(false);
-    setMode('closed');
     if (!result.ok) {
+      setMode('closed');
       Alert.alert(t('profile.deleteAccountFailed'), result.message);
       return;
     }
-    // Server-side data is gone. Now scrub every local trace before
-    // routing back to onboarding: in-memory stores, persisted Zustand
-    // slices in AsyncStorage, and the widget App Group payload.
-    resetBabies();
-    resetSleep();
-    resetCare();
-    clearOnboardingDraft();
-    signOutAuth();
-    await wipeLocalData();
+    // Navigate first so Profile + its LiftConfirm unmount cleanly,
+    // before we mutate stores or wipe storage.
     const parent = navigation.getParent();
     parent?.dispatch(
       CommonActions.reset({
@@ -169,6 +165,14 @@ export const ProfileScreen: React.FC = () => {
         routes: [{ name: 'OnboardingWelcome' }],
       }),
     );
+    // Local state cleanup (synchronous, no UI mounted on it).
+    signOutAuth();
+    resetBabies();
+    resetSleep();
+    resetCare();
+    clearOnboardingDraft();
+    // Async wipe of AsyncStorage + widget App Group, fire-and-forget.
+    void wipeLocalData();
   };
 
   const confirmConfig =
