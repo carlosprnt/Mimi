@@ -362,15 +362,6 @@ export const HomeScreen: React.FC = () => {
       },
     },
     {
-      id: 'wake',
-      label: t('timeline.addWake'),
-      icon: 'sunny-outline',
-      onPress: () => {
-        setActionMenuOpen(false);
-        setTimeout(onPressAddWake, 200);
-      },
-    },
-    {
       id: 'nightWake',
       label: t('timeline.addNightWake'),
       icon: 'flash-outline',

@@ -19,6 +19,7 @@ export { Button } from './Button';
 export { Divider } from './Divider';
 export { ListRow } from './ListRow';
 export { Sheet } from './Sheet';
+export { LiftConfirm } from './LiftConfirm';
 export { HeaderBar } from './HeaderBar';
 export { StickyAction } from './StickyAction';
 export { HeroCard } from './HeroCard';

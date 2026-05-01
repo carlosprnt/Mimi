@@ -18,7 +18,7 @@ import {
   Divider,
   DobEditSheet,
   PrematurityEditSheet,
-  DeleteChildSheet,
+  LiftConfirm,
 } from '@/components';
 import { colors, fonts, spacing, screenGutter } from '@/theme';
 import { useBabyStore } from '@/state/babyStore';
@@ -91,91 +91,101 @@ export const BabyEditScreen: React.FC = () => {
 
   return (
     <Screen backdrop="night">
-      <HeaderBar
-        title={t('profile.babyEditTitle')}
-        leading={{
-          icon: 'arrow-back',
-          label: t('common.back'),
-          onPress: dismiss,
-        }}
-      />
-
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <LiftConfirm
+        open={editing === 'delete'}
+        onClose={close}
+        title={t('profile.deleteChildConfirmTitle', { name: baby.name })}
+        body={t('profile.deleteChildConfirmBody')}
+        destructiveLabel={t('profile.deleteBaby')}
+        onConfirm={onConfirmDelete}
       >
-        <Card padded={false} tone="night" style={styles.card}>
-          <View style={styles.inner}>
-            <Pressable
-              onPress={() => setEditingName(true)}
-              style={styles.nameRow}
-            >
-              <Text variant="body" tone="secondary" style={styles.nameLabel}>
-                {t('profile.name')}
-              </Text>
-              {editingName ? (
-                <TextInput
-                  ref={nameInputRef}
-                  value={nameDraft}
-                  onChangeText={setNameDraft}
-                  onBlur={commitName}
-                  onSubmitEditing={commitName}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  selectionColor={colors.accent.base}
-                  returnKeyType="done"
-                  style={styles.nameInput}
-                />
-              ) : (
-                <Text
-                  variant="body"
-                  tone="primary"
-                  align="right"
-                  numberOfLines={1}
-                  style={styles.nameValue}
-                >
-                  {baby.name}
-                </Text>
-              )}
-            </Pressable>
-            <Divider />
+        <HeaderBar
+          title={t('profile.babyEditTitle')}
+          leading={{
+            icon: 'arrow-back',
+            label: t('common.back'),
+            onPress: dismiss,
+          }}
+        />
 
-            <ListRow
-              label={t('profile.dob')}
-              value={dob.toLocaleDateString(undefined, {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
-              onPress={() => setEditing('dob')}
-            />
-            <View style={styles.disabledRow}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          scrollEnabled={editing !== 'delete'}
+        >
+          <Card padded={false} tone="night" style={styles.card}>
+            <View style={styles.inner}>
+              <Pressable
+                onPress={() => setEditingName(true)}
+                style={styles.nameRow}
+              >
+                <Text variant="body" tone="secondary" style={styles.nameLabel}>
+                  {t('profile.name')}
+                </Text>
+                {editingName ? (
+                  <TextInput
+                    ref={nameInputRef}
+                    value={nameDraft}
+                    onChangeText={setNameDraft}
+                    onBlur={commitName}
+                    onSubmitEditing={commitName}
+                    autoCapitalize="words"
+                    autoCorrect={false}
+                    selectionColor={colors.accent.base}
+                    returnKeyType="done"
+                    style={styles.nameInput}
+                  />
+                ) : (
+                  <Text
+                    variant="body"
+                    tone="primary"
+                    align="right"
+                    numberOfLines={1}
+                    style={styles.nameValue}
+                  >
+                    {baby.name}
+                  </Text>
+                )}
+              </Pressable>
+              <Divider />
+
               <ListRow
-                label={t('profile.age')}
-                value={ageLabel(baby)}
+                label={t('profile.dob')}
+                value={dob.toLocaleDateString(undefined, {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                })}
+                onPress={() => setEditing('dob')}
+              />
+              <View style={styles.disabledRow}>
+                <ListRow
+                  label={t('profile.age')}
+                  value={ageLabel(baby)}
+                />
+              </View>
+              <ListRow
+                label={t('profile.bornEarly')}
+                value={
+                  baby.prematureWeeks
+                    ? t('profile.weeks', { count: baby.prematureWeeks })
+                    : t('common.no')
+                }
+                onPress={() => setEditing('prematurity')}
+                showDivider={false}
               />
             </View>
-            <ListRow
-              label={t('profile.bornEarly')}
-              value={
-                baby.prematureWeeks
-                  ? t('profile.weeks', { count: baby.prematureWeeks })
-                  : t('common.no')
-              }
-              onPress={() => setEditing('prematurity')}
-              showDivider={false}
-            />
-          </View>
-        </Card>
+          </Card>
 
-        <Button
-          title={t('profile.deleteBaby')}
-          variant="dangerGhost"
-          onPress={() => setEditing('delete')}
-          style={styles.deleteButton}
-        />
-      </ScrollView>
+          <Button
+            title={t('profile.deleteBaby')}
+            variant="dangerGhost"
+            onPress={() => setEditing('delete')}
+            style={styles.deleteButton}
+          />
+        </ScrollView>
+      </LiftConfirm>
 
       <DobEditSheet
         visible={editing === 'dob'}
@@ -188,12 +198,6 @@ export const BabyEditScreen: React.FC = () => {
         initial={baby.prematureWeeks}
         onClose={close}
         onSave={onSavePrematurity}
-      />
-      <DeleteChildSheet
-        visible={editing === 'delete'}
-        baby={baby}
-        onClose={close}
-        onConfirm={onConfirmDelete}
       />
     </Screen>
   );
