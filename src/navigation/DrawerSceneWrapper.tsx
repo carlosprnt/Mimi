@@ -4,13 +4,18 @@ import Animated, {
   Easing,
   interpolate,
   Extrapolation,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
 import { useMenuStore } from '@/state/menuStore';
 import { MenuPanel } from './MenuPanel';
+
+const EDGE_TRIGGER_X = 30;
+const EDGE_OPEN_DISTANCE = 60;
 
 const ANIM_OPEN = 480;
 const ANIM_CLOSE = 280;
@@ -36,9 +41,31 @@ export const DrawerSceneWrapper: React.FC<{ children: React.ReactNode }> = ({
     opacity: interpolate(progress.value, [0, 1], [0, 1], Extrapolation.CLAMP),
   }));
 
+  // Edge-swipe to open the menu. We let the native pan activate after
+  // 20px of horizontal motion (so vertical scrolls inside the screen
+  // don't trigger it) and only commit if the gesture began near the
+  // left edge of the screen and travelled far enough to the right.
+  const edgeStartX = useSharedValue(-1);
+  const openMenu = () => setOpen(true);
+  const edgeOpenGesture = Gesture.Pan()
+    .enabled(!isOpen)
+    .activeOffsetX(20)
+    .failOffsetY([-25, 25])
+    .onBegin((e) => {
+      edgeStartX.value = e.absoluteX;
+    })
+    .onEnd((e) => {
+      if (edgeStartX.value < 0 || edgeStartX.value > EDGE_TRIGGER_X) return;
+      if (e.translationX > EDGE_OPEN_DISTANCE) {
+        runOnJS(openMenu)();
+      }
+    });
+
   return (
     <View style={styles.root}>
-      <View style={styles.scene}>{children}</View>
+      <GestureDetector gesture={edgeOpenGesture}>
+        <View style={styles.scene}>{children}</View>
+      </GestureDetector>
 
       {/* Backdrop: tap-anywhere closes the menu. pointerEvents flips so
           the dashboard remains tappable while the menu is closed. */}

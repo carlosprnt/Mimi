@@ -83,7 +83,7 @@ export const SuggestionInfoSheet: React.FC<SuggestionInfoSheetProps> = ({
 }) => {
   if (!event || !baby) {
     return (
-      <Sheet visible={visible} onClose={onClose}>
+      <Sheet visible={visible} onClose={onClose} variant="night">
         <View />
       </Sheet>
     );
@@ -91,7 +91,7 @@ export const SuggestionInfoSheet: React.FC<SuggestionInfoSheetProps> = ({
   const body = buildBody(event, baby, use24h, now);
 
   return (
-    <Sheet visible={visible} onClose={onClose}>
+    <Sheet visible={visible} onClose={onClose} variant="night">
       <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
         {t('timeline.suggestedEyebrow')}
       </Text>

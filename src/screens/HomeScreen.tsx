@@ -748,15 +748,16 @@ const styles = StyleSheet.create({
   },
   planCard: {
     marginTop: spacing.lg,
+    marginBottom: 32,
   },
   planEyebrow: {
-    marginBottom: spacing.md,
+    marginBottom: 32,
   },
   planHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 32,
   },
   addWakeRow: {
     flexDirection: 'row',

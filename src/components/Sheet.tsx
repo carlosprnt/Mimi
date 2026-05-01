@@ -197,6 +197,10 @@ const styles = StyleSheet.create({
   },
   sheetNight: {
     backgroundColor: colors.night.top,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.42)',
   },
   grabberWrap: {
     alignItems: 'center',
