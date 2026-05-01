@@ -118,23 +118,41 @@ export const RootNavigator: React.FC = () => {
         initialRouteName={hasBaby ? 'Root' : 'OnboardingWelcome'}
       >
         <Stack.Screen name="OnboardingWelcome" component={WelcomeScreen} />
+        {/* Onboarding step screens use animation:'none' at the
+             navigator level — the body content of each screen runs
+             its own Reanimated keyframe (fade + scale + tiny shake)
+             via OnboardingScene / per-screen Animated.View wrappers,
+             so the visible transition is "elements blur out and the
+             next step's elements fade in" rather than a stack slide. */}
         <Stack.Screen
           name="OnboardingDob"
           component={OnboardingDobScreen}
-          options={{ animation: 'slide_from_bottom' }}
+          options={{ animation: 'none' }}
         />
-        <Stack.Screen name="OnboardingAtTerm" component={OnboardingAtTermScreen} />
+        <Stack.Screen
+          name="OnboardingAtTerm"
+          component={OnboardingAtTermScreen}
+          options={{ animation: 'none' }}
+        />
         <Stack.Screen
           name="OnboardingDueDate"
           component={OnboardingDueDateScreen}
-          options={{ animation: 'slide_from_bottom' }}
+          options={{ animation: 'none' }}
         />
-        <Stack.Screen name="OnboardingIdentity" component={OnboardingIdentityScreen} />
-        <Stack.Screen name="OnboardingSex" component={OnboardingSexScreen} />
+        <Stack.Screen
+          name="OnboardingIdentity"
+          component={OnboardingIdentityScreen}
+          options={{ animation: 'none' }}
+        />
+        <Stack.Screen
+          name="OnboardingSex"
+          component={OnboardingSexScreen}
+          options={{ animation: 'none' }}
+        />
         <Stack.Screen
           name="OnboardingSummary"
           component={OnboardingSummaryScreen}
-          options={{ animation: 'fade', animationDuration: 380 }}
+          options={{ animation: 'none' }}
         />
         <Stack.Screen name="OnboardingName" component={NameScreen} />
         <Stack.Screen name="OnboardingDobLegacy" component={DobScreen} />

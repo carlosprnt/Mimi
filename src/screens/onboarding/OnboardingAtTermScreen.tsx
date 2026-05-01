@@ -16,7 +16,7 @@ export const OnboardingAtTermScreen: React.FC = () => {
   const atTerm = useOnboardingDraft((s) => s.atTerm);
   const setDraft = useOnboardingDraft((s) => s.set);
   const { width } = useWindowDimensions();
-  const heroSize = Math.round(width * 0.42);
+  const heroSize = Math.round(width * 0.48);
 
   const choose = (term: boolean) => {
     setDraft({ atTerm: term, dueDate: term ? undefined : undefined });

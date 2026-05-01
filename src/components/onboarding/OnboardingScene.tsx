@@ -7,11 +7,13 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Screen } from '../Screen';
 import { Text } from '../Text';
 import { Button } from '../Button';
 import { ONBOARDING_HEADER_HEIGHT } from './OnboardingHeader';
+import { ONBOARDING_ENTER, ONBOARDING_EXIT } from './onboardingMotion';
 import { screenGutter, spacing } from '@/theme';
 
 interface OnboardingSceneProps {
@@ -66,28 +68,34 @@ export const OnboardingScene: React.FC<OnboardingSceneProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={0}
       >
-        <Body {...bodyProps}>
-          {hero ? <View style={styles.hero}>{hero}</View> : null}
-          {eyebrow ? (
-            <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
-              {eyebrow}
+        <Animated.View
+          style={styles.flex}
+          entering={ONBOARDING_ENTER}
+          exiting={ONBOARDING_EXIT}
+        >
+          <Body {...bodyProps}>
+            {hero ? <View style={styles.hero}>{hero}</View> : null}
+            {eyebrow ? (
+              <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
+                {eyebrow}
+              </Text>
+            ) : null}
+            <Text variant="title" align="center" style={styles.title}>
+              {title}
             </Text>
-          ) : null}
-          <Text variant="title" align="center" style={styles.title}>
-            {title}
-          </Text>
-          {subtitle ? (
-            <Text
-              variant="callout"
-              align="center"
-              tone="secondary"
-              style={styles.subtitle}
-            >
-              {subtitle}
-            </Text>
-          ) : null}
-          {children ? <View style={styles.children}>{children}</View> : null}
-        </Body>
+            {subtitle ? (
+              <Text
+                variant="callout"
+                align="center"
+                tone="secondary"
+                style={styles.subtitle}
+              >
+                {subtitle}
+              </Text>
+            ) : null}
+            {children ? <View style={styles.children}>{children}</View> : null}
+          </Body>
+        </Animated.View>
 
         {cta || secondaryCta ? (
           <View

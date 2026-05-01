@@ -14,8 +14,12 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import {
+  ONBOARDING_ENTER,
+} from '@/components/onboarding/onboardingMotion';
 import { BlurView } from 'expo-blur';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
@@ -164,6 +168,35 @@ export const WelcomeScreen: React.FC = () => {
       }
     });
 
+  // Image bounce: pull the login illustration down (max 60px), let
+  // go and it springs back. The title + subtitle below follow the
+  // image 1:1 so the elements feel tied together (image "pushes"
+  // text down). Disabled while the auth panel is open so the
+  // dismiss gesture takes priority there.
+  const imageDragY = useSharedValue(0);
+  const imagePanGesture = Gesture.Pan()
+    .enabled(!authPanelOpen)
+    .activeOffsetY(8)
+    .failOffsetX([-25, 25])
+    .onUpdate((e) => {
+      imageDragY.value = Math.max(0, Math.min(60, e.translationY));
+    })
+    .onEnd(() => {
+      imageDragY.value = withSpring(0, {
+        damping: 9,
+        stiffness: 110,
+        mass: 1,
+      });
+    });
+
+  const imageDragStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: imageDragY.value }],
+  }));
+
+  const textFollowStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: imageDragY.value }],
+  }));
+
   const panelStyle = useAnimatedStyle(() => ({
     opacity: interpolate(slide.value, [0, 0.5, 1], [0, 0.3, 1], Extrapolation.CLAMP),
     transform: [
@@ -264,30 +297,37 @@ export const WelcomeScreen: React.FC = () => {
           the lifted scene OR dragging it down dismisses the panel. */}
       <GestureDetector gesture={dismissGesture}>
         <Animated.View style={[styles.scene, styles.sceneFrame, sceneStyle]}>
-        <View style={[styles.body, { paddingTop: insets.top + spacing.xxl }]}>
-          <View style={styles.imageWrap}>
-            <Image
-              source={LOGIN_IMAGE}
-              style={{
-                width: imageSize,
-                height: imageSize,
-              }}
-              resizeMode="contain"
-            />
-          </View>
+        <Animated.View
+          style={[styles.body, { paddingTop: insets.top + spacing.xxl }]}
+          entering={ONBOARDING_ENTER}
+        >
+          <GestureDetector gesture={imagePanGesture}>
+            <Animated.View style={[styles.imageWrap, imageDragStyle]}>
+              <Image
+                source={LOGIN_IMAGE}
+                style={{
+                  width: imageSize,
+                  height: imageSize,
+                }}
+                resizeMode="contain"
+              />
+            </Animated.View>
+          </GestureDetector>
 
-          <Text variant="title" align="center" style={styles.title}>
-            {t('onboarding.welcome.title')}
-          </Text>
-          <Text
-            variant="callout"
-            tone="secondary"
-            align="center"
-            style={styles.subtitle}
-          >
-            {t('onboarding.welcome.subtitle')}
-          </Text>
-        </View>
+          <Animated.View style={textFollowStyle}>
+            <Text variant="title" align="center" style={styles.title}>
+              {t('onboarding.welcome.title')}
+            </Text>
+            <Text
+              variant="callout"
+              tone="secondary"
+              align="center"
+              style={styles.subtitle}
+            >
+              {t('onboarding.welcome.subtitle')}
+            </Text>
+          </Animated.View>
+        </Animated.View>
 
         <View
           style={[

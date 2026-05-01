@@ -18,7 +18,7 @@ export const OnboardingSexScreen: React.FC = () => {
   const sex = useOnboardingDraft((s) => s.sex);
   const setDraft = useOnboardingDraft((s) => s.set);
   const { width } = useWindowDimensions();
-  const heroSize = Math.round(width * 0.42);
+  const heroSize = Math.round(width * 0.48);
 
   const choose = (next: Sex) => {
     setDraft({ sex: next });
