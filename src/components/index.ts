@@ -5,6 +5,7 @@ export { Card } from './Card';
 export { ScrollScaleWrap } from './ScrollScaleWrap';
 export { OrbitShine } from './OrbitShine';
 export { Sparkles } from './Sparkles';
+export { SparkleBurst } from './SparkleBurst';
 export { ShootingStars } from './ShootingStars';
 export { BabySwitcherSheet } from './BabySwitcherSheet';
 export { BabyDropdown } from './BabyDropdown';

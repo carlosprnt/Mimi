@@ -36,6 +36,7 @@ import {
   Button,
   ShootingStars,
   OrbitShine,
+  SparkleBurst,
 } from '@/components';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import { useAuthStore } from '@/state/authStore';
@@ -168,12 +169,14 @@ export const WelcomeScreen: React.FC = () => {
       }
     });
 
-  // Image bounce: pull the login illustration down (max 60px), let
-  // go and it springs back. The title + subtitle below follow the
-  // image 1:1 so the elements feel tied together (image "pushes"
-  // text down). Disabled while the auth panel is open so the
-  // dismiss gesture takes priority there.
+  // Image bounce: pull the login illustration down (max 60px). At
+  // full pull the image scales up to ~5.5× and rotates ~20° as a
+  // playful peek-a-boo. On release it springs back to rest and a
+  // short white sparkle burst fires around it. The text below does
+  // NOT follow the image — only the illustration moves.
   const imageDragY = useSharedValue(0);
+  const [burstId, setBurstId] = useState(0);
+  const triggerBurst = () => setBurstId((prev) => prev + 1);
   const imagePanGesture = Gesture.Pan()
     .enabled(!authPanelOpen)
     .activeOffsetY(8)
@@ -187,15 +190,21 @@ export const WelcomeScreen: React.FC = () => {
         stiffness: 110,
         mass: 1,
       });
+      runOnJS(triggerBurst)();
     });
 
-  const imageDragStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: imageDragY.value }],
-  }));
-
-  const textFollowStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: imageDragY.value }],
-  }));
+  const imageDragStyle = useAnimatedStyle(() => {
+    const dragT = imageDragY.value / 60; // 0 → 1
+    const scale = interpolate(dragT, [0, 1], [1, 5.5], Extrapolation.CLAMP);
+    const rotateDeg = interpolate(dragT, [0, 1], [0, 20], Extrapolation.CLAMP);
+    return {
+      transform: [
+        { translateY: imageDragY.value },
+        { scale },
+        { rotate: `${rotateDeg}deg` },
+      ],
+    };
+  });
 
   const panelStyle = useAnimatedStyle(() => ({
     opacity: interpolate(slide.value, [0, 0.5, 1], [0, 0.3, 1], Extrapolation.CLAMP),
@@ -311,22 +320,23 @@ export const WelcomeScreen: React.FC = () => {
                 }}
                 resizeMode="contain"
               />
+              {burstId > 0 ? (
+                <SparkleBurst key={burstId} count={28} maxRadius={170} />
+              ) : null}
             </Animated.View>
           </GestureDetector>
 
-          <Animated.View style={textFollowStyle}>
-            <Text variant="title" align="center" style={styles.title}>
-              {t('onboarding.welcome.title')}
-            </Text>
-            <Text
-              variant="callout"
-              tone="secondary"
-              align="center"
-              style={styles.subtitle}
-            >
-              {t('onboarding.welcome.subtitle')}
-            </Text>
-          </Animated.View>
+          <Text variant="title" align="center" style={styles.title}>
+            {t('onboarding.welcome.title')}
+          </Text>
+          <Text
+            variant="callout"
+            tone="secondary"
+            align="center"
+            style={styles.subtitle}
+          >
+            {t('onboarding.welcome.subtitle')}
+          </Text>
         </Animated.View>
 
         <View
