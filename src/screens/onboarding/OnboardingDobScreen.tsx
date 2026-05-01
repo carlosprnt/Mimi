@@ -80,7 +80,7 @@ export const OnboardingDobScreen: React.FC = () => {
       >
         <View
           style={[
-            styles.headingWrap,
+            styles.centerBlock,
             { paddingTop: insets.top + ONBOARDING_HEADER_HEIGHT },
           ]}
         >
@@ -98,9 +98,7 @@ export const OnboardingDobScreen: React.FC = () => {
           >
             {t('onboarding.dob.subtitle')}
           </Text>
-        </View>
-
-        <View style={styles.middle}>
+          <View style={styles.ageGap} />
           <Text variant="display" tone="primary" style={styles.ageValue}>
             {liveAge}
           </Text>
@@ -171,9 +169,10 @@ export const OnboardingDobScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  headingWrap: {
+  centerBlock: {
+    flex: 1,
     paddingHorizontal: screenGutter,
-    paddingTop: spacing.lg,
+    justifyContent: 'center',
   },
   eyebrow: {
     textAlign: 'center',
@@ -186,11 +185,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     paddingHorizontal: spacing.md,
   },
-  middle: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: screenGutter,
+  ageGap: {
+    height: spacing.xxl,
   },
   ageValue: {
     fontFamily: fonts.medium,
