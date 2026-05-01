@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OnboardingScene } from '@/components/onboarding/OnboardingScene';
@@ -9,10 +9,14 @@ import { spacing } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
+const STEP_IMAGE = require('../../../assets/step02.png');
+
 export const OnboardingAtTermScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const atTerm = useOnboardingDraft((s) => s.atTerm);
   const setDraft = useOnboardingDraft((s) => s.set);
+  const { width } = useWindowDimensions();
+  const heroSize = Math.round(width * 0.42);
 
   const choose = (term: boolean) => {
     setDraft({ atTerm: term, dueDate: term ? undefined : undefined });
@@ -26,7 +30,13 @@ export const OnboardingAtTermScreen: React.FC = () => {
       eyebrow={t('onboarding.atTerm.eyebrow')}
       title={t('onboarding.atTerm.title')}
       subtitle={t('onboarding.atTerm.subtitle')}
-      onBack={() => navigation.goBack()}
+      hero={
+        <Image
+          source={STEP_IMAGE}
+          style={{ width: heroSize, height: heroSize }}
+          resizeMode="contain"
+        />
+      }
     >
       <View style={styles.choices}>
         <View style={styles.cell}>

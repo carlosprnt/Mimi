@@ -7,19 +7,17 @@ import {
   View,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Text, Button } from '@/components';
+import { ONBOARDING_HEADER_HEIGHT } from '@/components/onboarding/OnboardingHeader';
 import { ageLabel } from '@/logic/age';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import { haptics } from '@/logic/haptics';
 import { colors, fonts, screenGutter, spacing } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
-
-const TOTAL_STEPS = 6;
 
 const defaultDob = (): Date => {
   const d = new Date();
@@ -80,27 +78,12 @@ export const OnboardingDobScreen: React.FC = () => {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            hitSlop={12}
-            style={({ pressed }) => [
-              styles.backBtn,
-              pressed && styles.pressed,
-            ]}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={22}
-              color={colors.text.primary}
-            />
-          </Pressable>
-          <Text variant="footnote" tone="tertiary" style={styles.stepLabel}>
-            {t('onboarding.stepOf', { step: 1, total: TOTAL_STEPS })}
-          </Text>
-        </View>
-
-        <View style={styles.headingWrap}>
+        <View
+          style={[
+            styles.headingWrap,
+            { paddingTop: insets.top + ONBOARDING_HEADER_HEIGHT },
+          ]}
+        >
           <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
             {t('onboarding.dob.eyebrow')}
           </Text>
@@ -188,23 +171,6 @@ export const OnboardingDobScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: screenGutter,
-    paddingBottom: spacing.sm,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepLabel: {
-    paddingRight: spacing.sm,
-  },
   headingWrap: {
     paddingHorizontal: screenGutter,
     paddingTop: spacing.lg,

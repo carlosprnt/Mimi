@@ -293,6 +293,10 @@ export const en = {
       sheetTitle: 'Create your account',
       sheetBody:
         'Save your baby’s sleep to your account and recover it on any device.',
+      cancelConfirmTitle: 'Cancel registration?',
+      cancelConfirmBody:
+        'You will lose the info you entered in this onboarding. You can start again whenever you want.',
+      cancelConfirmCta: 'Yes, cancel',
     },
     summary: {
       eyebrow: 'ALL SET',

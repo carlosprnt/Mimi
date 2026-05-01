@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NavigationContainer, DarkTheme } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  DarkTheme,
+  useNavigationContainerRef,
+} from '@react-navigation/native';
 import { useBabyStore } from '@/state/babyStore';
+import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { HistoryScreen } from '@/screens/HistoryScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
@@ -80,13 +85,30 @@ const RootMainStack: React.FC = () => {
 export const RootNavigator: React.FC = () => {
   const babies = useBabyStore((s) => s.babies);
   const hydrated = useBabyStore((s) => s.hydrated);
+  const navigationRef = useNavigationContainerRef<RootStackParamList>();
+  const [routeName, setRouteName] = useState<string | undefined>(undefined);
+
+  // The OnboardingHeader is rendered as a sibling of the Stack
+  // (outside it) so that crossing screens does not slide it. We just
+  // need to know which route is active, which we read from the
+  // navigation ref via its state listener.
+  useEffect(() => {
+    const unsubscribe = navigationRef.addListener('state', () => {
+      setRouteName(navigationRef.getCurrentRoute()?.name);
+    });
+    return unsubscribe;
+  }, [navigationRef]);
 
   if (!hydrated) return null;
 
   const hasBaby = babies.length > 0;
 
   return (
-    <NavigationContainer theme={navTheme}>
+    <NavigationContainer
+      ref={navigationRef}
+      theme={navTheme}
+      onReady={() => setRouteName(navigationRef.getCurrentRoute()?.name)}
+    >
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
@@ -120,6 +142,10 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="Root" component={RootMainStack} />
         <Stack.Screen name="BabyEdit" component={BabyEditScreen} />
       </Stack.Navigator>
+      <OnboardingHeader
+        routeName={routeName}
+        navigationRef={navigationRef}
+      />
     </NavigationContainer>
   );
 };

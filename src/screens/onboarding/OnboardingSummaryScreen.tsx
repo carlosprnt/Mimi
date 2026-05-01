@@ -22,7 +22,10 @@ import {
   ListRow,
   Sheet,
   OrbitShine,
+  LiftConfirm,
+  Sparkles,
 } from '@/components';
+import { ONBOARDING_HEADER_HEIGHT } from '@/components/onboarding/OnboardingHeader';
 import {
   useOnboardingDraft,
   computePrematureWeeks,
@@ -43,11 +46,11 @@ import {
 } from '@/services/babies';
 import { pushLocalToRemote } from '@/services/pushLocalToRemote';
 import { haptics } from '@/logic/haptics';
-import { colors, fonts, screenGutter, spacing } from '@/theme';
+import { fonts, screenGutter, spacing } from '@/theme';
 import { RootStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 
-const TOTAL_STEPS = 6;
+const CELEBRATION_MS = 4000;
 
 const formatLong = (iso?: string): string => {
   if (!iso) return '—';
@@ -78,10 +81,20 @@ export const OnboardingSummaryScreen: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [authSheetOpen, setAuthSheetOpen] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [celebrating, setCelebrating] = useState(true);
 
   useEffect(() => {
     void isAppleSignInAvailable().then(setAppleAvailable);
   }, []);
+
+  // 4-second burst of twinkling sparkles when the screen mounts. Then
+  // unmount the Sparkles component to stop drawing entirely.
+  useEffect(() => {
+    const id = setTimeout(() => setCelebrating(false), CELEBRATION_MS);
+    return () => clearTimeout(id);
+  }, []);
+
   const finalizedRef = useRef(false);
 
   const sexLabel =
@@ -206,101 +219,126 @@ export const OnboardingSummaryScreen: React.FC = () => {
     setAuthSheetOpen(true);
   };
 
+  const onConfirmCancel = () => {
+    haptics.warning();
+    clearDraft();
+    navigation.dispatch(
+      CommonActions.reset({ index: 0, routes: [{ name: 'OnboardingWelcome' }] }),
+    );
+  };
+
   return (
     <Screen backdrop="night" edges={['left', 'right']}>
-      <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          hitSlop={12}
-          style={({ pressed }) => [
-            styles.backBtn,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Ionicons
-            name="chevron-back"
-            size={22}
-            color={colors.text.primary}
-          />
-        </Pressable>
-        <Text variant="footnote" tone="tertiary" style={styles.stepLabel}>
-          {t('onboarding.stepOf', { step: 6, total: TOTAL_STEPS })}
-        </Text>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={[
-          styles.scroll,
-          { paddingBottom: 160 + Math.max(insets.bottom, spacing.lg) },
-        ]}
-        showsVerticalScrollIndicator={false}
+      <LiftConfirm
+        open={cancelOpen}
+        onClose={() => setCancelOpen(false)}
+        title={t('onboarding.finalize.cancelConfirmTitle')}
+        body={t('onboarding.finalize.cancelConfirmBody')}
+        destructiveLabel={t('onboarding.finalize.cancelConfirmCta')}
+        onConfirm={onConfirmCancel}
       >
-        <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
-          {t('onboarding.summary.eyebrow')}
-        </Text>
-        <Text variant="title" align="center" style={styles.title}>
-          {t('onboarding.summary.title')}
-        </Text>
-        <Text
-          variant="callout"
-          align="center"
-          tone="secondary"
-          style={styles.subtitle}
-        >
-          {t('onboarding.summary.subtitle', {
-            name: draft.name?.trim() ?? '',
-          })}
-        </Text>
+        <View style={styles.flex}>
+          <ScrollView
+            contentContainerStyle={[
+              styles.scroll,
+              {
+                paddingTop: insets.top + ONBOARDING_HEADER_HEIGHT,
+                paddingBottom: 200 + Math.max(insets.bottom, spacing.lg),
+              },
+            ]}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
+              {t('onboarding.summary.eyebrow')}
+            </Text>
+            <Text variant="title" align="center" style={styles.title}>
+              {t('onboarding.summary.title')}
+            </Text>
+            <Text
+              variant="callout"
+              align="center"
+              tone="secondary"
+              style={styles.subtitle}
+            >
+              {t('onboarding.summary.subtitle', {
+                name: draft.name?.trim() ?? '',
+              })}
+            </Text>
 
-        <Card variant="bordered" tone="night" style={styles.summary}>
-          <ListRow
-            label={t('onboarding.summary.rowName')}
-            value={draft.name?.trim() || '—'}
-          />
-          <ListRow label={t('onboarding.summary.rowSex')} value={sexLabel} />
-          <ListRow
-            label={t('onboarding.summary.rowDob')}
-            value={formatLong(draft.dob)}
-          />
-          <ListRow
-            label={t('onboarding.summary.rowAtTerm')}
-            value={atTermLabel}
-            showDivider={draft.atTerm === false}
-          />
-          {draft.atTerm === false ? (
-            <ListRow
-              label={t('onboarding.summary.rowDueDate')}
-              value={formatLong(draft.dueDate)}
-              showDivider={false}
-            />
-          ) : null}
-        </Card>
+            <Card variant="bordered" tone="night" style={styles.summary}>
+              <ListRow
+                label={t('onboarding.summary.rowName')}
+                value={draft.name?.trim() || '—'}
+              />
+              <ListRow label={t('onboarding.summary.rowSex')} value={sexLabel} />
+              <ListRow
+                label={t('onboarding.summary.rowDob')}
+                value={formatLong(draft.dob)}
+              />
+              <ListRow
+                label={t('onboarding.summary.rowAtTerm')}
+                value={atTermLabel}
+                showDivider={draft.atTerm === false}
+              />
+              {draft.atTerm === false ? (
+                <ListRow
+                  label={t('onboarding.summary.rowDueDate')}
+                  value={formatLong(draft.dueDate)}
+                  showDivider={false}
+                />
+              ) : null}
+            </Card>
 
-        <Text
-          variant="footnote"
-          tone="tertiary"
-          align="center"
-          style={styles.disclaimer}
-        >
-          {t('onboarding.summary.disclaimer')}
-        </Text>
-      </ScrollView>
+            <Text
+              variant="footnote"
+              tone="tertiary"
+              align="center"
+              style={styles.disclaimer}
+            >
+              {t('onboarding.summary.disclaimer')}
+            </Text>
+          </ScrollView>
 
-      <View
-        pointerEvents="box-none"
-        style={[
-          styles.footer,
-          { paddingBottom: Math.max(insets.bottom, spacing.lg) },
-        ]}
-      >
-        <OrbitShine>
-          <Button
-            title={t('onboarding.finalize.cta')}
-            onPress={onFinalize}
-            disabled={!draftIsComplete(draft)}
-          />
-        </OrbitShine>
-      </View>
+          <View
+            pointerEvents="box-none"
+            style={[
+              styles.footer,
+              { paddingBottom: Math.max(insets.bottom, spacing.lg) },
+            ]}
+          >
+            <OrbitShine>
+              <Button
+                title={t('onboarding.finalize.cta')}
+                onPress={onFinalize}
+                disabled={!draftIsComplete(draft)}
+              />
+            </OrbitShine>
+            <Pressable
+              onPress={() => setCancelOpen(true)}
+              hitSlop={8}
+              style={({ pressed }) => [
+                styles.cancelLink,
+                pressed && styles.cancelLinkPressed,
+              ]}
+            >
+              <Text variant="body" tone="secondary">
+                {t('profile.cancel')}
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* 4-second celebration burst on mount: a dense field of
+              twinkling dots scattered across the whole screen. After
+              CELEBRATION_MS we unmount the Sparkles entirely so the
+              background goes back to the regular night sky. */}
+          <View
+            pointerEvents="none"
+            style={StyleSheet.absoluteFillObject}
+          >
+            <Sparkles active={celebrating} count={70} />
+          </View>
+        </View>
+      </LiftConfirm>
 
       <Sheet visible={authSheetOpen} onClose={() => setAuthSheetOpen(false)}>
         <Text variant="title" align="center" style={styles.sheetTitle}>
@@ -356,26 +394,9 @@ export const OnboardingSummaryScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: screenGutter,
-    paddingBottom: spacing.sm,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepLabel: {
-    paddingRight: spacing.sm,
-  },
+  flex: { flex: 1 },
   scroll: {
     paddingHorizontal: screenGutter,
-    paddingTop: spacing.md,
   },
   eyebrow: {
     textAlign: 'center',
@@ -406,6 +427,14 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     backgroundColor: 'rgba(7, 11, 31, 0.78)',
   },
+  cancelLink: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    marginTop: spacing.xs,
+  },
+  cancelLinkPressed: {
+    opacity: 0.55,
+  },
   sheetTitle: {
     marginTop: spacing.sm,
     marginBottom: spacing.sm,
@@ -434,8 +463,5 @@ const styles = StyleSheet.create({
     color: '#0E0F12',
     fontFamily: fonts.medium,
     fontSize: 16,
-  },
-  pressed: {
-    opacity: 0.7,
   },
 });

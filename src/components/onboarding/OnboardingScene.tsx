@@ -7,13 +7,12 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Screen } from '../Screen';
 import { Text } from '../Text';
 import { Button } from '../Button';
-import { colors, screenGutter, spacing } from '@/theme';
-import { t } from '@/i18n';
+import { ONBOARDING_HEADER_HEIGHT } from './OnboardingHeader';
+import { screenGutter, spacing } from '@/theme';
 
 interface OnboardingSceneProps {
   step: number;
@@ -21,7 +20,9 @@ interface OnboardingSceneProps {
   eyebrow?: string;
   title: string;
   subtitle?: string;
-  onBack?: () => void;
+  /** Optional react node rendered between the header and the title.
+   *  Used by step screens that show an illustration. */
+  hero?: React.ReactNode;
   cta?: {
     label: string;
     onPress: () => void;
@@ -37,27 +38,26 @@ interface OnboardingSceneProps {
 }
 
 export const OnboardingScene: React.FC<OnboardingSceneProps> = ({
-  step,
-  total,
   eyebrow,
   title,
   subtitle,
-  onBack,
+  hero,
   cta,
   secondaryCta,
   children,
   scrollable = false,
 }) => {
   const insets = useSafeAreaInsets();
+  const topPad = insets.top + ONBOARDING_HEADER_HEIGHT;
 
   const Body = scrollable ? ScrollView : View;
   const bodyProps = scrollable
     ? {
-        contentContainerStyle: styles.scrollContent,
+        contentContainerStyle: [styles.scrollContent, { paddingTop: topPad }],
         showsVerticalScrollIndicator: false,
         keyboardShouldPersistTaps: 'handled' as const,
       }
-    : { style: styles.body };
+    : { style: [styles.body, { paddingTop: topPad }] };
 
   return (
     <Screen backdrop="night" edges={['left', 'right']}>
@@ -66,36 +66,8 @@ export const OnboardingScene: React.FC<OnboardingSceneProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={0}
       >
-        <View
-          style={[
-            styles.topBar,
-            { paddingTop: insets.top + spacing.sm },
-          ]}
-        >
-          {onBack ? (
-            <Pressable
-              onPress={onBack}
-              hitSlop={12}
-              style={({ pressed }) => [
-                styles.backBtn,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Ionicons
-                name="chevron-back"
-                size={22}
-                color={colors.text.primary}
-              />
-            </Pressable>
-          ) : (
-            <View style={styles.backBtn} />
-          )}
-          <Text variant="footnote" tone="tertiary" style={styles.stepLabel}>
-            {t('onboarding.stepOf', { step, total })}
-          </Text>
-        </View>
-
         <Body {...bodyProps}>
+          {hero ? <View style={styles.hero}>{hero}</View> : null}
           {eyebrow ? (
             <Text variant="eyebrow" tone="tertiary" style={styles.eyebrow}>
               {eyebrow}
@@ -155,26 +127,6 @@ export const OnboardingScene: React.FC<OnboardingSceneProps> = ({
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: screenGutter,
-    paddingBottom: spacing.sm,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pressed: {
-    opacity: 0.5,
-  },
-  stepLabel: {
-    paddingRight: spacing.sm,
-  },
   body: {
     flex: 1,
     paddingHorizontal: screenGutter,
@@ -185,6 +137,10 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     flexGrow: 1,
     justifyContent: 'center',
+  },
+  hero: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
   },
   eyebrow: {
     textAlign: 'center',

@@ -297,6 +297,10 @@ export const es: Translations = {
       sheetTitle: 'Crea tu cuenta',
       sheetBody:
         'Guarda el sueño de tu bebé en tu cuenta. Recupéralo en cualquier dispositivo.',
+      cancelConfirmTitle: '¿Cancelar el registro?',
+      cancelConfirmBody:
+        'Perderás los datos que has introducido en este onboarding. Podrás empezar de nuevo cuando quieras.',
+      cancelConfirmCta: 'Sí, quiero cancelar',
     },
     summary: {
       eyebrow: 'TODO LISTO',
