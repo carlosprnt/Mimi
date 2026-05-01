@@ -177,7 +177,7 @@ export const LiftConfirm: React.FC<LiftConfirmProps> = ({
             pressed && styles.cancelLinkPressed,
           ]}
         >
-          <Text variant="footnote" tone="secondary">
+          <Text variant="body" tone="secondary">
             {cancelLabel ?? t('profile.cancel')}
           </Text>
         </Pressable>

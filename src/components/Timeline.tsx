@@ -360,20 +360,23 @@ export const Timeline: React.FC<TimelineProps> = ({
 
   // Find the rail segment that "contains" the current moment — i.e.
   // the gap between the last past event and the next upcoming one.
-  // The line below visibleEvents[nowSegmentIndex] gets the NowGlow
-  // overlay. -1 disables the glow.
-  const nowSegmentIndex = (() => {
-    const t = now.getTime();
-    for (let i = 0; i < visibleEvents.length - 1; i++) {
-      const cur = visibleEvents[i];
-      const nxt = visibleEvents[i + 1];
-      const end = eventEndTime(cur);
-      const start = eventStartTime(nxt);
-      if (!end || !start) continue;
-      if (t >= end.getTime() && t < start.getTime()) return i;
-    }
-    return -1;
-  })();
+  // Suppressed when any event is currently active so we don't double
+  // up on pulsing UI (the active dot already breathes).
+  const hasActiveEvent = visibleEvents.some((e) => e.status === 'active');
+  const nowSegmentIndex = hasActiveEvent
+    ? -1
+    : (() => {
+        const t = now.getTime();
+        for (let i = 0; i < visibleEvents.length - 1; i++) {
+          const cur = visibleEvents[i];
+          const nxt = visibleEvents[i + 1];
+          const end = eventEndTime(cur);
+          const start = eventStartTime(nxt);
+          if (!end || !start) continue;
+          if (t >= end.getTime() && t < start.getTime()) return i;
+        }
+        return -1;
+      })();
 
   return (
     <View style={styles.wrap}>
@@ -542,59 +545,61 @@ export const Timeline: React.FC<TimelineProps> = ({
             </View>
 
             <View style={[styles.content, { opacity: rowOpacity }]}>
-              <View style={styles.titleRow}>
-                <Text
-                  variant="body"
-                  tone={
-                    event.status === 'suggested'
-                      ? event.confidence === 'low'
-                        ? 'tertiary'
-                        : 'secondary'
-                      : event.kind === 'nightWake' && event.status === 'real'
-                        ? 'danger'
-                        : 'primary'
-                  }
-                  style={styles.title}
-                >
-                  {labelFor(
-                    event.kind,
-                    event.segment,
-                    event.overnightChain,
-                    event.microNap,
-                  )}
-                </Text>
-                {rightDuration ? (
+              <View style={styles.titleBlock}>
+                <View style={styles.titleRow}>
                   <Text
                     variant="body"
                     tone={
-                      event.kind === 'nightWake' && event.status === 'real'
-                        ? 'danger'
-                        : 'primary'
+                      event.status === 'suggested'
+                        ? event.confidence === 'low'
+                          ? 'tertiary'
+                          : 'secondary'
+                        : event.kind === 'nightWake' && event.status === 'real'
+                          ? 'danger'
+                          : 'primary'
+                    }
+                    style={styles.title}
+                  >
+                    {labelFor(
+                      event.kind,
+                      event.segment,
+                      event.overnightChain,
+                      event.microNap,
+                    )}
+                  </Text>
+                  {rightDuration ? (
+                    <Text
+                      variant="body"
+                      tone={
+                        event.kind === 'nightWake' && event.status === 'real'
+                          ? 'danger'
+                          : 'primary'
+                      }
+                      tabular
+                    >
+                      {rightDuration}
+                    </Text>
+                  ) : null}
+                </View>
+                {subtitle ? (
+                  <Text
+                    variant="footnote"
+                    tone={
+                      event.status === 'suggested'
+                        ? event.confidence === 'low'
+                          ? 'tertiary'
+                          : 'secondary'
+                        : event.kind === 'nightWake' && event.status === 'real'
+                          ? 'danger'
+                          : 'tertiary'
                     }
                     tabular
+                    style={styles.subtitle}
                   >
-                    {rightDuration}
+                    {subtitle}
                   </Text>
                 ) : null}
               </View>
-              {subtitle ? (
-                <Text
-                  variant="footnote"
-                  tone={
-                    event.status === 'suggested'
-                      ? event.confidence === 'low'
-                        ? 'tertiary'
-                        : 'secondary'
-                      : event.kind === 'nightWake' && event.status === 'real'
-                        ? 'danger'
-                        : 'tertiary'
-                  }
-                  tabular
-                  style={styles.subtitle}
-                >
-                  {subtitle}
-                </Text>
-              ) : null}
               {extraCaption ? (
                 <Text
                   variant="footnote"
@@ -712,8 +717,11 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.md,
     paddingBottom: spacing.sm,
   },
+  titleBlock: {
+    minHeight: DOT_SIZE,
+    justifyContent: 'center',
+  },
   titleRow: {
-    height: DOT_SIZE,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -734,8 +742,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    left: -3,
-    right: -3,
+    left: 0,
+    right: 0,
     overflow: 'hidden',
   },
 });
