@@ -192,10 +192,11 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 28,
     overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
   },
   sceneOverlay: {
+    borderRadius: 28,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     backgroundColor: 'rgba(7, 11, 31, 0.18)',
   },
   panel: {
