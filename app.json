@@ -11,12 +11,13 @@
     "plugins": [
       "expo-web-browser",
       "expo-apple-authentication",
+      "expo-notifications",
       "./plugins/withMimiWidget"
     ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.carlospariente.mimi",
-      "buildNumber": "26",
+      "buildNumber": "27",
       "userInterfaceStyle": "dark",
       "icon": "./assets/icon.png",
       "usesAppleSignIn": true,

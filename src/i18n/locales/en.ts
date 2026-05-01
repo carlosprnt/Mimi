@@ -37,6 +37,14 @@ export const en = {
       'Your data is saved to your account. You will get it back when you sign in again.',
     signOutConfirmCta: 'Yes, sign out',
   },
+  notifications: {
+    bedtimeTitle: 'Time to wind down, {name}',
+    bedtimeBody:
+      'The bedtime routine starts in 20 minutes. Sweet night ahead.',
+    permissionDeniedTitle: 'Notifications permission',
+    permissionDeniedBody:
+      'Turn on notifications for Mimi in Settings → Notifications so we can warn you before bedtime.',
+  },
   auth: {
     configMissing: 'Missing EXPO_PUBLIC_SUPABASE_URL / ANON_KEY in .env.',
     noAuthUrl: 'Supabase did not return an authorization URL.',

@@ -39,6 +39,14 @@ export const es: Translations = {
       'Tus datos están guardados en tu cuenta. Los recuperarás al volver a entrar.',
     signOutConfirmCta: 'Sí, cerrar sesión',
   },
+  notifications: {
+    bedtimeTitle: 'Hora de prepararse, {name}',
+    bedtimeBody:
+      'En 20 minutos toca empezar la rutina de sueño. Buena noche.',
+    permissionDeniedTitle: 'Permiso de notificaciones',
+    permissionDeniedBody:
+      'Activa las notificaciones para Mimi en Ajustes → Notificaciones para que podamos avisarte antes de la hora de dormir.',
+  },
   auth: {
     configMissing:
       'Falta configurar EXPO_PUBLIC_SUPABASE_URL / ANON_KEY en .env.',
