@@ -50,7 +50,13 @@ const buildBody = (
       event.from && event.to
         ? `${formatClock(event.from, use24h)} – ${formatClock(event.to, use24h)}`
         : null;
-    const paragraph = `A los ${age}, ${name} suele necesitar unas ${expected} siestas al día con ventanas de vigilia de ${minMin}–${maxMin} min. Mimi calcula esta sugerencia desde el último despertar o siesta y la ajusta si las siestas de hoy fueron más cortas de lo habitual.`;
+    const paragraph = t('suggestionInfo.napBody', {
+      age,
+      name,
+      expected,
+      minMin,
+      maxMin,
+    });
     return { title: t('timeline.nap'), range, paragraph };
   }
 
@@ -62,7 +68,10 @@ const buildBody = (
       event.from && event.to
         ? `${formatClock(event.from, use24h)} – ${formatClock(event.to, use24h)}`
         : null;
-    const paragraph = `A esta edad la hora habitual de dormir suele estar entre ${earliest} y ${latest}. Mimi puede atrasarla hasta 30 minutos si la última siesta fue muy tarde, para evitar bedtime muy temprano sin sueño suficiente.`;
+    const paragraph = t('suggestionInfo.bedtimeBody', {
+      earliest,
+      latest,
+    });
     return { title: t('timeline.bedtime'), range, paragraph };
   }
 

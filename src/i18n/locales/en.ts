@@ -404,6 +404,12 @@ export const en = {
     contextPartialData:
       'Partial data today. Suggestions are orientative.',
   },
+  suggestionInfo: {
+    napBody:
+      'At {age}, {name} typically needs about {expected} naps a day, with wake windows of {minMin}–{maxMin} min. Mimi calculates this suggestion from the last wake or nap and adjusts it if today’s naps have been shorter than usual.',
+    bedtimeBody:
+      'At this age, bedtime usually falls between {earliest} and {latest}. If the last nap ran late, Mimi can shift the suggestion by up to 30 minutes to avoid putting baby down too early.',
+  },
   duration: {
     hm: '{hours}h {minutes}m',
     hOnly: '{hours}h',
