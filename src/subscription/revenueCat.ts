@@ -4,6 +4,7 @@ import {
   RC_ANNUAL_IDENTIFIER,
   RC_MONTHLY_IDENTIFIER,
   getRevenueCatApiKey,
+  isRevenueCatRuntimeAvailable,
 } from './config';
 import type { PriceInfo, PurchaseOutcome, RestoreOutcome, SubscriptionPlan } from './types';
 
@@ -60,6 +61,10 @@ let lastOffering: PurchasesOffering | null = null;
 
 function loadPurchases(): PurchasesModule | null {
   if (cached !== undefined) return cached;
+  if (!isRevenueCatRuntimeAvailable()) {
+    cached = null;
+    return cached;
+  }
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const mod = require('react-native-purchases');

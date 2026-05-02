@@ -1,7 +1,22 @@
 import { Platform } from 'react-native';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 
 export const ENTITLEMENT_ID = 'mimi_pro';
 export const OFFERING_ID = 'default';
+
+/**
+ * Returns true when the app is running inside Expo Go, where the
+ * `react-native-purchases` native module is not embedded. The wrapper
+ * skips the require entirely in that case.
+ *
+ * You can also force-disable the native module with
+ *   EXPO_PUBLIC_DISABLE_REVENUECAT=1
+ * which is useful when sharing dev builds without StoreKit access.
+ */
+export function isRevenueCatRuntimeAvailable(): boolean {
+  if (process.env.EXPO_PUBLIC_DISABLE_REVENUECAT === '1') return false;
+  return Constants.executionEnvironment !== ExecutionEnvironment.StoreClient;
+}
 
 /**
  * Public RevenueCat API keys are exposed via Expo public env vars.
