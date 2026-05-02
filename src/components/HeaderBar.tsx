@@ -2,6 +2,8 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -53,7 +55,7 @@ const ActionButton: React.FC<{ action: IconAction }> = ({ action }) => (
     style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
   >
     {action.icon ? (
-      <Ionicons name={action.icon} size={24} color={colors.accent.base} />
+      <Ionicons name={action.icon} size={16} color={colors.accent.base} />
     ) : (
       <Text variant="headline" tone="accent">
         {action.glyph}
@@ -141,6 +143,10 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
   if (!scrollY) return inner;
 
+  // Backdrop extends well past the bar so the gradient mask can fade
+  // smoothly into the content underneath, mirroring DashboardHeader.
+  const backdropHeight = insets.top + HEADER_BAR_HEIGHT + 40;
+
   return (
     <View
       style={[styles.floating, { paddingTop: insets.top }]}
@@ -148,23 +154,38 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
     >
       <Animated.View
         style={[
-          StyleSheet.absoluteFill,
           styles.backdrop,
+          { height: backdropHeight },
           bgAnim,
         ]}
         pointerEvents="none"
       >
-        <BlurView
-          intensity={36}
-          tint="dark"
+        <MaskedView
           style={StyleSheet.absoluteFill}
-        />
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: 'rgba(11, 20, 54, 0.6)' },
-          ]}
-        />
+          maskElement={
+            <LinearGradient
+              colors={[
+                'rgba(0,0,0,1)',
+                'rgba(0,0,0,0.85)',
+                'rgba(0,0,0,0)',
+              ]}
+              locations={[0, 0.55, 1]}
+              style={StyleSheet.absoluteFill}
+            />
+          }
+        >
+          <BlurView
+            intensity={36}
+            tint="dark"
+            style={StyleSheet.absoluteFill}
+          />
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: 'rgba(11, 20, 54, 0.42)' },
+            ]}
+          />
+        </MaskedView>
       </Animated.View>
       {inner}
     </View>
@@ -186,6 +207,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     overflow: 'hidden',
   },
   side: {
