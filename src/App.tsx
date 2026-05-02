@@ -12,10 +12,16 @@ import {
 } from '@expo-google-fonts/dm-sans';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { useSessionBootstrap } from '@/hooks/useSessionBootstrap';
+import { useWidgetReconcile } from '@/hooks/useWidgetReconcile';
 import { colors } from '@/theme';
 
 const SessionBootstrap: React.FC = () => {
   useSessionBootstrap();
+  return null;
+};
+
+const WidgetReconcile: React.FC = () => {
+  useWidgetReconcile();
   return null;
 };
 
@@ -33,6 +39,7 @@ export default function App() {
         <View style={styles.root}>
           <StatusBar style="light" />
           <SessionBootstrap />
+          <WidgetReconcile />
           {fontsLoaded ? <RootNavigator /> : null}
         </View>
       </SafeAreaProvider>

@@ -73,3 +73,24 @@ export const syncWidget = async (state: Partial<WidgetState>): Promise<void> => 
 export const clearWidget = async (): Promise<void> => {
   await syncWidget(empty);
 };
+
+/**
+ * Reads the current widget snapshot from the App Group's shared
+ * UserDefaults. Used by the foreground reconcile hook to pick up
+ * changes the widget made while the app wasn't running (e.g. the
+ * user tapped Start / Stop on the SleepTimer widget).
+ *
+ * Returns the empty snapshot when running on Android, when the
+ * native module isn't linked, or when nothing has been written yet.
+ */
+export const readWidgetState = async (): Promise<WidgetState> => {
+  if (Platform.OS !== 'ios') return empty;
+  try {
+    const raw = await SharedGroupPreferences.getItem(KEY, APP_GROUP);
+    if (!raw || typeof raw !== 'string') return empty;
+    const parsed = JSON.parse(raw) as Partial<WidgetState>;
+    return { ...empty, ...parsed };
+  } catch {
+    return empty;
+  }
+};

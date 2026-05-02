@@ -106,15 +106,22 @@ export const useBabyStore = create<BabyState>()(
         if (userId) void deleteBabyRemote(id);
       },
       setActiveBabyId: (id) => {
+        const previousId = get().activeBabyId;
         set({ activeBabyId: id });
         const userId = currentUserId();
         if (userId) {
           const prefs = get().preferences;
           void setPreferencesRemote(userId, prefs, id);
         }
-        // Reschedule bedtime reminder for the new active baby (their
-        // age may map to a different bedtime).
-        if (get().preferences.bedtimeReminder) {
+        // Reschedule bedtime reminder ONLY when the active baby
+        // actually changes (their age may map to a different bedtime).
+        // Without this guard the reminder gets re-scheduled on every
+        // call — which combined with the previous deprecated trigger
+        // format was firing a notification on every render.
+        if (
+          previousId !== id &&
+          get().preferences.bedtimeReminder
+        ) {
           const baby = get().babies.find((b) => b.id === id);
           if (baby) void scheduleBedtimeReminder(baby);
           else void cancelAllBedtimeReminders();

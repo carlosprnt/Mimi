@@ -119,12 +119,17 @@ export const scheduleBedtimeReminder = async (baby: Baby): Promise<void> => {
         body: t('notifications.bedtimeBody'),
         sound: true,
       },
+      // Explicit DAILY trigger type. The legacy `{ hour, minute,
+      // repeats: true }` shorthand was deprecated in v0.32 and is
+      // now mis-parsed as an interval trigger that fires almost
+      // immediately — the cause of the "every time I switch baby a
+      // notification fires" bug.
       trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
         hour,
         minute,
-        repeats: true,
         channelId: 'bedtime-reminder',
-      } as Notifications.NotificationTriggerInput,
+      },
     });
   } catch {
     // Permission not granted yet, or scheduling rejected — caller is
