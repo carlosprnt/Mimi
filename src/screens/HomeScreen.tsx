@@ -14,7 +14,7 @@ import {
   Button,
 } from '@/components';
 import { spacing, screenGutter } from '@/theme';
-import { useBabyStore } from '@/state/babyStore';
+import { useBabyStore, useActiveBaby } from '@/state/babyStore';
 import { useSleepStore } from '@/state/sleepStore';
 import {
   activeSession,
@@ -37,7 +37,7 @@ const TICK_MS = 30 * 1000;
 
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const baby = useBabyStore((s) => s.baby);
+  const baby = useActiveBaby();
   const use24h = useBabyStore((s) => s.preferences.use24h);
   const sessions = useSleepStore((s) => s.sessions);
   const startSleep = useSleepStore((s) => s.startSleep);
@@ -102,6 +102,11 @@ export const HomeScreen: React.FC = () => {
           onPress: () => navigation.navigate('Profile'),
         }}
         trailing={[
+          {
+            glyph: '◐',
+            label: 'Stats',
+            onPress: () => navigation.navigate('Stats'),
+          },
           {
             glyph: '◷',
             label: 'History',

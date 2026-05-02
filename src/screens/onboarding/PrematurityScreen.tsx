@@ -7,6 +7,7 @@ import { Text } from '@/components';
 import { colors, radii, spacing } from '@/theme';
 import { useBabyStore } from '@/state/babyStore';
 import { RootStackParamList } from '@/navigation/types';
+import { makeId } from '@/utils/id';
 
 const OPTIONS: { label: string; value: number }[] = [
   { label: 'Born on time', value: 0 },
@@ -20,14 +21,17 @@ export const PrematurityScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'OnboardingPrematurity'>>();
   const [selected, setSelected] = useState<number>(0);
-  const setBaby = useBabyStore((s) => s.setBaby);
+  const addBaby = useBabyStore((s) => s.addBaby);
+  const setActiveBaby = useBabyStore((s) => s.setActiveBaby);
 
   const finish = () => {
-    setBaby({
+    const baby = addBaby({
+      id: makeId(),
       name: route.params.name,
       dateOfBirth: route.params.dob,
       prematureWeeks: selected > 0 ? selected : undefined,
     });
+    setActiveBaby(baby.id);
     navigation.reset({
       index: 0,
       routes: [{ name: 'Home' }],

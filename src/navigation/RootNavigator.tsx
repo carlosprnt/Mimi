@@ -5,6 +5,7 @@ import { useBabyStore } from '@/state/babyStore';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { HistoryScreen } from '@/screens/HistoryScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
+import { StatsScreen } from '@/screens/StatsScreen';
 import { WelcomeScreen } from '@/screens/onboarding/WelcomeScreen';
 import { NameScreen } from '@/screens/onboarding/NameScreen';
 import { DobScreen } from '@/screens/onboarding/DobScreen';
@@ -28,7 +29,7 @@ const navTheme = {
 };
 
 export const RootNavigator: React.FC = () => {
-  const baby = useBabyStore((s) => s.baby);
+  const babies = useBabyStore((s) => s.babies);
   const hydrated = useBabyStore((s) => s.hydrated);
 
   if (!hydrated) return null;
@@ -41,7 +42,7 @@ export const RootNavigator: React.FC = () => {
           contentStyle: { backgroundColor: colors.bg.base },
           animation: 'slide_from_right',
         }}
-        initialRouteName={baby ? 'Home' : 'OnboardingWelcome'}
+        initialRouteName={babies.length > 0 ? 'Home' : 'OnboardingWelcome'}
       >
         <Stack.Screen name="OnboardingWelcome" component={WelcomeScreen} />
         <Stack.Screen name="OnboardingName" component={NameScreen} />
@@ -49,6 +50,7 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="OnboardingPrematurity" component={PrematurityScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="History" component={HistoryScreen} />
+        <Stack.Screen name="Stats" component={StatsScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>

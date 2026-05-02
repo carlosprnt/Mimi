@@ -5,5 +5,6 @@ export type RootStackParamList = {
   OnboardingPrematurity: { name: string; dob: string };
   Home: undefined;
   History: undefined;
+  Stats: undefined;
   Profile: undefined;
 };
