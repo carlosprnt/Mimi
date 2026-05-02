@@ -119,12 +119,15 @@ export const scheduleBedtimeReminder = async (baby: Baby): Promise<void> => {
         body: t('notifications.bedtimeBody'),
         sound: true,
       },
+      // SDK 54+ requires the discriminator `type`. Without it,
+      // expo-notifications falls back to a TimeInterval trigger and
+      // the notification fires immediately on every reschedule.
       trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
         hour,
         minute,
-        repeats: true,
         channelId: 'bedtime-reminder',
-      } as Notifications.NotificationTriggerInput,
+      },
     });
   } catch {
     // Permission not granted yet, or scheduling rejected — caller is

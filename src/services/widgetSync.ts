@@ -73,3 +73,22 @@ export const syncWidget = async (state: Partial<WidgetState>): Promise<void> => 
 export const clearWidget = async (): Promise<void> => {
   await syncWidget(empty);
 };
+
+/**
+ * Reads the widget snapshot back from the App Group's shared
+ * UserDefaults. Used to detect changes the iOS widget made (e.g. the
+ * user pressed the play / stop button) so the RN app can adopt them on
+ * foreground. Returns null on Android, when the bridge is missing
+ * (Expo Go), or when no snapshot has been written yet.
+ */
+export const readWidgetState = async (): Promise<WidgetState | null> => {
+  if (Platform.OS !== 'ios') return null;
+  try {
+    const raw = await SharedGroupPreferences.getItem(KEY, APP_GROUP);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<WidgetState>;
+    return { ...empty, ...parsed };
+  } catch {
+    return null;
+  }
+};

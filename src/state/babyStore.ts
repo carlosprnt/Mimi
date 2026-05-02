@@ -106,6 +106,8 @@ export const useBabyStore = create<BabyState>()(
         if (userId) void deleteBabyRemote(id);
       },
       setActiveBabyId: (id) => {
+        const previousId = get().activeBabyId;
+        if (previousId === id) return;
         set({ activeBabyId: id });
         const userId = currentUserId();
         if (userId) {
