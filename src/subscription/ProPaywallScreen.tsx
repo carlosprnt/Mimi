@@ -39,10 +39,8 @@ const PlanCard: React.FC<{
     <View style={[styles.planRadio, selected && styles.planRadioSelected]}>
       {selected ? <View style={styles.planRadioDot} /> : null}
     </View>
-    <View style={styles.planInfo}>
-      <Text variant="body" tone="primary" style={styles.planLabel}>{label}</Text>
-      <Text variant="footnote" tone="secondary">{price}</Text>
-    </View>
+    <Text variant="body" tone="primary" style={styles.planLabel}>{label}</Text>
+    <Text variant="footnote" tone="secondary">{price}</Text>
     {savings ? (
       <View style={styles.savingsBadge}>
         <Text variant="eyebrow" tone="accent" style={styles.savingsText}>{savings}</Text>
@@ -104,16 +102,16 @@ export const ProPaywallScreen: React.FC = () => {
     <Modal
       visible={paywall.visible}
       animationType="slide"
-      presentationStyle="fullScreen"
+      presentationStyle="pageSheet"
       onRequestClose={closePaywall}
     >
-      <Screen backdrop="night" edges={['top', 'left', 'right']}>
+      <Screen backdrop="night" edges={['left', 'right']}>
         <View style={styles.header}>
           <Pressable
             onPress={closePaywall}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel={t('pro.notNow')}
+            accessibilityLabel={t('common.close')}
             style={({ pressed }) => [styles.closeBtn, pressed && styles.pressed]}
           >
             <Ionicons name="close" size={20} color={colors.text.secondary} />
@@ -193,15 +191,6 @@ export const ProPaywallScreen: React.FC = () => {
             loading={busy === 'restore'}
             disabled={busy !== null && busy !== 'restore'}
           />
-          <Pressable
-            onPress={closePaywall}
-            accessibilityRole="button"
-            style={({ pressed }) => [styles.notNow, pressed && styles.pressed]}
-          >
-            <Text variant="footnote" tone="tertiary" align="center">
-              {t('pro.notNow')}
-            </Text>
-          </Pressable>
         </SafeAreaView>
       </Screen>
     </Modal>
@@ -213,7 +202,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     paddingHorizontal: spacing.lg,
-    height: 48,
+    paddingTop: spacing.md,
+    height: 52,
     alignItems: 'center',
   },
   closeBtn: {
@@ -229,7 +219,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
   eyebrow: {
-    marginTop: spacing.lg,
+    marginTop: spacing.sm,
     marginBottom: spacing.md,
   },
   reasonTitle: {
@@ -267,43 +257,41 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   plans: {
+    flexDirection: 'row',
     gap: spacing.sm,
   },
   planCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flex: 1,
     padding: spacing.md,
     borderRadius: radii.md,
     borderWidth: 1.5,
     borderColor: 'rgba(255,255,255,0.08)',
     backgroundColor: 'rgba(20, 35, 90, 0.4)',
-    gap: spacing.md,
+    gap: 5,
+    minHeight: 96,
   },
   planCardSelected: {
     borderColor: colors.accent.base,
     backgroundColor: colors.accent.soft,
   },
   planRadio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 4,
   },
   planRadioSelected: {
     borderColor: colors.accent.base,
   },
   planRadioDot: {
-    width: 10,
-    height: 10,
+    width: 9,
+    height: 9,
     borderRadius: 5,
     backgroundColor: colors.accent.base,
-  },
-  planInfo: {
-    flex: 1,
-    gap: 2,
   },
   planLabel: {
     fontFamily: fonts.medium,
@@ -311,15 +299,13 @@ const styles = StyleSheet.create({
   savingsBadge: {
     backgroundColor: colors.accent.soft,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: 2,
     borderRadius: radii.pill,
+    alignSelf: 'flex-start',
+    marginTop: 2,
   },
   savingsText: {
     letterSpacing: 0.5,
-  },
-  notNow: {
-    marginTop: spacing.md,
-    paddingVertical: spacing.sm,
   },
   pressed: {
     opacity: 0.6,

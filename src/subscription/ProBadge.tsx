@@ -4,10 +4,12 @@ import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Text } from '@/components';
 import { colors, radii, spacing } from '@/theme';
 import { t } from '@/i18n';
@@ -18,30 +20,33 @@ interface ProBadgeProps {
 
 export const ProBadge: React.FC<ProBadgeProps> = ({ tone = 'soft' }) => {
   const isSolid = tone === 'solid';
-  const shimmer = useSharedValue(0);
+  const shimmerX = useSharedValue(-22);
 
   useEffect(() => {
-    shimmer.value = withRepeat(
+    shimmerX.value = withRepeat(
       withSequence(
-        withTiming(0, { duration: 3200 }),
-        withTiming(1, { duration: 480, easing: Easing.inOut(Easing.quad) }),
-        withTiming(0, { duration: 720, easing: Easing.inOut(Easing.quad) }),
+        withTiming(-22, { duration: 1 }),
+        withDelay(3000, withTiming(60, { duration: 380, easing: Easing.out(Easing.quad) })),
       ),
       -1,
       false,
     );
-  }, [shimmer]);
+  }, [shimmerX]);
 
   const shimmerStyle = useAnimatedStyle(() => ({
-    opacity: shimmer.value * 0.35,
+    transform: [{ translateX: shimmerX.value }],
   }));
 
   return (
     <View style={[styles.badge, isSolid ? styles.solid : styles.soft]}>
-      <Animated.View
-        pointerEvents="none"
-        style={[StyleSheet.absoluteFillObject, styles.shimmer, shimmerStyle]}
-      />
+      <Animated.View pointerEvents="none" style={[styles.beam, shimmerStyle]}>
+        <LinearGradient
+          colors={['transparent', isSolid ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.18)', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
       <Text
         variant="eyebrow"
         tone={isSolid ? 'onAccent' : 'accent'}
@@ -67,8 +72,12 @@ const styles = StyleSheet.create({
   solid: {
     backgroundColor: colors.accent.base,
   },
-  shimmer: {
-    backgroundColor: '#FFFFFF',
+  beam: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: 22,
   },
   label: {
     letterSpacing: 1,
