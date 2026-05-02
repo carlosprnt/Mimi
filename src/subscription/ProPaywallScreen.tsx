@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Text, Screen } from '@/components';
-import { colors, radii, spacing, screenGutter } from '@/theme';
+import { colors, fonts, radii, spacing, screenGutter } from '@/theme';
 import { t } from '@/i18n';
 import { useSubscription } from './SubscriptionProvider';
 import type { ProPaywallReason } from './types';
@@ -21,6 +21,36 @@ const BULLETS: { key: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { key: 'pro.paywall.bullet.notifications', icon: 'notifications-outline' },
 ];
 
+const PlanCard: React.FC<{
+  label: string;
+  price: string;
+  savings?: string;
+  selected: boolean;
+  onSelect: () => void;
+}> = ({ label, price, savings, selected, onSelect }) => (
+  <Pressable
+    onPress={onSelect}
+    style={({ pressed }) => [
+      styles.planCard,
+      selected && styles.planCardSelected,
+      pressed && styles.pressed,
+    ]}
+  >
+    <View style={[styles.planRadio, selected && styles.planRadioSelected]}>
+      {selected ? <View style={styles.planRadioDot} /> : null}
+    </View>
+    <View style={styles.planInfo}>
+      <Text variant="body" tone="primary" style={styles.planLabel}>{label}</Text>
+      <Text variant="footnote" tone="secondary">{price}</Text>
+    </View>
+    {savings ? (
+      <View style={styles.savingsBadge}>
+        <Text variant="eyebrow" tone="accent" style={styles.savingsText}>{savings}</Text>
+      </View>
+    ) : null}
+  </Pressable>
+);
+
 export const ProPaywallScreen: React.FC = () => {
   const {
     paywall,
@@ -31,6 +61,7 @@ export const ProPaywallScreen: React.FC = () => {
     prices,
   } = useSubscription();
 
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
   const [busy, setBusy] = useState<'monthly' | 'yearly' | 'restore' | null>(null);
   const [restoreNote, setRestoreNote] = useState<string | null>(null);
   const [errorNote, setErrorNote] = useState<string | null>(null);
@@ -39,32 +70,17 @@ export const ProPaywallScreen: React.FC = () => {
   const reasonTitle = t(`pro.reason.${reason}.title` as never);
   const reasonBody = t(`pro.reason.${reason}.body` as never);
 
-  const monthlyLabel = prices.monthly
-    ? `${t('pro.paywall.monthly')} · ${prices.monthly}`
-    : `${t('pro.paywall.monthly')} · ${t('pro.paywall.monthlyFallback')}`;
-  const yearlyLabel = prices.yearly
-    ? `${t('pro.paywall.yearly')} · ${prices.yearly}`
-    : `${t('pro.paywall.yearly')} · ${t('pro.paywall.yearlyFallback')}`;
+  const monthlyPrice = prices.monthly ?? t('pro.paywall.monthlyFallback');
+  const yearlyPrice = prices.yearly ?? t('pro.paywall.yearlyFallback');
 
-  const handleMonthly = async () => {
+  const handleContinue = async () => {
     if (busy) return;
-    setBusy('monthly');
+    setBusy(selectedPlan);
     setRestoreNote(null);
     setErrorNote(null);
     try {
-      await purchaseMonthly();
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const handleYearly = async () => {
-    if (busy) return;
-    setBusy('yearly');
-    setRestoreNote(null);
-    setErrorNote(null);
-    try {
-      await purchaseYearly();
+      if (selectedPlan === 'monthly') await purchaseMonthly();
+      else await purchaseYearly();
     } finally {
       setBusy(null);
     }
@@ -147,19 +163,27 @@ export const ProPaywallScreen: React.FC = () => {
         </ScrollView>
 
         <SafeAreaView edges={['bottom']} style={styles.actions}>
+          <View style={styles.plans}>
+            <PlanCard
+              label={t('pro.paywall.yearly')}
+              price={yearlyPrice}
+              savings={t('pro.paywall.yearSavings')}
+              selected={selectedPlan === 'yearly'}
+              onSelect={() => setSelectedPlan('yearly')}
+            />
+            <PlanCard
+              label={t('pro.paywall.monthly')}
+              price={monthlyPrice}
+              selected={selectedPlan === 'monthly'}
+              onSelect={() => setSelectedPlan('monthly')}
+            />
+          </View>
+          <View style={{ height: spacing.md }} />
           <Button
-            title={monthlyLabel}
-            onPress={handleMonthly}
-            loading={busy === 'monthly'}
-            disabled={busy !== null && busy !== 'monthly'}
-          />
-          <View style={{ height: spacing.sm }} />
-          <Button
-            title={yearlyLabel}
-            onPress={handleYearly}
-            variant="subtle"
-            loading={busy === 'yearly'}
-            disabled={busy !== null && busy !== 'yearly'}
+            title={t('common.continue')}
+            onPress={handleContinue}
+            loading={busy === selectedPlan}
+            disabled={busy !== null && busy !== selectedPlan}
           />
           <View style={{ height: spacing.sm }} />
           <Button
@@ -241,6 +265,57 @@ const styles = StyleSheet.create({
   actions: {
     paddingHorizontal: screenGutter,
     paddingBottom: spacing.lg,
+  },
+  plans: {
+    gap: spacing.sm,
+  },
+  planCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(20, 35, 90, 0.4)',
+    gap: spacing.md,
+  },
+  planCardSelected: {
+    borderColor: colors.accent.base,
+    backgroundColor: colors.accent.soft,
+  },
+  planRadio: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  planRadioSelected: {
+    borderColor: colors.accent.base,
+  },
+  planRadioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.accent.base,
+  },
+  planInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  planLabel: {
+    fontFamily: fonts.medium,
+  },
+  savingsBadge: {
+    backgroundColor: colors.accent.soft,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: radii.pill,
+  },
+  savingsText: {
+    letterSpacing: 0.5,
   },
   notNow: {
     marginTop: spacing.md,

@@ -457,6 +457,7 @@ export const en = {
       notNow: 'Not now',
       monthlyFallback: 'Monthly',
       yearlyFallback: 'Yearly',
+      yearSavings: 'Save ~40%',
       bullet: {
         multipleBabies: 'Add more than one baby',
         fullHistory: 'Browse the full history',

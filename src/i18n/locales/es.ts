@@ -464,6 +464,7 @@ export const es: Translations = {
       notNow: 'Ahora no',
       monthlyFallback: 'Mensual',
       yearlyFallback: 'Anual',
+      yearSavings: 'Ahorra ~40%',
       bullet: {
         multipleBabies: 'Añade más de un bebé',
         fullHistory: 'Consulta todo el histórico',

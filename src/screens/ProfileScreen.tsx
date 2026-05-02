@@ -67,11 +67,8 @@ export const ProfileScreen: React.FC = () => {
   const {
     isPro,
     openPaywall,
-    restorePurchases,
     openManagement,
   } = useSubscription();
-  const [restoreBusy, setRestoreBusy] = useState(false);
-  const [restoreNote, setRestoreNote] = useState<string | null>(null);
 
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
@@ -100,18 +97,6 @@ export const ProfileScreen: React.FC = () => {
       void cancelAllBedtimeReminders();
     }
   }, [isPro, preferences.bedtimeReminder]);
-
-  const handleRestore = async () => {
-    setRestoreBusy(true);
-    setRestoreNote(null);
-    try {
-      const result = await restorePurchases();
-      if (result === 'restored') setRestoreNote(t('pro.restoreSuccess'));
-      else setRestoreNote(t('pro.restoreError'));
-    } finally {
-      setRestoreBusy(false);
-    }
-  };
 
   const handleManage = async () => {
     const url = await openManagement();
@@ -288,9 +273,8 @@ export const ProfileScreen: React.FC = () => {
           onScroll={onScroll}
           scrollEventThrottle={16}
         >
-          <SectionLabel label={t('pro.title').toUpperCase()} />
           {isPro ? (
-            <Card padded={false} tone="night" style={styles.card}>
+            <Card padded={false} tone="night" style={[styles.card, styles.proCard]}>
               <View style={styles.proInner}>
                 <View style={styles.proHead}>
                   <Text variant="headline" tone="primary">
@@ -307,23 +291,6 @@ export const ProfileScreen: React.FC = () => {
                     onPress={handleManage}
                     variant="subtle"
                   />
-                  <View style={{ height: spacing.sm }} />
-                  <Button
-                    title={t('pro.restore')}
-                    onPress={handleRestore}
-                    variant="ghost"
-                    loading={restoreBusy}
-                  />
-                  {restoreNote ? (
-                    <Text
-                      variant="footnote"
-                      tone="tertiary"
-                      align="center"
-                      style={styles.restoreNote}
-                    >
-                      {restoreNote}
-                    </Text>
-                  ) : null}
                 </View>
               </View>
             </Card>
@@ -333,7 +300,7 @@ export const ProfileScreen: React.FC = () => {
               accessibilityRole="button"
               style={({ pressed }) => [pressed && styles.pressedCard]}
             >
-              <Card padded={false} tone="night" style={styles.card}>
+              <Card padded={false} tone="night" style={[styles.card, styles.proCard]}>
                 <View style={styles.proInner}>
                   <View style={styles.proHead}>
                     <Text variant="headline" tone="primary">
@@ -349,23 +316,6 @@ export const ProfileScreen: React.FC = () => {
                       title={t('pro.unlock')}
                       onPress={() => openPaywall('settings')}
                     />
-                    <View style={{ height: spacing.sm }} />
-                    <Button
-                      title={t('pro.restore')}
-                      onPress={handleRestore}
-                      variant="ghost"
-                      loading={restoreBusy}
-                    />
-                    {restoreNote ? (
-                      <Text
-                        variant="footnote"
-                        tone="tertiary"
-                        align="center"
-                        style={styles.restoreNote}
-                      >
-                        {restoreNote}
-                      </Text>
-                    ) : null}
                   </View>
                 </View>
               </Card>
@@ -389,7 +339,6 @@ export const ProfileScreen: React.FC = () => {
               />
               <ListRow
                 label={t('profile.bedtimeReminder')}
-                caption={!isPro ? t('pro.locked') : undefined}
                 trailing={
                   <View style={styles.switchTrail}>
                     {!isPro ? <ProBadge /> : null}
@@ -565,6 +514,10 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: 'rgba(19, 27, 58, 0.78)',
+  },
+  proCard: {
+    borderWidth: 1,
+    borderColor: 'rgba(168, 165, 230, 0.22)',
   },
   note: {
     marginTop: spacing.xxl,
