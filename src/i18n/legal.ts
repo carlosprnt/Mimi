@@ -53,7 +53,7 @@ const PRIVACY_ES: LegalDocument = {
     },
     {
       heading: 'Contacto',
-      body: 'Para cualquier duda sobre privacidad, escríbenos a hola@mimi.app.',
+      body: 'Para cualquier duda sobre privacidad, escríbenos a carlosprnt@gmail.com.',
     },
   ],
 };
@@ -100,7 +100,7 @@ const PRIVACY_EN: LegalDocument = {
     },
     {
       heading: 'Contact',
-      body: 'For privacy questions: hola@mimi.app.',
+      body: 'For privacy questions: carlosprnt@gmail.com.',
     },
   ],
 };
@@ -135,7 +135,7 @@ const TERMS_ES: LegalDocument = {
     },
     {
       heading: 'Contacto',
-      body: 'Cualquier consulta sobre estos términos: hola@mimi.app.',
+      body: 'Cualquier consulta sobre estos términos: carlosprnt@gmail.com.',
     },
   ],
 };
@@ -170,7 +170,7 @@ const TERMS_EN: LegalDocument = {
     },
     {
       heading: 'Contact',
-      body: 'Questions about these terms: hola@mimi.app.',
+      body: 'Questions about these terms: carlosprnt@gmail.com.',
     },
   ],
 };

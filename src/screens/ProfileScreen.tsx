@@ -375,7 +375,7 @@ export const ProfileScreen: React.FC = () => {
               />
               <ListRow
                 label={t('legal.supportRow')}
-                onPress={() => Linking.openURL('mailto:hola@mimi.app')}
+                onPress={() => Linking.openURL('mailto:carlosprnt@gmail.com')}
                 showDivider={false}
               />
             </View>

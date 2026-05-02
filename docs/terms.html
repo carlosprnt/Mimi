@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Términos de uso — Mimi</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: linear-gradient(180deg, #14235A 0%, #020410 100%);
+    background-attachment: fixed;
+    color: #F4F2FC;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 56px 24px 96px; }
+  .crumb { display: inline-block; color: #A4A1C9; text-decoration: none; font-size: 14px; margin-bottom: 32px; }
+  .crumb:hover { color: #A8A5E6; }
+  h1 { font-size: 32px; line-height: 1.2; margin: 0 0 8px; font-weight: 600; letter-spacing: -0.4px; }
+  h2 { font-size: 18px; margin: 36px 0 12px; font-weight: 600; color: #F4F2FC; }
+  p { line-height: 1.7; color: #CCC8E8; font-size: 16px; margin: 0 0 14px; }
+  a { color: #A8A5E6; }
+  .meta { color: #A4A1C9; font-size: 14px; margin: 0 0 12px; }
+  .lang { text-align: right; font-size: 13px; margin-bottom: 12px; }
+  .lang a { color: #A4A1C9; text-decoration: none; }
+  .lang a:hover { color: #A8A5E6; }
+  .footer { margin-top: 56px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.08); color: #A4A1C9; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="lang"><a href="#en" id="lang-toggle">English</a></p>
+  <a href="index.html" class="crumb">← Mimi</a>
+
+  <article id="es">
+    <h1>Términos de uso</h1>
+    <p class="meta">Última actualización: 1 de mayo de 2026</p>
+
+    <h2>Aceptación</h2>
+    <p>Al usar Mimi aceptas estos términos. Si no estás de acuerdo, no uses la app.</p>
+
+    <h2>Uso de la app</h2>
+    <p>Mimi es una herramienta de seguimiento del sueño infantil. Las sugerencias de la app son orientativas, basadas en patrones generales por edad, y no sustituyen el consejo de tu pediatra ni de ningún profesional de la salud.</p>
+
+    <h2>Tu cuenta</h2>
+    <p>Si creas una cuenta, eres responsable de mantener tus credenciales seguras. Comprométete a no usar la app para fines ilegales, ofensivos o que puedan dañar a terceros.</p>
+
+    <h2>Limitación de responsabilidad</h2>
+    <p>Mimi se ofrece "tal cual", sin garantías explícitas o implícitas de que las recomendaciones encajen con tu bebé concreto. Para cualquier decisión médica o de salud, consulta siempre con un profesional cualificado.</p>
+
+    <h2>Cambios en el servicio</h2>
+    <p>Podemos modificar, suspender o discontinuar funciones de la app sin previo aviso. Avisaremos en la propia app si los cambios son materiales.</p>
+
+    <h2>Cambios en estos términos</h2>
+    <p>Si actualizamos estos términos, lo comunicaremos en la app antes de que tengan efecto.</p>
+
+    <h2>Contacto</h2>
+    <p>Cualquier consulta sobre estos términos: <a href="mailto:carlosprnt@gmail.com">carlosprnt@gmail.com</a>.</p>
+
+    <div class="footer">© Mimi.</div>
+  </article>
+
+  <article id="en" hidden>
+    <h1>Terms of use</h1>
+    <p class="meta">Last updated: May 1, 2026</p>
+
+    <h2>Acceptance</h2>
+    <p>By using Mimi you accept these terms. If you do not agree, please do not use the app.</p>
+
+    <h2>Using the app</h2>
+    <p>Mimi is a baby-sleep tracking tool. The suggestions in the app are guidance based on general age patterns; they do not replace the advice of your paediatrician or any health professional.</p>
+
+    <h2>Your account</h2>
+    <p>If you create an account you are responsible for keeping your credentials safe. You agree not to use the app for illegal, harmful or offensive purposes.</p>
+
+    <h2>Limitation of liability</h2>
+    <p>Mimi is provided "as is", with no explicit or implicit warranty that the recommendations match your specific baby. For any medical or health decision always consult a qualified professional.</p>
+
+    <h2>Service changes</h2>
+    <p>We may modify, suspend or discontinue features without prior notice. Material changes will be surfaced in the app.</p>
+
+    <h2>Changes to these terms</h2>
+    <p>If we update these terms we will surface them in the app before they take effect.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about these terms: <a href="mailto:carlosprnt@gmail.com">carlosprnt@gmail.com</a>.</p>
+
+    <div class="footer">© Mimi.</div>
+  </article>
+</main>
+
+<script>
+  document.getElementById('lang-toggle').addEventListener('click', function (e) {
+    e.preventDefault();
+    var es = document.getElementById('es');
+    var en = document.getElementById('en');
+    var showingEs = !es.hidden;
+    es.hidden = showingEs;
+    en.hidden = !showingEs;
+    e.target.textContent = showingEs ? 'Español' : 'English';
+    document.documentElement.lang = showingEs ? 'en' : 'es';
+  });
+</script>
+</body>
+</html>

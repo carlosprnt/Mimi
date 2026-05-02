@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mimi — Sueño tranquilo para tu bebé</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: linear-gradient(180deg, #14235A 0%, #020410 100%);
+    background-attachment: fixed;
+    color: #F4F2FC;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+  h1 {
+    font-size: 34px;
+    line-height: 1.2;
+    margin: 0 0 16px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+  }
+  p {
+    line-height: 1.65;
+    color: #CCC8E8;
+    font-size: 16px;
+  }
+  a {
+    color: #A8A5E6;
+    text-decoration: none;
+  }
+  a:hover { text-decoration: underline; }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 32px 0 0;
+  }
+  ul li {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  ul li a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #F4F2FC;
+    font-size: 17px;
+    font-weight: 500;
+  }
+  ul li a::after {
+    content: '→';
+    color: #A4A1C9;
+    transition: transform 0.18s ease;
+  }
+  ul li a:hover::after { transform: translateX(3px); }
+  .lead { font-size: 18px; color: #CCC8E8; margin-bottom: 32px; }
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: #A4A1C9;
+    font-size: 13px;
+  }
+  .lang {
+    text-align: right;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .lang a { color: #A4A1C9; }
+</style>
+</head>
+<body>
+<main>
+  <p class="lang"><a href="#en" id="lang-toggle">English</a></p>
+
+  <article id="es">
+    <h1>Mimi</h1>
+    <p class="lead">Sueño tranquilo para tu bebé. Mimi te acompaña con sugerencias suaves basadas en su edad.</p>
+    <ul>
+      <li><a href="privacy.html">Política de privacidad</a></li>
+      <li><a href="terms.html">Términos de uso</a></li>
+      <li><a href="support.html">Soporte</a></li>
+    </ul>
+    <div class="footer">© Mimi. Hecho con cariño para padres y madres.</div>
+  </article>
+
+  <article id="en" hidden>
+    <h1>Mimi</h1>
+    <p class="lead">Calm sleep for your baby. Mimi gives you gentle, age-aware suggestions.</p>
+    <ul>
+      <li><a href="privacy.html">Privacy policy</a></li>
+      <li><a href="terms.html">Terms of use</a></li>
+      <li><a href="support.html">Support</a></li>
+    </ul>
+    <div class="footer">© Mimi. Made with love for parents.</div>
+  </article>
+</main>
+
+<script>
+  document.getElementById('lang-toggle').addEventListener('click', function (e) {
+    e.preventDefault();
+    var es = document.getElementById('es');
+    var en = document.getElementById('en');
+    var showingEs = !es.hidden;
+    es.hidden = showingEs;
+    en.hidden = !showingEs;
+    e.target.textContent = showingEs ? 'Español' : 'English';
+    document.documentElement.lang = showingEs ? 'en' : 'es';
+  });
+</script>
+</body>
+</html>
