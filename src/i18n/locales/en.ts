@@ -425,11 +425,71 @@ export const en = {
   date: {
     today: 'Today',
     yesterday: 'Yesterday',
-  },  age: {
+  },
+  age: {
     newborn: 'Newborn',
     days: '{count} days',
     monthsFractional: '{value} months',
     months: '{count} months',
+  },
+  pro: {
+    title: 'Mimi Pro',
+    activeTitle: 'Mimi Pro is on',
+    activeBody: 'You have access to every Pro feature.',
+    settingsTitle: 'Mimi Pro',
+    settingsBody:
+      'Unlock more babies, full history, every chart and gentle reminders.',
+    unlock: 'Unlock Mimi Pro',
+    manage: 'Manage subscription',
+    restore: 'Restore purchases',
+    restoreSuccess: 'Purchases restored',
+    restoreError: "We couldn't restore your purchases",
+    notNow: 'Not now',
+    badge: 'Pro',
+    locked: 'Available in Mimi Pro',
+    unlockFeature: 'Unlock',
+    paywall: {
+      title: 'Mimi Pro',
+      subtitle: "More clarity to follow your baby's sleep.",
+      monthly: 'Continue monthly',
+      yearly: 'Continue yearly',
+      restore: 'Restore purchases',
+      notNow: 'Not now',
+      monthlyFallback: 'Monthly',
+      yearlyFallback: 'Yearly',
+      bullet: {
+        multipleBabies: 'Add more than one baby',
+        fullHistory: 'Browse the full history',
+        fullStats: 'Unlock every statistic',
+        notifications: 'Turn on gentle reminders',
+      },
+    },
+    reason: {
+      multipleBabies: {
+        title: 'Look after more than one routine',
+        body: 'With Mimi Pro you can add more than one baby and follow each one separately.',
+      },
+      fullStats: {
+        title: 'Understand how things evolve',
+        body: 'Unlock every chart to see total sleep, naps, night wakings and routine shifts more clearly.',
+      },
+      fullHistory: {
+        title: 'Go back to any day',
+        body: 'With Mimi Pro you can review the full history and see how rest has been changing.',
+      },
+      notifications: {
+        title: 'Get gentle reminders',
+        body: "Turn on bedtime and other reminders so you don't have to keep watching the clock.",
+      },
+      settings: {
+        title: 'Unlock Mimi Pro',
+        body: 'More babies, full history, every statistic and reminders to help you follow each routine.',
+      },
+      generic: {
+        title: 'Unlock Mimi Pro',
+        body: "More tracking, more history and more clarity to understand your baby's sleep.",
+      },
+    },
   },
 } as const;
 

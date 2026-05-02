@@ -46,6 +46,8 @@ import { wipeLocalData } from '@/services/wipeLocalData';
 import { haptics } from '@/logic/haptics';
 import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
+import { cancelAllBedtimeReminders } from '@/services/notifications';
+import { ProBadge, useSubscription } from '@/subscription';
 
 type ConfirmMode = 'closed' | 'delete-account' | 'sign-out';
 
@@ -61,6 +63,15 @@ export const ProfileScreen: React.FC = () => {
   const clearOnboardingDraft = useOnboardingDraft((s) => s.clear);
 
   const authedUser = useAuthStore((s) => s.user);
+
+  const {
+    isPro,
+    openPaywall,
+    restorePurchases,
+    openManagement,
+  } = useSubscription();
+  const [restoreBusy, setRestoreBusy] = useState(false);
+  const [restoreNote, setRestoreNote] = useState<string | null>(null);
 
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
@@ -78,6 +89,46 @@ export const ProfileScreen: React.FC = () => {
   useEffect(() => {
     void isAppleSignInAvailable().then(setAppleAvailable);
   }, []);
+
+  // If the user downgraded from Pro to Free while a bedtime reminder
+  // was scheduled, the OS-level notification keeps firing until we
+  // cancel it. We don't touch the persisted flag (so the toggle
+  // recovers automatically when they upgrade back) — only the
+  // currently scheduled local notifications.
+  useEffect(() => {
+    if (!isPro && preferences.bedtimeReminder) {
+      void cancelAllBedtimeReminders();
+    }
+  }, [isPro, preferences.bedtimeReminder]);
+
+  const handleRestore = async () => {
+    setRestoreBusy(true);
+    setRestoreNote(null);
+    try {
+      const result = await restorePurchases();
+      if (result === 'restored') setRestoreNote(t('pro.restoreSuccess'));
+      else setRestoreNote(t('pro.restoreError'));
+    } finally {
+      setRestoreBusy(false);
+    }
+  };
+
+  const handleManage = async () => {
+    const url = await openManagement();
+    Linking.openURL(url ?? 'itms-apps://apps.apple.com/account/subscriptions').catch(
+      () => {},
+    );
+  };
+
+  const handleBedtimeToggle = (next: boolean) => {
+    if (next && !isPro) {
+      openPaywall('notifications');
+      return;
+    }
+    setPreferences({ bedtimeReminder: next });
+  };
+
+  const bedtimeValue = isPro && preferences.bedtimeReminder;
 
   // After a guest user signs in from this screen, push their local
   // bebés / sesiones / eventos / preferencias up to Supabase so they're
@@ -237,6 +288,90 @@ export const ProfileScreen: React.FC = () => {
           onScroll={onScroll}
           scrollEventThrottle={16}
         >
+          <SectionLabel label={t('pro.title').toUpperCase()} />
+          {isPro ? (
+            <Card padded={false} tone="night" style={styles.card}>
+              <View style={styles.proInner}>
+                <View style={styles.proHead}>
+                  <Text variant="headline" tone="primary">
+                    {t('pro.activeTitle')}
+                  </Text>
+                  <ProBadge tone="solid" />
+                </View>
+                <Text variant="callout" tone="secondary" style={styles.proBody}>
+                  {t('pro.activeBody')}
+                </Text>
+                <View style={styles.proActions}>
+                  <Button
+                    title={t('pro.manage')}
+                    onPress={handleManage}
+                    variant="subtle"
+                  />
+                  <View style={{ height: spacing.sm }} />
+                  <Button
+                    title={t('pro.restore')}
+                    onPress={handleRestore}
+                    variant="ghost"
+                    loading={restoreBusy}
+                  />
+                  {restoreNote ? (
+                    <Text
+                      variant="footnote"
+                      tone="tertiary"
+                      align="center"
+                      style={styles.restoreNote}
+                    >
+                      {restoreNote}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+            </Card>
+          ) : (
+            <Pressable
+              onPress={() => openPaywall('settings')}
+              accessibilityRole="button"
+              style={({ pressed }) => [pressed && styles.pressedCard]}
+            >
+              <Card padded={false} tone="night" style={styles.card}>
+                <View style={styles.proInner}>
+                  <View style={styles.proHead}>
+                    <Text variant="headline" tone="primary">
+                      {t('pro.settingsTitle')}
+                    </Text>
+                    <ProBadge />
+                  </View>
+                  <Text variant="callout" tone="secondary" style={styles.proBody}>
+                    {t('pro.settingsBody')}
+                  </Text>
+                  <View style={styles.proActions}>
+                    <Button
+                      title={t('pro.unlock')}
+                      onPress={() => openPaywall('settings')}
+                    />
+                    <View style={{ height: spacing.sm }} />
+                    <Button
+                      title={t('pro.restore')}
+                      onPress={handleRestore}
+                      variant="ghost"
+                      loading={restoreBusy}
+                    />
+                    {restoreNote ? (
+                      <Text
+                        variant="footnote"
+                        tone="tertiary"
+                        align="center"
+                        style={styles.restoreNote}
+                      >
+                        {restoreNote}
+                      </Text>
+                    ) : null}
+                  </View>
+                </View>
+              </Card>
+            </Pressable>
+          )}
+
           <SectionLabel label={t('profile.preferences')} />
           <Card padded={false} tone="night" style={styles.card}>
             <View style={styles.inner}>
@@ -254,14 +389,18 @@ export const ProfileScreen: React.FC = () => {
               />
               <ListRow
                 label={t('profile.bedtimeReminder')}
+                caption={!isPro ? t('pro.locked') : undefined}
                 trailing={
-                  <Switch
-                    value={preferences.bedtimeReminder}
-                    onValueChange={(v) => setPreferences({ bedtimeReminder: v })}
-                    trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
-                    thumbColor={colors.text.primary}
-                    ios_backgroundColor={colors.border.strong}
-                  />
+                  <View style={styles.switchTrail}>
+                    {!isPro ? <ProBadge /> : null}
+                    <Switch
+                      value={bedtimeValue}
+                      onValueChange={handleBedtimeToggle}
+                      trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
+                      thumbColor={colors.text.primary}
+                      ios_backgroundColor={colors.border.strong}
+                    />
+                  </View>
                 }
                 showDivider={false}
               />
@@ -500,4 +639,31 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   pressed: { opacity: 0.6 },
+  proInner: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+  },
+  proHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  proBody: {
+    marginBottom: spacing.lg,
+  },
+  proActions: {
+    marginTop: spacing.sm,
+  },
+  restoreNote: {
+    marginTop: spacing.sm,
+  },
+  pressedCard: {
+    opacity: 0.85,
+  },
+  switchTrail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
 });

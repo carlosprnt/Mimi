@@ -14,6 +14,7 @@ import { RootNavigator } from '@/navigation/RootNavigator';
 import { useSessionBootstrap } from '@/hooks/useSessionBootstrap';
 import { useWidgetReconcile } from '@/hooks/useWidgetReconcile';
 import { colors } from '@/theme';
+import { SubscriptionProvider, ProPaywallScreen } from '@/subscription';
 
 const SessionBootstrap: React.FC = () => {
   useSessionBootstrap();
@@ -36,12 +37,15 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <View style={styles.root}>
-          <StatusBar style="light" />
-          <SessionBootstrap />
-          <WidgetReconcile />
-          {fontsLoaded ? <RootNavigator /> : null}
-        </View>
+        <SubscriptionProvider>
+          <View style={styles.root}>
+            <StatusBar style="light" />
+            <SessionBootstrap />
+            <WidgetReconcile />
+            {fontsLoaded ? <RootNavigator /> : null}
+            <ProPaywallScreen />
+          </View>
+        </SubscriptionProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

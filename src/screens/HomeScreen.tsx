@@ -68,6 +68,11 @@ import {
 import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 import type { Recommendation } from '@/logic/recommendation';
+import {
+  canSwitchToBaby,
+  canViewDate,
+  useSubscription,
+} from '@/subscription';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -86,6 +91,7 @@ export const HomeScreen: React.FC = () => {
   const baby = useActiveBaby();
   const babies = useBabyStore((s) => s.babies);
   const setActiveBabyId = useBabyStore((s) => s.setActiveBabyId);
+  const { plan, openPaywall } = useSubscription();
   const use24h = useBabyStore((s) => s.preferences.use24h);
   const celebrationId = useCelebrationStore((s) => s.babyId);
   const [babySwitcherOpen, setBabySwitcherOpen] = useState(false);
@@ -477,7 +483,13 @@ export const HomeScreen: React.FC = () => {
         <View style={styles.calendarWrap}>
           <DayCalendar
             selectedDate={selectedDate}
-            onSelect={setSelectedDate}
+            onSelect={(date) => {
+              if (!canViewDate(date, plan, now)) {
+                openPaywall('fullHistory');
+                return;
+              }
+              setSelectedDate(date);
+            }}
             now={now}
             daysWithData={daysWithData}
           />
@@ -706,6 +718,11 @@ export const HomeScreen: React.FC = () => {
         activeBabyId={baby?.id ?? null}
         nameTopY={insets.top + 17}
         onSelect={(id) => {
+          if (!canSwitchToBaby(id, baby?.id ?? null, plan)) {
+            setBabySwitcherOpen(false);
+            openPaywall('multipleBabies');
+            return;
+          }
           setActiveBabyId(id);
           useCelebrationStore.getState().trigger(id);
           setBabySwitcherOpen(false);

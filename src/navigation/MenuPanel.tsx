@@ -16,11 +16,12 @@ import Animated, {
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components';
-import { useActiveBaby } from '@/state/babyStore';
+import { useActiveBaby, useBabyStore } from '@/state/babyStore';
 import { useMenuStore } from '@/state/menuStore';
 import { haptics } from '@/logic/haptics';
 import { colors, fonts, spacing } from '@/theme';
 import { t } from '@/i18n';
+import { canAddBaby, useSubscription } from '@/subscription';
 
 interface MenuPanelProps {
   /** Effective open progress (0 → 1). Drives the cascade animation. */
@@ -49,6 +50,8 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({ progress }) => {
   const insets = useSafeAreaInsets();
   const setMenuOpen = useMenuStore((s) => s.setOpen);
   const activeBaby = useActiveBaby();
+  const babiesCount = useBabyStore((s) => s.babies.length);
+  const { plan, openPaywall } = useSubscription();
 
   const close = () => setMenuOpen(false);
 
@@ -62,6 +65,10 @@ export const MenuPanel: React.FC<MenuPanelProps> = ({ progress }) => {
   const goAddBaby = () => {
     haptics.light();
     close();
+    if (!canAddBaby(babiesCount, plan)) {
+      openPaywall('multipleBabies');
+      return;
+    }
     navigation.getParent()?.navigate('OnboardingName', { mode: 'addChild' });
   };
 
