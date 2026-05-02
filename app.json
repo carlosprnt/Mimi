@@ -7,15 +7,7 @@
     "userInterfaceStyle": "dark",
     "scheme": "mimi",
     "newArchEnabled": true,
-    "plugins": [
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#0E0F12",
-          "resizeMode": "contain"
-        }
-      ]
-    ],
+    "plugins": [],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.mimi.app",

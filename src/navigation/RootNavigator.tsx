@@ -1,4 +1,5 @@
 import React from 'react';
+import { View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { useBabyStore } from '@/state/babyStore';
@@ -32,7 +33,7 @@ export const RootNavigator: React.FC = () => {
   const babies = useBabyStore((s) => s.babies);
   const hydrated = useBabyStore((s) => s.hydrated);
 
-  if (!hydrated) return null;
+  if (!hydrated) return <View style={{ flex: 1, backgroundColor: colors.bg.base }} />;
 
   return (
     <NavigationContainer theme={navTheme}>
