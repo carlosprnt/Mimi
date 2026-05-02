@@ -2,11 +2,11 @@ import WidgetKit
 import SwiftUI
 import AppIntents
 
-// Brand purples — the accent stays vibrant for the play CTA, the
-// stop button uses a deeper purple so it reads as a destructive
-// action without breaking palette into red.
-private let accent = Color(red: 0xA8 / 255.0, green: 0xA5 / 255.0, blue: 0xE6 / 255.0)
-private let accentDark = Color(red: 0x4F / 255.0, green: 0x4A / 255.0, blue: 0xBF / 255.0)
+// Start button uses a deeper brand violet so white text reads with
+// solid contrast. Stop uses red so it parses as destructive at a
+// glance without depending on color alone.
+private let startBg = Color(red: 0x5F / 255.0, green: 0x55 / 255.0, blue: 0xC8 / 255.0)
+private let stopBg = Color(red: 0xC8 / 255.0, green: 0x3A / 255.0, blue: 0x3A / 255.0)
 
 private struct SleepEntry: TimelineEntry {
     let date: Date
@@ -71,16 +71,13 @@ private struct SleepTimerSmall: View {
                     .monospacedDigit()
                 Spacer()
                 Button(intent: StopSleepIntent()) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "stop.fill")
-                        Text("Parar")
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(accentDark)
-                    .clipShape(Capsule())
-                    .foregroundStyle(.white)
+                    Text("Parar")
+                        .font(.system(size: 14, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(stopBg)
+                        .clipShape(Capsule())
+                        .foregroundStyle(.white)
                 }
                 .buttonStyle(.plain)
             } else {
@@ -94,16 +91,13 @@ private struct SleepTimerSmall: View {
                     .foregroundStyle(.primary)
                 Spacer()
                 Button(intent: StartSleepIntent()) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "play.fill")
-                        Text("Empezar")
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(accent)
-                    .clipShape(Capsule())
-                    .foregroundStyle(.black)
+                    Text("Empezar")
+                        .font(.system(size: 14, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(startBg)
+                        .clipShape(Capsule())
+                        .foregroundStyle(.white)
                 }
                 .buttonStyle(.plain)
             }
@@ -152,22 +146,24 @@ private struct SleepTimerMedium: View {
             Spacer()
             if started != nil {
                 Button(intent: StopSleepIntent()) {
-                    Image(systemName: "stop.fill")
-                        .font(.system(size: 22, weight: .semibold))
-                        .frame(width: 64, height: 64)
-                        .background(accentDark)
+                    Text("Parar")
+                        .font(.system(size: 15, weight: .semibold))
+                        .padding(.horizontal, 22)
+                        .padding(.vertical, 14)
+                        .background(stopBg)
                         .foregroundStyle(.white)
-                        .clipShape(Circle())
+                        .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
             } else {
                 Button(intent: StartSleepIntent()) {
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 24, weight: .semibold))
-                        .frame(width: 64, height: 64)
-                        .background(accent)
-                        .foregroundStyle(.black)
-                        .clipShape(Circle())
+                    Text("Empezar")
+                        .font(.system(size: 15, weight: .semibold))
+                        .padding(.horizontal, 22)
+                        .padding(.vertical, 14)
+                        .background(startBg)
+                        .foregroundStyle(.white)
+                        .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
             }
@@ -185,7 +181,7 @@ struct SleepTimerWidget: Widget {
                 }
         }
         .configurationDisplayName("Temporizador de sueño")
-        .description("Cuánto lleva durmiendo, con play y stop.")
+        .description("Cuánto lleva durmiendo, con botones para empezar y parar.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
