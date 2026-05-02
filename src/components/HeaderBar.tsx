@@ -45,24 +45,48 @@ export const HEADER_BAR_HEIGHT = 64;
 const COLLAPSE_DISTANCE = 80;
 const BG_FADE_DISTANCE = 32;
 const TITLE_MIN_SCALE = 0.82;
+const ICON_SIZE = 24;
+// 16 / 24 ≈ 0.667 — when scrolled, the glyph reads as 16px without
+// re-laying out the button.
+const ICON_MIN_SCALE = 16 / ICON_SIZE;
 
-const ActionButton: React.FC<{ action: IconAction }> = ({ action }) => (
-  <Pressable
-    onPress={action.onPress}
-    accessibilityRole="button"
-    accessibilityLabel={action.label}
-    hitSlop={8}
-    style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
-  >
-    {action.icon ? (
-      <Ionicons name={action.icon} size={16} color={colors.accent.base} />
-    ) : (
-      <Text variant="headline" tone="accent">
-        {action.glyph}
-      </Text>
-    )}
-  </Pressable>
-);
+const ActionButton: React.FC<{
+  action: IconAction;
+  scrollY?: SharedValue<number>;
+}> = ({ action, scrollY }) => {
+  const iconAnim = useAnimatedStyle(() => {
+    if (!scrollY) return { transform: [{ scale: 1 }] };
+    const p = interpolate(
+      scrollY.value,
+      [0, COLLAPSE_DISTANCE],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    return {
+      transform: [{ scale: interpolate(p, [0, 1], [1, ICON_MIN_SCALE]) }],
+    };
+  });
+
+  return (
+    <Pressable
+      onPress={action.onPress}
+      accessibilityRole="button"
+      accessibilityLabel={action.label}
+      hitSlop={8}
+      style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
+    >
+      <Animated.View style={iconAnim}>
+        {action.icon ? (
+          <Ionicons name={action.icon} size={ICON_SIZE} color={colors.accent.base} />
+        ) : (
+          <Text variant="headline" tone="accent">
+            {action.glyph}
+          </Text>
+        )}
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 export const HeaderBar: React.FC<HeaderBarProps> = ({
   title,
@@ -116,7 +140,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   const inner = (
     <View style={styles.bar}>
       <View style={styles.side}>
-        {leading ? <ActionButton action={leading} /> : null}
+        {leading ? <ActionButton action={leading} scrollY={scrollY} /> : null}
       </View>
 
       <View style={styles.center}>
@@ -135,7 +159,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           </Text>
         ) : null}
         {(trailing ?? []).map((action) => (
-          <ActionButton key={action.label} action={action} />
+          <ActionButton key={action.label} action={action} scrollY={scrollY} />
         ))}
       </View>
     </View>
