@@ -1,10 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Screen,
   HeaderBar,
+  HEADER_BAR_HEIGHT,
   Card,
   Text,
   BarChart,
@@ -206,6 +212,13 @@ const meanAll = (xs: number[]): number =>
 export const HistoryScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList, 'History'>>();
   const baby = useActiveBaby();
+  const insets = useSafeAreaInsets();
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
   const sessions = useSessionsForBaby(baby?.id ?? null);
   const careEvents = useCareEventsForBaby(baby?.id ?? null);
   const [range, setRange] = useState<Range>('week');
@@ -242,7 +255,7 @@ export const HistoryScreen: React.FC = () => {
   const monthCellWidth = 28;
 
   return (
-    <Screen backdrop="night">
+    <Screen backdrop="night" edges={['left', 'right']}>
       <HeaderBar
         title={t('history.title')}
         leading={{
@@ -250,11 +263,17 @@ export const HistoryScreen: React.FC = () => {
           label: t('common.back'),
           onPress: () => navigation.goBack(),
         }}
+        scrollY={scrollY}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.scroll}
+      <Animated.ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: insets.top + HEADER_BAR_HEIGHT },
+        ]}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
         <View style={styles.toggle}>
           <Pressable
@@ -416,7 +435,7 @@ export const HistoryScreen: React.FC = () => {
             </Text>
           </View>
         ) : null}
-      </ScrollView>
+      </Animated.ScrollView>
     </Screen>
   );
 };

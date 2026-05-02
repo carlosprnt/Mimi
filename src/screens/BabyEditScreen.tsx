@@ -1,16 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Pressable,
-  ScrollView,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Screen,
   HeaderBar,
+  HEADER_BAR_HEIGHT,
   Card,
   ListRow,
   Button,
@@ -43,6 +48,14 @@ export const BabyEditScreen: React.FC = () => {
   const removeBaby = useBabyStore((s) => s.removeBaby);
   const dropBabySessions = useSleepStore((s) => s.dropBaby);
   const dropBabyCareEvents = useCareEventStore((s) => s.dropBaby);
+
+  const insets = useSafeAreaInsets();
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
 
   const [editing, setEditing] = useState<EditingField>(null);
   const [editingName, setEditingName] = useState(false);
@@ -92,7 +105,7 @@ export const BabyEditScreen: React.FC = () => {
   };
 
   return (
-    <Screen backdrop="night">
+    <Screen backdrop="night" edges={['left', 'right']}>
       <LiftConfirm
         open={editing === 'delete'}
         onClose={close}
@@ -108,13 +121,19 @@ export const BabyEditScreen: React.FC = () => {
             label: t('common.back'),
             onPress: dismiss,
           }}
+          scrollY={scrollY}
         />
 
-        <ScrollView
-          contentContainerStyle={styles.scroll}
+        <Animated.ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingTop: insets.top + HEADER_BAR_HEIGHT + spacing.md },
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           scrollEnabled={editing !== 'delete'}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
         >
           <Card padded={false} tone="night" style={styles.card}>
             <View style={styles.inner}>
@@ -186,7 +205,7 @@ export const BabyEditScreen: React.FC = () => {
             onPress={() => setEditing('delete')}
             style={styles.deleteButton}
           />
-        </ScrollView>
+        </Animated.ScrollView>
       </LiftConfirm>
 
       <DobEditSheet
@@ -209,7 +228,6 @@ const styles = StyleSheet.create({
   scroll: {
     paddingHorizontal: screenGutter,
     paddingBottom: spacing.huge,
-    paddingTop: spacing.md,
   },
   card: {
     backgroundColor: 'rgba(19, 27, 58, 0.78)',

@@ -4,17 +4,22 @@ import {
   Image,
   Linking,
   Pressable,
-  ScrollView,
   StyleSheet,
   Switch,
   View,
 } from 'react-native';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Screen,
   HeaderBar,
+  HEADER_BAR_HEIGHT,
   Card,
   ListRow,
   SectionLabel,
@@ -56,6 +61,14 @@ export const ProfileScreen: React.FC = () => {
   const clearOnboardingDraft = useOnboardingDraft((s) => s.clear);
 
   const authedUser = useAuthStore((s) => s.user);
+
+  const insets = useSafeAreaInsets();
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
 
   const [mode, setMode] = useState<ConfirmMode>('closed');
   const [deleting, setDeleting] = useState(false);
@@ -194,7 +207,7 @@ export const ProfileScreen: React.FC = () => {
         : null;
 
   return (
-    <Screen backdrop="night">
+    <Screen backdrop="night" edges={['left', 'right']}>
       <LiftConfirm
         open={mode !== 'closed'}
         onClose={closeConfirm}
@@ -211,12 +224,18 @@ export const ProfileScreen: React.FC = () => {
             label: t('common.back'),
             onPress: () => navigation.goBack(),
           }}
+          scrollY={scrollY}
         />
 
-        <ScrollView
-          contentContainerStyle={styles.scroll}
+        <Animated.ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingTop: insets.top + HEADER_BAR_HEIGHT },
+          ]}
           showsVerticalScrollIndicator={false}
           scrollEnabled={mode === 'closed'}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
         >
           <SectionLabel label={t('profile.preferences')} />
           <Card padded={false} tone="night" style={styles.card}>
@@ -403,7 +422,7 @@ export const ProfileScreen: React.FC = () => {
             onPress={() => setMode('delete-account')}
             style={styles.deleteAccount}
           />
-        </ScrollView>
+        </Animated.ScrollView>
       </LiftConfirm>
     </Screen>
   );

@@ -1,6 +1,14 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  type SharedValue,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '@/theme';
 import { Text } from './Text';
 
@@ -19,7 +27,22 @@ interface HeaderBarProps {
   /** A small secondary label shown on the right (e.g. "1 de 3"). */
   trailingText?: string;
   showWordmark?: boolean;
+  /**
+   * When provided, the header floats above scroll content with a
+   * blurred backdrop that fades in and a title that shrinks slightly
+   * as the user scrolls. Screens passing scrollY should drop 'top'
+   * from their Screen `edges` and add `paddingTop: useSafeAreaInsets()
+   * .top + HEADER_BAR_HEIGHT` on the scroll container.
+   */
+  scrollY?: SharedValue<number>;
 }
+
+/** Bar height excluding the safe-area inset on top. */
+export const HEADER_BAR_HEIGHT = 64;
+
+const COLLAPSE_DISTANCE = 80;
+const BG_FADE_DISTANCE = 32;
+const TITLE_MIN_SCALE = 0.82;
 
 const ActionButton: React.FC<{ action: IconAction }> = ({ action }) => (
   <Pressable
@@ -46,23 +69,56 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   trailing,
   trailingText,
   showWordmark,
+  scrollY,
 }) => {
-  return (
+  const insets = useSafeAreaInsets();
+
+  const bgAnim = useAnimatedStyle(() => {
+    if (!scrollY) return { opacity: 0 };
+    const p = interpolate(
+      scrollY.value,
+      [0, BG_FADE_DISTANCE],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    return { opacity: p };
+  });
+
+  const titleAnim = useAnimatedStyle(() => {
+    if (!scrollY) return { transform: [{ scale: 1 }] };
+    const p = interpolate(
+      scrollY.value,
+      [0, COLLAPSE_DISTANCE],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+    return {
+      transform: [{ scale: interpolate(p, [0, 1], [1, TITLE_MIN_SCALE]) }],
+    };
+  });
+
+  const titleNode = (
+    <Animated.View style={titleAnim}>
+      {showWordmark ? (
+        <Text variant="wordmark" tone="primary">
+          MIMI
+        </Text>
+      ) : title ? (
+        <Text variant="headline" tone="primary">
+          {title}
+        </Text>
+      ) : null}
+    </Animated.View>
+  );
+
+  const inner = (
     <View style={styles.bar}>
       <View style={styles.side}>
         {leading ? <ActionButton action={leading} /> : null}
       </View>
 
       <View style={styles.center}>
-        {showWordmark ? (
-          <Text variant="wordmark" tone="primary">
-            MIMI
-          </Text>
-        ) : title ? (
-          <Text variant="headline" tone="primary">
-            {title}
-          </Text>
-        ) : null}
+        {titleNode}
         {subtitle ? (
           <Text variant="footnote" tone="secondary" style={styles.subtitle}>
             {subtitle}
@@ -82,14 +138,55 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
       </View>
     </View>
   );
+
+  if (!scrollY) return inner;
+
+  return (
+    <View
+      style={[styles.floating, { paddingTop: insets.top }]}
+      pointerEvents="box-none"
+    >
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          styles.backdrop,
+          bgAnim,
+        ]}
+        pointerEvents="none"
+      >
+        <BlurView
+          intensity={36}
+          tint="dark"
+          style={StyleSheet.absoluteFill}
+        />
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: 'rgba(11, 20, 54, 0.6)' },
+          ]}
+        />
+      </Animated.View>
+      {inner}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
   bar: {
-    height: 64,
+    height: HEADER_BAR_HEIGHT,
     paddingHorizontal: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  floating: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+  },
+  backdrop: {
+    overflow: 'hidden',
   },
   side: {
     width: 80,
