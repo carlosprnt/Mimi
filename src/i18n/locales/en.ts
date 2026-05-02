@@ -209,7 +209,6 @@ export const en = {
     weeks: '{count} weeks',
     preferences: 'PREFERENCES',
     clock24h: '24-hour time',
-    reminders: 'Reminders',
     bedtimeReminder: 'Bedtime reminder',
     about: 'ABOUT',
     version: 'Version',

@@ -253,18 +253,6 @@ export const ProfileScreen: React.FC = () => {
                 }
               />
               <ListRow
-                label={t('profile.reminders')}
-                trailing={
-                  <Switch
-                    value={preferences.remindersEnabled}
-                    onValueChange={(v) => setPreferences({ remindersEnabled: v })}
-                    trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
-                    thumbColor={colors.text.primary}
-                    ios_backgroundColor={colors.border.strong}
-                  />
-                }
-              />
-              <ListRow
                 label={t('profile.bedtimeReminder')}
                 trailing={
                   <Switch

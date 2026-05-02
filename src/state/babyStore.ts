@@ -21,7 +21,6 @@ const currentUserId = (): string | null =>
 
 export interface Preferences {
   use24h: boolean;
-  remindersEnabled: boolean;
   bedtimeReminder: boolean;
 }
 
@@ -43,7 +42,6 @@ interface BabyState {
 
 const DEFAULT_PREFERENCES: Preferences = {
   use24h: true,
-  remindersEnabled: false,
   bedtimeReminder: false,
 };
 

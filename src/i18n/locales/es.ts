@@ -212,7 +212,6 @@ export const es: Translations = {
     weeks: '{count} semanas',
     preferences: 'PREFERENCIAS',
     clock24h: 'Hora en formato 24h',
-    reminders: 'Recordatorios',
     bedtimeReminder: 'Recordatorio de hora de dormir',
     about: 'ACERCA DE',
     version: 'Versión',
