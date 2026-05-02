@@ -556,22 +556,6 @@ export const HomeScreen: React.FC = () => {
                 onPressEvent={onPressTimelineEvent}
                 hidePreviousNight={isToday && hidePreviousNight}
               />
-              {isToday && !hasWakeEvent && active?.kind === 'night' ? (
-                <Pressable
-                  onPress={onPressAddWake}
-                  style={({ pressed }) => [
-                    styles.addWakeRowBottom,
-                    pressed && styles.addWakePressed,
-                  ]}
-                >
-                  <View style={styles.addWakeIcon}>
-                    <Ionicons name="sunny-outline" size={14} color={colors.accent.base} />
-                  </View>
-                  <Text variant="body" tone="accent">
-                    {t('timeline.addWake')}
-                  </Text>
-                </Pressable>
-              ) : null}
             </Card>
 
             <Card variant="bordered" tone="night" style={styles.todayCard}>
@@ -765,13 +749,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     gap: spacing.md,
     marginBottom: spacing.sm,
-  },
-  addWakeRowBottom: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    gap: spacing.md,
-    marginTop: spacing.sm,
   },
   addWakePressed: {
     opacity: 0.6,
