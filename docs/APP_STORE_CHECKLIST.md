@@ -38,13 +38,13 @@ GitHub Pages servirá los HTMLs públicos que App Review necesita.
 2. Sidebar izquierdo → **Pages**.
 3. Source: **Deploy from a branch**.
 4. Branch: **main** + Folder: **/docs** → **Save**.
-5. Espera ~1-2 min. GitHub mostrará: `Your site is live at https://carlosprnt.github.io/mimi/`.
+5. Espera ~1-2 min. GitHub mostrará: `Your site is live at https://carlosprnt.github.io/Mimi/`.
 
 Verifica que estas URLs cargan:
-- https://carlosprnt.github.io/mimi/
-- https://carlosprnt.github.io/mimi/privacy.html
-- https://carlosprnt.github.io/mimi/terms.html
-- https://carlosprnt.github.io/mimi/support.html
+- https://carlosprnt.github.io/Mimi/
+- https://carlosprnt.github.io/Mimi/privacy.html
+- https://carlosprnt.github.io/Mimi/terms.html
+- https://carlosprnt.github.io/Mimi/support.html
 
 ---
 
@@ -72,7 +72,7 @@ Apple exige **6.7"** mínimo (iPhone 15 Pro Max, 1290×2796).
 Pega los textos de `docs/APP_STORE_COPY.md` en cada campo:
 
 ### App Information
-- [ ] **Privacy Policy URL** → `https://carlosprnt.github.io/mimi/privacy.html`
+- [ ] **Privacy Policy URL** → `https://carlosprnt.github.io/Mimi/privacy.html`
 - [ ] **Subtitle** → `Sueño tranquilo, noches mejores`
 - [ ] **Categoría primary**: Health & Fitness
 - [ ] **Content rights**: confirma que eres el dueño del contenido.
@@ -86,8 +86,8 @@ Pega los textos de `docs/APP_STORE_COPY.md` en cada campo:
 - [ ] **Promotional text**: copy de `APP_STORE_COPY.md`.
 - [ ] **Description**: copy de `APP_STORE_COPY.md`.
 - [ ] **Keywords**: copy de `APP_STORE_COPY.md`.
-- [ ] **Support URL** → `https://carlosprnt.github.io/mimi/support.html`
-- [ ] **Marketing URL** (opcional) → `https://carlosprnt.github.io/mimi/`
+- [ ] **Support URL** → `https://carlosprnt.github.io/Mimi/support.html`
+- [ ] **Marketing URL** (opcional) → `https://carlosprnt.github.io/Mimi/`
 - [ ] **Screenshots** 6.7" (ver paso anterior).
 
 ### Age Rating

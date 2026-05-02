@@ -72,19 +72,19 @@ baby,sleep,tracker,naps,bedtime,routine,parents,newborn,infant,nights,wakes
 ## Support URL
 
 ```
-https://carlosprnt.github.io/mimi/support.html
+https://carlosprnt.github.io/Mimi/support.html
 ```
 
 ## Marketing URL (opcional)
 
 ```
-https://carlosprnt.github.io/mimi/
+https://carlosprnt.github.io/Mimi/
 ```
 
 ## Privacy Policy URL (REQUERIDA)
 
 ```
-https://carlosprnt.github.io/mimi/privacy.html
+https://carlosprnt.github.io/Mimi/privacy.html
 ```
 
 ---
