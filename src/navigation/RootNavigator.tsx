@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   NavigationContainer,
@@ -100,7 +101,7 @@ export const RootNavigator: React.FC = () => {
     return unsubscribe;
   }, [navigationRef]);
 
-  if (!hydrated) return null;
+  if (!hydrated) return <View style={{ flex: 1, backgroundColor: colors.bg.base }} />;
 
   const hasBaby = babies.length > 0;
 

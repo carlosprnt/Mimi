@@ -12,15 +12,7 @@
       "expo-web-browser",
       "expo-apple-authentication",
       "expo-notifications",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#020410",
-          "image": "./assets/splash.png",
-          "resizeMode": "cover"
-        }
-      ],
-      "./plugins/withMimiWidget"
+"./plugins/withMimiWidget"
     ],
     "ios": {
       "supportsTablet": false,

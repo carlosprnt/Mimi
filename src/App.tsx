@@ -42,7 +42,7 @@ export default function App() {
             <StatusBar style="light" />
             <SessionBootstrap />
             <WidgetReconcile />
-            {fontsLoaded ? <RootNavigator /> : null}
+            {fontsLoaded ? <RootNavigator /> : <View style={styles.root} />}
             <ProPaywallScreen />
           </View>
         </SubscriptionProvider>
