@@ -48,8 +48,6 @@ import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 import { cancelAllBedtimeReminders } from '@/services/notifications';
 import { ProBadge, useSubscription } from '@/subscription';
-import { useDemoStore } from '@/state/demoStore';
-import { DEMO_SCENARIOS } from '@/dev/demoScenarios';
 
 type ConfirmMode = 'closed' | 'delete-account' | 'sign-out';
 
@@ -501,9 +499,6 @@ export const ProfileScreen: React.FC = () => {
             style={styles.deleteAccount}
           />
 
-          {authedUser?.email === 'carlosprnt@gmail.com' && (
-            <DevDemoSection />
-          )}
         </Animated.ScrollView>
       </LiftConfirm>
     </Screen>
@@ -627,110 +622,3 @@ const styles = StyleSheet.create({
   },
 });
 
-// ---------------------------------------------------------------------------
-// Developer-only demo mode section (visible only for carlosprnt@gmail.com)
-// ---------------------------------------------------------------------------
-
-const DevDemoSection: React.FC = () => {
-  const active = useDemoStore((s) => s.active);
-  const activate = useDemoStore((s) => s.activate);
-  const restore = useDemoStore((s) => s.restore);
-
-  return (
-    <View style={devStyles.container}>
-      <Text variant="eyebrow" tone="tertiary" style={devStyles.heading}>
-        MODO DESARROLLADOR
-      </Text>
-
-      {active ? (
-        <Pressable
-          onPress={restore}
-          style={({ pressed }) => [devStyles.restoreBtn, pressed && devStyles.pressed]}
-        >
-          <Ionicons name="refresh" size={14} color="#6FCE8C" />
-          <Text variant="footnote" style={devStyles.restoreLabel}>
-            Restaurar datos reales
-          </Text>
-        </Pressable>
-      ) : null}
-
-      <View style={devStyles.list}>
-        {DEMO_SCENARIOS.map((s) => {
-          const isActive = active === s.id;
-          return (
-            <Pressable
-              key={s.id}
-              onPress={() => activate(s.id)}
-              style={({ pressed }) => [
-                devStyles.row,
-                isActive && devStyles.rowActive,
-                pressed && devStyles.pressed,
-              ]}
-            >
-              <View style={devStyles.rowContent}>
-                <Text variant="body" tone="primary" style={devStyles.rowLabel} numberOfLines={1}>
-                  {s.label}
-                </Text>
-                <Text variant="footnote" tone="tertiary" numberOfLines={1}>
-                  {s.description}
-                </Text>
-              </View>
-              {isActive ? (
-                <Ionicons name="checkmark-circle" size={18} color="#6FCE8C" />
-              ) : null}
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
-};
-
-const devStyles = StyleSheet.create({
-  container: {
-    marginTop: spacing.xl,
-    paddingTop: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
-  },
-  heading: {
-    letterSpacing: 1,
-    marginBottom: spacing.md,
-  },
-  restoreBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  restoreLabel: {
-    color: '#6FCE8C',
-    fontFamily: fonts.medium,
-  },
-  list: {
-    gap: 2,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: 10,
-    gap: spacing.sm,
-  },
-  rowActive: {
-    backgroundColor: 'rgba(111, 206, 140, 0.08)',
-  },
-  rowContent: {
-    flex: 1,
-    gap: 2,
-  },
-  rowLabel: {
-    fontFamily: fonts.medium,
-    fontSize: 14,
-  },
-  pressed: {
-    opacity: 0.6,
-  },
-});
