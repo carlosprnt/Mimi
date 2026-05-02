@@ -43,6 +43,7 @@ export const es: Translations = {
     bedtimeTitle: 'Hora de prepararse, {name}',
     bedtimeBody:
       'En 20 minutos toca empezar la rutina de sueño. Buena noche.',
+    bedtimeChannelName: 'Recordatorios de hora de dormir',
     permissionDeniedTitle: 'Permiso de notificaciones',
     permissionDeniedBody:
       'Activa las notificaciones para Mimi en Ajustes → Notificaciones para que podamos avisarte antes de la hora de dormir.',
@@ -146,6 +147,10 @@ export const es: Translations = {
     nightWake: 'Despertar nocturno',
     suggested: 'Estimado',
     suggestedEyebrow: 'SUGERIDO',
+    napSuggestionBody:
+      'A los {age}, {name} suele necesitar unas {expected} siestas al día con ventanas de vigilia de {minMin}–{maxMin} min. Mimi calcula esta sugerencia desde el último despertar o siesta y la ajusta si las siestas de hoy fueron más cortas de lo habitual.',
+    bedtimeSuggestionBody:
+      'A esta edad la hora habitual de dormir suele estar entre {earliest} y {latest}. Mimi puede atrasarla hasta 30 minutos si la última siesta fue muy tarde, para evitar acostarse demasiado pronto sin sueño suficiente.',
     inProgress: 'En curso',
     activeSleeping: 'DURMIENDO · {duration}',
     activeFromTime: 'Desde {time}',

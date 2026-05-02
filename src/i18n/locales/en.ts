@@ -41,6 +41,7 @@ export const en = {
     bedtimeTitle: 'Time to wind down, {name}',
     bedtimeBody:
       'The bedtime routine starts in 20 minutes. Sweet night ahead.',
+    bedtimeChannelName: 'Bedtime reminders',
     permissionDeniedTitle: 'Notifications permission',
     permissionDeniedBody:
       'Turn on notifications for Mimi in Settings → Notifications so we can warn you before bedtime.',
@@ -143,6 +144,10 @@ export const en = {
     nightWake: 'Night waking',
     suggested: 'Estimated',
     suggestedEyebrow: 'SUGGESTED',
+    napSuggestionBody:
+      'At {age}, {name} usually needs around {expected} naps a day with wake windows of {minMin}–{maxMin} min. Mimi computes this suggestion from the last wake or nap and adjusts it if today’s naps were shorter than usual.',
+    bedtimeSuggestionBody:
+      'At this age, bedtime typically falls between {earliest} and {latest}. Mimi can push it up to 30 minutes later if the last nap ran late, to avoid bedtime too early without enough sleep pressure.',
     inProgress: 'In progress',
     activeSleeping: 'SLEEPING · {duration}',
     activeFromTime: 'Since {time}',

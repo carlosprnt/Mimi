@@ -45,7 +45,7 @@ const idFor = (babyId: string): string => `${ID_PREFIX}${babyId}`;
 const ensureChannelAndroid = async (): Promise<void> => {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync('bedtime-reminder', {
-    name: 'Bedtime reminders',
+    name: t('notifications.bedtimeChannelName'),
     importance: Notifications.AndroidImportance.DEFAULT,
     sound: 'default',
   });
