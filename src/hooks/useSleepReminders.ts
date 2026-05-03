@@ -2,10 +2,13 @@ import { useEffect } from 'react';
 import { useBabyStore, useActiveBaby } from '@/state/babyStore';
 import { useSleepStore } from '@/state/sleepStore';
 import { useSubscription } from '@/subscription';
+import type { SleepSession } from '@/logic/recommendation';
 import {
   cancelAllBedtimeReminders,
   scheduleSleepReminders,
 } from '@/services/notifications';
+
+const EMPTY_SESSIONS: readonly SleepSession[] = [];
 
 /**
  * Reactive scheduler for sleep reminders. Watches the active baby,
@@ -19,9 +22,10 @@ export function useSleepReminders(): void {
   const enabled = useBabyStore((s) => s.preferences.bedtimeReminder);
   const hydrated = useBabyStore((s) => s.hydrated);
   const { isPro } = useSubscription();
-  const sessions = useSleepStore((s) =>
-    baby ? s.sessionsByBaby[baby.id] ?? [] : [],
-  );
+  const sessions = useSleepStore((s) => {
+    if (!baby) return EMPTY_SESSIONS;
+    return s.sessionsByBaby[baby.id] ?? EMPTY_SESSIONS;
+  });
 
   useEffect(() => {
     if (!hydrated) return;
@@ -29,6 +33,7 @@ export function useSleepReminders(): void {
       void cancelAllBedtimeReminders();
       return;
     }
-    void scheduleSleepReminders(baby, sessions);
+    void scheduleSleepReminders(baby, sessions as SleepSession[]);
   }, [hydrated, isPro, enabled, baby, sessions]);
 }
+
