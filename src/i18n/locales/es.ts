@@ -466,6 +466,7 @@ export const es: Translations = {
       yearlyFallback: 'Anual',
       yearSavings: 'Ahorra ~40%',
       bullet: {
+        unlimitedDays: 'Registra sin límite de días',
         multipleBabies: 'Añade más de un bebé',
         fullHistory: 'Consulta todo el histórico',
         fullStats: 'Desbloquea todas las estadísticas',
@@ -492,6 +493,10 @@ export const es: Translations = {
       settings: {
         title: 'Desbloquea todo el potencial de la aplicación',
         body: 'Más bebés, histórico completo, todas las estadísticas y recordatorios para acompañar mejor cada rutina.',
+      },
+      unlimitedDays: {
+        title: 'Has alcanzado el límite gratuito',
+        body: 'El plan gratuito permite registrar hasta 7 días. Con Mimi Pro puedes registrar sin límite de días.',
       },
       generic: {
         title: 'Desbloquea todo el potencial de la aplicación',

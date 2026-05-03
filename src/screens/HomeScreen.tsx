@@ -70,6 +70,7 @@ import { t } from '@/i18n';
 import type { Recommendation } from '@/logic/recommendation';
 import {
   canSwitchToBaby,
+  canTrackDay,
   canViewDate,
   useSubscription,
 } from '@/subscription';
@@ -226,6 +227,10 @@ export const HomeScreen: React.FC = () => {
       lightImpact();
       setConfirmEnd(true);
     } else {
+      if (!canTrackDay(sessions, new Date(), plan)) {
+        openPaywall('unlimitedDays');
+        return;
+      }
       mediumImpact();
       startSleep(baby.id);
     }
@@ -421,6 +426,10 @@ export const HomeScreen: React.FC = () => {
       bedtime.setDate(bedtime.getDate() - 1);
       bedtime.setHours(21, 0, 0, 0);
     }
+    if (!canTrackDay(sessions, bedtime, plan)) {
+      openPaywall('unlimitedDays');
+      return;
+    }
     addSession(baby.id, {
       id: makeId(),
       startedAt: bedtime.toISOString(),
@@ -442,6 +451,10 @@ export const HomeScreen: React.FC = () => {
     if (editing.sessionId) {
       updateSession(baby.id, editing.sessionId, update);
     } else if (editing.mode === 'addNap' && update.startedAt && update.endedAt) {
+      if (!canTrackDay(sessions, new Date(update.startedAt), plan)) {
+        openPaywall('unlimitedDays');
+        return;
+      }
       addSession(baby.id, {
         id: makeId(),
         startedAt: update.startedAt,

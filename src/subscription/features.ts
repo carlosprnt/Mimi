@@ -2,6 +2,7 @@ import { startOfDay } from '@/logic/format';
 import type { ProFeature, SubscriptionPlan } from './types';
 
 export const FREE_BABY_LIMIT = 1;
+export const FREE_TRACKING_DAYS = 7;
 export const FREE_HISTORY_DAYS_BACK = 1; // today + yesterday
 export const FREE_STAT_KEY = 'totalSleepDaily';
 
@@ -33,6 +34,19 @@ export function canViewDate(date: Date, plan: SubscriptionPlan, now: Date = new 
 export function canViewStatistic(statKey: string, plan: SubscriptionPlan): boolean {
   if (plan === 'pro') return true;
   return statKey === FREE_STAT_KEY;
+}
+
+export function canTrackDay(
+  sessions: { startedAt: string }[],
+  date: Date,
+  plan: SubscriptionPlan,
+): boolean {
+  if (plan === 'pro') return true;
+  const dayKey = (d: Date) => startOfDay(d).toISOString();
+  const targetDay = dayKey(date);
+  if (sessions.some(s => dayKey(new Date(s.startedAt)) === targetDay)) return true;
+  const uniqueDays = new Set(sessions.map(s => dayKey(new Date(s.startedAt))));
+  return uniqueDays.size < FREE_TRACKING_DAYS;
 }
 
 export function canSwitchToBaby(

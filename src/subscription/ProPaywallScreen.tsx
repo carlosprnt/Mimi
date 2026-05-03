@@ -15,6 +15,7 @@ import { useSubscription } from './SubscriptionProvider';
 import type { ProPaywallReason } from './types';
 
 const BULLETS: { key: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { key: 'pro.paywall.bullet.unlimitedDays', icon: 'calendar-outline' },
   { key: 'pro.paywall.bullet.multipleBabies', icon: 'people-outline' },
   { key: 'pro.paywall.bullet.fullHistory', icon: 'time-outline' },
   { key: 'pro.paywall.bullet.fullStats', icon: 'pie-chart-outline' },

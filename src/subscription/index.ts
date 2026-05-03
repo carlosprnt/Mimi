@@ -4,6 +4,7 @@ export { ProBadge } from './ProBadge';
 export { LockedFeatureCard } from './LockedFeatureCard';
 export {
   canAddBaby,
+  canTrackDay,
   canViewDate,
   canViewStatistic,
   canSwitchToBaby,
@@ -11,6 +12,7 @@ export {
   FREE_BABY_LIMIT,
   FREE_HISTORY_DAYS_BACK,
   FREE_STAT_KEY,
+  FREE_TRACKING_DAYS,
 } from './features';
 export type {
   SubscriptionPlan,

@@ -4,13 +4,15 @@ export type ProFeature =
   | 'multipleBabies'
   | 'fullStats'
   | 'fullHistory'
-  | 'notifications';
+  | 'notifications'
+  | 'unlimitedDays';
 
 export type ProPaywallReason =
   | 'multipleBabies'
   | 'fullStats'
   | 'fullHistory'
   | 'notifications'
+  | 'unlimitedDays'
   | 'settings'
   | 'generic';
 

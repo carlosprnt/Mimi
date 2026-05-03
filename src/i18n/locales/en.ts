@@ -459,6 +459,7 @@ export const en = {
       yearlyFallback: 'Yearly',
       yearSavings: 'Save ~40%',
       bullet: {
+        unlimitedDays: 'Track without day limits',
         multipleBabies: 'Add more than one baby',
         fullHistory: 'Browse the full history',
         fullStats: 'Unlock every statistic',
@@ -485,6 +486,10 @@ export const en = {
       settings: {
         title: 'Unlock the full potential of the app',
         body: 'More babies, full history, every statistic and reminders to help you follow each routine.',
+      },
+      unlimitedDays: {
+        title: "You've reached the free limit",
+        body: 'The free plan allows tracking up to 7 days. With Mimi Pro you can track without any day limits.',
       },
       generic: {
         title: 'Unlock the full potential of the app',
