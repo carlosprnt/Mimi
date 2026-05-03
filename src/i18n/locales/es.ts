@@ -216,6 +216,8 @@ export const es: Translations = {
     preferences: 'PREFERENCIAS',
     clock24h: 'Hora en formato 24h',
     bedtimeReminder: 'Recordatorio de hora de dormir',
+    adminSection: 'ADMINISTRADOR',
+    demoMode: 'Modo demo (ver como Free)',
     about: 'ACERCA DE',
     version: 'Versión',
     disclaimer: 'Mimi ofrece orientación suave. No sustituye el consejo médico.',

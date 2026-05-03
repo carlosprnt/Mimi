@@ -33,6 +33,7 @@ import { useBabyStore } from '@/state/babyStore';
 import { useSleepStore } from '@/state/sleepStore';
 import { useCareEventStore } from '@/state/careEventStore';
 import { useAuthStore } from '@/state/authStore';
+import { isAdminEmail, useAdminStore } from '@/state/adminStore';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import {
   deleteAccount,
@@ -63,6 +64,9 @@ export const ProfileScreen: React.FC = () => {
   const clearOnboardingDraft = useOnboardingDraft((s) => s.clear);
 
   const authedUser = useAuthStore((s) => s.user);
+  const isAdmin = isAdminEmail(authedUser?.email);
+  const demoMode = useAdminStore((s) => s.demoMode);
+  const setDemoMode = useAdminStore((s) => s.setDemoMode);
 
   const {
     isPro,
@@ -355,6 +359,29 @@ export const ProfileScreen: React.FC = () => {
               />
             </View>
           </Card>
+
+          {isAdmin ? (
+            <>
+              <SectionLabel label={t('profile.adminSection')} />
+              <Card padded={false} tone="night" style={styles.card}>
+                <View style={styles.inner}>
+                  <ListRow
+                    label={t('profile.demoMode')}
+                    trailing={
+                      <Switch
+                        value={demoMode}
+                        onValueChange={setDemoMode}
+                        trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
+                        thumbColor={colors.text.primary}
+                        ios_backgroundColor={colors.border.strong}
+                      />
+                    }
+                    showDivider={false}
+                  />
+                </View>
+              </Card>
+            </>
+          ) : null}
 
           <SectionLabel label={t('drawer.account')} />
           <Card padded={false} tone="night" style={styles.card}>

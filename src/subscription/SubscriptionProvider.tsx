@@ -25,14 +25,13 @@ import {
 } from './revenueCat';
 import { hasFeatureAccess } from './features';
 import { useAuthStore } from '@/state/authStore';
+import { isAdminEmail, useAdminStore } from '@/state/adminStore';
 import type {
   PriceInfo,
   ProFeature,
   ProPaywallReason,
   SubscriptionPlan,
 } from './types';
-
-const PRO_OVERRIDE_EMAILS = new Set(['carlosprnt@gmail.com']);
 
 interface PaywallState {
   visible: boolean;
@@ -212,8 +211,13 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const userEmail = useAuthStore((s) => s.user?.email ?? null);
-  const effectivePlan: SubscriptionPlan =
-    userEmail && PRO_OVERRIDE_EMAILS.has(userEmail.toLowerCase()) ? 'pro' : plan;
+  const demoMode = useAdminStore((s) => s.demoMode);
+  const isAdmin = isAdminEmail(userEmail);
+  const effectivePlan: SubscriptionPlan = isAdmin
+    ? demoMode
+      ? 'free'
+      : 'pro'
+    : plan;
 
   const hasAccess = useCallback(
     (feature: ProFeature) => hasFeatureAccess(effectivePlan, feature),

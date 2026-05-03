@@ -212,6 +212,8 @@ export const en = {
     preferences: 'PREFERENCES',
     clock24h: '24-hour time',
     bedtimeReminder: 'Bedtime reminder',
+    adminSection: 'ADMIN',
+    demoMode: 'Demo mode (view as Free)',
     about: 'ABOUT',
     version: 'Version',
     disclaimer: 'Mimi offers gentle guidance — not medical advice.',
