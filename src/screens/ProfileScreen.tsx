@@ -15,7 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Screen,
@@ -47,6 +47,7 @@ import { pushLocalToRemote } from '@/services/pushLocalToRemote';
 import { wipeLocalData } from '@/services/wipeLocalData';
 import { haptics } from '@/logic/haptics';
 import { MainStackParamList } from '@/navigation/types';
+import { resetToOnboardingWelcome } from '@/navigation/navigationRef';
 import { t } from '@/i18n';
 import { cancelAllBedtimeReminders } from '@/services/notifications';
 import { ProBadge, useSubscription } from '@/subscription';
@@ -171,16 +172,10 @@ export const ProfileScreen: React.FC = () => {
   const onConfirmSignOut = () => {
     haptics.warning();
     // Navigate FIRST so ProfileScreen + LiftConfirm unmount cleanly.
-    // Doing it after async work was triggering a Reanimated crash
-    // when the closing-panel animation was interrupted by the
-    // unmount.
-    const parent = navigation.getParent();
-    parent?.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'OnboardingWelcome' }],
-      }),
-    );
+    // Use the root navigation ref so the reset reliably targets the
+    // RootStack regardless of how many nested navigators sit above
+    // ProfileScreen.
+    resetToOnboardingWelcome();
     // Wait for the navigation animation to finish before resetting
     // stores. Doing it synchronously caused ProfileScreen to re-render
     // (subscription plan changed) while Reanimated was mid-animation,
@@ -215,13 +210,7 @@ export const ProfileScreen: React.FC = () => {
     }
     // Navigate first so Profile + its LiftConfirm unmount cleanly,
     // before we mutate stores or wipe storage.
-    const parent = navigation.getParent();
-    parent?.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'OnboardingWelcome' }],
-      }),
-    );
+    resetToOnboardingWelcome();
     // Local state cleanup (synchronous, no UI mounted on it).
     signOutAuth();
     resetBabies();
