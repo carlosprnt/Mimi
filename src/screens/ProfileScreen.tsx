@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Image,
-  InteractionManager,
   Linking,
   Pressable,
   StyleSheet,
@@ -171,30 +170,26 @@ export const ProfileScreen: React.FC = () => {
 
   const onConfirmSignOut = () => {
     haptics.warning();
-    // Navigate FIRST so ProfileScreen + LiftConfirm unmount cleanly.
-    // Use the root navigation ref so the reset reliably targets the
-    // RootStack regardless of how many nested navigators sit above
-    // ProfileScreen.
+    // Clear auth FIRST. WelcomeScreen has an auto-redirect effect that
+    // bounces a focused-and-authed user back into the dashboard; if we
+    // navigate while authedUser is still populated it pulls us right
+    // back. Resetting the rest synchronously is safe because the
+    // useSleepReminders infinite-loop bug (the actual cause of the
+    // earlier sign-out crash) is fixed.
+    signOutAuth();
+    resetBabies();
+    resetSleep();
+    resetCare();
+    clearOnboardingDraft();
     resetToOnboardingWelcome();
-    // Wait for the navigation animation to finish before resetting
-    // stores. Doing it synchronously caused ProfileScreen to re-render
-    // (subscription plan changed) while Reanimated was mid-animation,
-    // crashing the app.
-    InteractionManager.runAfterInteractions(() => {
-      signOutAuth();
-      resetBabies();
-      resetSleep();
-      resetCare();
-      clearOnboardingDraft();
-      void (async () => {
-        try {
-          await supabaseSignOut();
-          await wipeLocalData();
-        } catch {
-          // best effort
-        }
-      })();
-    });
+    void (async () => {
+      try {
+        await supabaseSignOut();
+        await wipeLocalData();
+      } catch {
+        // best effort
+      }
+    })();
   };
 
   const onConfirmDelete = async () => {
@@ -208,15 +203,14 @@ export const ProfileScreen: React.FC = () => {
       Alert.alert(t('profile.deleteAccountFailed'), result.message);
       return;
     }
-    // Navigate first so Profile + its LiftConfirm unmount cleanly,
-    // before we mutate stores or wipe storage.
-    resetToOnboardingWelcome();
-    // Local state cleanup (synchronous, no UI mounted on it).
+    // Clear auth FIRST so WelcomeScreen's auto-redirect effect doesn't
+    // bounce us back to the dashboard before stores are reset.
     signOutAuth();
     resetBabies();
     resetSleep();
     resetCare();
     clearOnboardingDraft();
+    resetToOnboardingWelcome();
     // Async wipe of AsyncStorage + widget App Group, fire-and-forget.
     void wipeLocalData();
   };
