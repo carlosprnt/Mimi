@@ -1,27 +1,31 @@
 import { Alert, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { ageInMonths, type Baby } from '@/logic/age';
-import { bedtimeHintForAge } from '@/logic/recommendation';
+import {
+  bedtimeHintForAge,
+  expectedSleepDurationMs,
+  wakeWindowForAge,
+} from '@/logic/recommendation';
 import { t } from '@/i18n';
 
 /**
- * Local sleep reminders. Adaptive to each baby's actual schedule:
- * derives typical sleep start times from the last 14 days of history
- * (clusters within 60 min, requires at least 3 occurrences) and
- * schedules a daily notification REMINDER_LEAD_MIN minutes before
- * each cluster's average. Falls back to the age-based bedtime hint
- * when there's not enough data yet.
+ * Local sleep reminders. Mirrors the recommendation engine logic:
+ * projects upcoming sleep times (naps + bedtime) from the last
+ * completed session using age-appropriate wake windows, then
+ * schedules a one-time notification REMINDER_LEAD_MIN minutes before
+ * each. The hook useSleepReminders() reschedules after every session
+ * change, so notifications stay in sync with the actual schedule.
  */
 
 const REMINDER_LEAD_MIN = 20;
 const ID_PREFIX = 'mimi-bedtime-';
-const HISTORY_DAYS = 14;
-const CLUSTER_WINDOW_MIN = 60;
-const MIN_OCCURRENCES = 3;
 const MAX_REMINDERS = 5;
+const LOOK_AHEAD_HOURS = 48;
+const ASSUMED_MORNING_WAKE_HOUR = 7;
 
 interface SleepLikeSession {
   startedAt: string;
+  endedAt: string | null;
 }
 
 try {
@@ -76,55 +80,78 @@ export const cancelAllBedtimeReminders = async (): Promise<void> => {
   }
 };
 
-/**
- * Cluster recent sleep starts and return typical times of day (in
- * minutes-of-day). Returns at most MAX_REMINDERS clusters, ordered by
- * frequency. Empty array when there isn't enough recurring pattern.
- */
-function deriveTypicalSleepMinutes(
-  sessions: SleepLikeSession[],
-): number[] {
-  const cutoff = Date.now() - HISTORY_DAYS * 24 * 60 * 60 * 1000;
-  const recent = sessions.filter(
-    (s) => new Date(s.startedAt).getTime() >= cutoff,
-  );
-  if (recent.length < MIN_OCCURRENCES) return [];
-
-  const minutes = recent
-    .map((s) => {
-      const d = new Date(s.startedAt);
-      return d.getHours() * 60 + d.getMinutes();
-    })
-    .sort((a, b) => a - b);
-
-  const clusters: number[][] = [];
-  for (const m of minutes) {
-    const last = clusters[clusters.length - 1];
-    if (last && m - last[last.length - 1] <= CLUSTER_WINDOW_MIN) {
-      last.push(m);
-    } else {
-      clusters.push([m]);
-    }
-  }
-
-  return clusters
-    .filter((c) => c.length >= MIN_OCCURRENCES)
-    .map((c) => ({
-      avg: Math.round(c.reduce((a, b) => a + b, 0) / c.length),
-      count: c.length,
-    }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, MAX_REMINDERS)
-    .map((c) => c.avg)
-    .sort((a, b) => a - b);
+function floatToDate(base: Date, hoursFloat: number): Date {
+  const d = new Date(base);
+  const h = Math.floor(hoursFloat);
+  const m = Math.round((hoursFloat - h) * 60);
+  d.setHours(h, m, 0, 0);
+  return d;
 }
 
 /**
- * Schedule (or replace) sleep reminders for a given baby. Cancels
- * any existing reminders for this baby, then schedules new ones at
- * each typical sleep start time minus REMINDER_LEAD_MIN. When there
- * isn't enough history to detect a pattern, falls back to the age-
- * based bedtime hint so a single reminder still fires.
+ * Projects upcoming sleep times (naps + bedtime) using the same wake-window
+ * logic as the recommendation engine. Starting from the last completed
+ * session end, advances by the average wake window to find each successive
+ * sleep time. When a projected sleep lands in bedtime territory it pins to
+ * the age-based earliest bedtime and then resets to the next morning.
+ * Returns up to MAX_REMINDERS future Date objects.
+ */
+function projectUpcomingSleepTimes(
+  baby: Baby,
+  sessions: SleepLikeSession[],
+  now: Date,
+): Date[] {
+  const months = ageInMonths(baby, now);
+  const wakeWin = wakeWindowForAge(months);
+  const napDurationMs = expectedSleepDurationMs('nap', months);
+  const bedtime = bedtimeHintForAge(months);
+  const avgWakeMs = (wakeWin.minMs + wakeWin.maxMs) / 2;
+
+  const lastCompleted = sessions
+    .filter((s) => s.endedAt)
+    .sort((a, b) => new Date(b.endedAt!).getTime() - new Date(a.endedAt!).getTime())[0];
+
+  let currentWakeMs = lastCompleted
+    ? new Date(lastCompleted.endedAt!).getTime()
+    : now.getTime();
+
+  const horizon = now.getTime() + LOOK_AHEAD_HOURS * 60 * 60 * 1000;
+  const results: Date[] = [];
+
+  while (results.length < MAX_REMINDERS && currentWakeMs < horizon) {
+    const nextSleepMs = currentWakeMs + avgWakeMs;
+    const nextSleepDate = new Date(nextSleepMs);
+    const nextSleepHour = nextSleepDate.getHours() + nextSleepDate.getMinutes() / 60;
+
+    if (nextSleepHour >= bedtime.earliest - 0.25) {
+      // Project lands in bedtime territory — pin to age-based earliest bedtime.
+      const bedtimeDate = floatToDate(nextSleepDate, bedtime.earliest);
+      if (bedtimeDate.getTime() > now.getTime()) {
+        results.push(bedtimeDate);
+      }
+      // Advance to the next morning and repeat for the following day.
+      const tomorrow = new Date(nextSleepDate);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(ASSUMED_MORNING_WAKE_HOUR, 0, 0, 0);
+      currentWakeMs = tomorrow.getTime();
+    } else {
+      if (nextSleepMs > now.getTime()) {
+        results.push(nextSleepDate);
+      }
+      currentWakeMs = nextSleepMs + napDurationMs;
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Schedule (or replace) sleep reminders for a given baby. Cancels any
+ * existing reminders, then projects upcoming nap/bedtime times using
+ * wake-window logic and schedules a one-time notification
+ * REMINDER_LEAD_MIN minutes before each. Because useSleepReminders()
+ * calls this reactively after every session change, the schedule stays
+ * in sync with the baby's actual day.
  */
 export const scheduleSleepReminders = async (
   baby: Baby,
@@ -133,25 +160,15 @@ export const scheduleSleepReminders = async (
   await ensureChannelAndroid();
   await cancelAllBedtimeReminders();
 
-  const typical = deriveTypicalSleepMinutes(sessions);
-  const triggers: number[] = [];
+  const now = new Date();
+  const upcomingSleepTimes = projectUpcomingSleepTimes(baby, sessions, now);
 
-  if (typical.length > 0) {
-    for (const m of typical) {
-      const reminderMin = m - REMINDER_LEAD_MIN;
-      if (reminderMin >= 0 && reminderMin < 24 * 60) triggers.push(reminderMin);
-    }
-  } else {
-    const months = ageInMonths(baby);
-    const bedtime = bedtimeHintForAge(months);
-    const fallback = Math.round(bedtime.earliest * 60) - REMINDER_LEAD_MIN;
-    if (fallback >= 0 && fallback < 24 * 60) triggers.push(fallback);
-  }
+  for (let i = 0; i < upcomingSleepTimes.length; i++) {
+    const sleepTime = upcomingSleepTimes[i];
+    const notifTime = new Date(sleepTime.getTime() - REMINDER_LEAD_MIN * 60 * 1000);
 
-  for (let i = 0; i < triggers.length; i++) {
-    const total = triggers[i];
-    const hour = Math.floor(total / 60);
-    const minute = total % 60;
+    if (notifTime <= now) continue;
+
     try {
       await Notifications.scheduleNotificationAsync({
         identifier: idFor(baby.id, i),
@@ -161,9 +178,8 @@ export const scheduleSleepReminders = async (
           sound: true,
         },
         trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DAILY,
-          hour,
-          minute,
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: notifTime,
           channelId: 'bedtime-reminder',
         },
       });
@@ -172,4 +188,3 @@ export const scheduleSleepReminders = async (
     }
   }
 };
-
