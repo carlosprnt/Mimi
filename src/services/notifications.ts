@@ -88,19 +88,24 @@ function floatToDate(base: Date, hoursFloat: number): Date {
   return d;
 }
 
+interface UpcomingSleep {
+  time: Date;
+  kind: 'nap' | 'night';
+}
+
 /**
  * Projects upcoming sleep times (naps + bedtime) using the same wake-window
  * logic as the recommendation engine. Starting from the last completed
  * session end, advances by the average wake window to find each successive
  * sleep time. When a projected sleep lands in bedtime territory it pins to
  * the age-based earliest bedtime and then resets to the next morning.
- * Returns up to MAX_REMINDERS future Date objects.
+ * Returns up to MAX_REMINDERS future entries with their kind.
  */
 function projectUpcomingSleepTimes(
   baby: Baby,
   sessions: SleepLikeSession[],
   now: Date,
-): Date[] {
+): UpcomingSleep[] {
   const months = ageInMonths(baby, now);
   const wakeWin = wakeWindowForAge(months);
   const napDurationMs = expectedSleepDurationMs('nap', months);
@@ -116,7 +121,7 @@ function projectUpcomingSleepTimes(
     : now.getTime();
 
   const horizon = now.getTime() + LOOK_AHEAD_HOURS * 60 * 60 * 1000;
-  const results: Date[] = [];
+  const results: UpcomingSleep[] = [];
 
   while (results.length < MAX_REMINDERS && currentWakeMs < horizon) {
     const nextSleepMs = currentWakeMs + avgWakeMs;
@@ -127,7 +132,7 @@ function projectUpcomingSleepTimes(
       // Project lands in bedtime territory — pin to age-based earliest bedtime.
       const bedtimeDate = floatToDate(nextSleepDate, bedtime.earliest);
       if (bedtimeDate.getTime() > now.getTime()) {
-        results.push(bedtimeDate);
+        results.push({ time: bedtimeDate, kind: 'night' });
       }
       // Advance to the next morning and repeat for the following day.
       const tomorrow = new Date(nextSleepDate);
@@ -136,7 +141,7 @@ function projectUpcomingSleepTimes(
       currentWakeMs = tomorrow.getTime();
     } else {
       if (nextSleepMs > now.getTime()) {
-        results.push(nextSleepDate);
+        results.push({ time: nextSleepDate, kind: 'nap' });
       }
       currentWakeMs = nextSleepMs + napDurationMs;
     }
@@ -164,17 +169,26 @@ export const scheduleSleepReminders = async (
   const upcomingSleepTimes = projectUpcomingSleepTimes(baby, sessions, now);
 
   for (let i = 0; i < upcomingSleepTimes.length; i++) {
-    const sleepTime = upcomingSleepTimes[i];
+    const { time: sleepTime, kind } = upcomingSleepTimes[i];
     const notifTime = new Date(sleepTime.getTime() - REMINDER_LEAD_MIN * 60 * 1000);
 
     if (notifTime <= now) continue;
+
+    const title =
+      kind === 'night'
+        ? t('notifications.bedtimeTitle', { name: baby.name })
+        : t('notifications.napTitle', { name: baby.name });
+    const body =
+      kind === 'night'
+        ? t('notifications.bedtimeBody')
+        : t('notifications.napBody');
 
     try {
       await Notifications.scheduleNotificationAsync({
         identifier: idFor(baby.id, i),
         content: {
-          title: t('notifications.bedtimeTitle', { name: baby.name }),
-          body: t('notifications.bedtimeBody'),
+          title,
+          body,
           sound: true,
         },
         trigger: {

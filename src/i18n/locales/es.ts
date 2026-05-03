@@ -42,7 +42,10 @@ export const es: Translations = {
   notifications: {
     bedtimeTitle: 'Hora de ir bajando el ritmo, {name}',
     bedtimeBody:
-      'En unos 20 minutos puede ser buen momento para empezar la rutina de sueño.',
+      'En unos 20 minutos puede ser buen momento para empezar la rutina de sueño nocturno.',
+    napTitle: 'Siesta para {name}',
+    napBody:
+      'En unos 20 minutos puede ser buen momento para empezar la siesta.',
     permissionDeniedTitle: 'Activa los recordatorios',
     permissionDeniedBody:
       'Activa las notificaciones de Mimi en Ajustes → Notificaciones para recibir avisos suaves antes de la hora de dormir.',

@@ -41,6 +41,8 @@ export const en = {
     bedtimeTitle: 'Time to wind down, {name}',
     bedtimeBody:
       'The bedtime routine starts in 20 minutes. Sweet night ahead.',
+    napTitle: 'Nap time for {name}',
+    napBody: 'A nap is expected in about 20 minutes.',
     permissionDeniedTitle: 'Notifications permission',
     permissionDeniedBody:
       'Turn on notifications for Mimi in Settings → Notifications so we can warn you before bedtime.',
