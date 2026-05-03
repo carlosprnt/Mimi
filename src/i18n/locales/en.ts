@@ -451,8 +451,8 @@ export const en = {
     paywall: {
       title: 'Mimi Pro',
       subtitle: "More clarity to follow your baby's sleep.",
-      monthly: 'Continue monthly',
-      yearly: 'Continue yearly',
+      monthly: 'Mimi Pro Monthly',
+      yearly: 'Mimi Pro Yearly',
       restore: 'Restore purchases',
       notNow: 'Not now',
       monthlyFallback: 'Monthly',
@@ -483,11 +483,11 @@ export const en = {
         body: "Turn on bedtime and other reminders so you don't have to keep watching the clock.",
       },
       settings: {
-        title: 'Unlock Mimi Pro',
+        title: 'Unlock the full potential of the app',
         body: 'More babies, full history, every statistic and reminders to help you follow each routine.',
       },
       generic: {
-        title: 'Unlock Mimi Pro',
+        title: 'Unlock the full potential of the app',
         body: "More tracking, more history and more clarity to understand your baby's sleep.",
       },
     },

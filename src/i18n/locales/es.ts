@@ -458,8 +458,8 @@ export const es: Translations = {
     paywall: {
       title: 'Mimi Pro',
       subtitle: 'Más claridad para acompañar el sueño de tu bebé.',
-      monthly: 'Continuar con mensual',
-      yearly: 'Continuar con anual',
+      monthly: 'Mimi Pro Mensual',
+      yearly: 'Mimi Pro Anual',
       restore: 'Restaurar compras',
       notNow: 'Ahora no',
       monthlyFallback: 'Mensual',
@@ -490,11 +490,11 @@ export const es: Translations = {
         body: 'Activa avisos para la hora de dormir y otros recordatorios, sin tener que estar pendiente del reloj.',
       },
       settings: {
-        title: 'Desbloquea Mimi Pro',
+        title: 'Desbloquea todo el potencial de la aplicación',
         body: 'Más bebés, histórico completo, todas las estadísticas y recordatorios para acompañar mejor cada rutina.',
       },
       generic: {
-        title: 'Desbloquea Mimi Pro',
+        title: 'Desbloquea todo el potencial de la aplicación',
         body: 'Más seguimiento, más histórico y más claridad para entender el sueño de tu bebé.',
       },
     },

@@ -40,7 +40,7 @@ const PlanCard: React.FC<{
       {selected ? <View style={styles.planRadioDot} /> : null}
     </View>
     <Text variant="body" tone="primary" style={styles.planLabel}>{label}</Text>
-    <Text variant="footnote" tone="secondary">{price}</Text>
+    <Text variant="footnote" tone="secondary" style={{ fontSize: 18 }}>{price}</Text>
     {savings ? (
       <View style={styles.savingsBadge}>
         <Text variant="eyebrow" tone="accent" style={styles.savingsText}>{savings}</Text>
@@ -140,7 +140,7 @@ export const ProPaywallScreen: React.FC = () => {
                 <View style={styles.bulletIcon}>
                   <Ionicons name={b.icon} size={16} color={colors.accent.base} />
                 </View>
-                <Text variant="body" tone="primary" style={styles.bulletText}>
+                <Text variant="body" tone="primary" style={[styles.bulletText, { fontSize: 20 }]}>
                   {t(b.key as never)}
                 </Text>
               </View>
