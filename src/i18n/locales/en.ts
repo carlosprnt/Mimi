@@ -355,6 +355,7 @@ export const en = {
     },
   },
   recommendation: {
+    napDurationHint: 'For this age, the recommended duration is approximately {minutes} minutes.',
     nightSleepInProgress: 'SLEEPING',
     napInProgress: 'SLEEPING',
     restingNight: 'Sleeping.',

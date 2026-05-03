@@ -360,6 +360,7 @@ export const es: Translations = {
     },
   },
   recommendation: {
+    napDurationHint: 'Para esta edad lo recomendado es aproximadamente {minutes} minutos.',
     nightSleepInProgress: 'DURMIENDO',
     napInProgress: 'DURMIENDO',
     restingNight: 'Descansando.',

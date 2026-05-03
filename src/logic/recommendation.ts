@@ -483,6 +483,8 @@ export function computeRecommendation(
 ): Recommendation {
   const months = ageInMonths(baby, now);
   const active = activeSession(sessions);
+  const napMins = Math.round(expectedSleepDurationMs('nap', months) / 60_000);
+  const napDurationHint = t('recommendation.napDurationHint', { minutes: napMins });
 
   // 1. SLEEPING — sesión activa
   if (active) {
@@ -599,6 +601,7 @@ export function computeRecommendation(
       primary: t('recommendation.anytime'),
       supporting: t('recommendation.firstSleep'),
       reasoning: t('recommendation.reasoningNoDataYet'),
+      napDurationHint,
       context,
       contextTone,
       primaryAction: 'start',
@@ -695,6 +698,7 @@ export function computeRecommendation(
         duration: formatShortDuration(-untilMax),
       }),
       reasoning: napReasoning,
+      napDurationHint,
       context,
       contextTone: 'warn',
       primaryAction: 'start',
@@ -715,6 +719,7 @@ export function computeRecommendation(
         time: formatClock(windowEnd),
       }),
       reasoning: napReasoning,
+      napDurationHint,
       context,
       contextTone,
       primaryAction: 'start',
@@ -742,6 +747,7 @@ export function computeRecommendation(
       duration: `${formatShortDuration(untilMin)} – ${formatShortDuration(untilMax)}`,
     }),
     reasoning: reasoningShortNaps,
+    napDurationHint: refersToBedtime ? undefined : napDurationHint,
     context,
     contextTone,
     primaryAction: 'start',
