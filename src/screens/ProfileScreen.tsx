@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Image,
+  InteractionManager,
   Linking,
   Pressable,
   StyleSheet,
@@ -180,23 +181,25 @@ export const ProfileScreen: React.FC = () => {
         routes: [{ name: 'OnboardingWelcome' }],
       }),
     );
-    // Local state cleanup — synchronous, fast, no UI depends on the
-    // outcome (ProfileScreen is already unmounting).
-    signOutAuth();
-    resetBabies();
-    resetSleep();
-    resetCare();
-    clearOnboardingDraft();
-    // Async cleanup in the background. If supabaseSignOut or the
-    // AsyncStorage wipe throw, they can't take down a mounted view.
-    void (async () => {
-      try {
-        await supabaseSignOut();
-        await wipeLocalData();
-      } catch {
-        // best effort
-      }
-    })();
+    // Wait for the navigation animation to finish before resetting
+    // stores. Doing it synchronously caused ProfileScreen to re-render
+    // (subscription plan changed) while Reanimated was mid-animation,
+    // crashing the app.
+    InteractionManager.runAfterInteractions(() => {
+      signOutAuth();
+      resetBabies();
+      resetSleep();
+      resetCare();
+      clearOnboardingDraft();
+      void (async () => {
+        try {
+          await supabaseSignOut();
+          await wipeLocalData();
+        } catch {
+          // best effort
+        }
+      })();
+    });
   };
 
   const onConfirmDelete = async () => {
@@ -497,7 +500,7 @@ export const ProfileScreen: React.FC = () => {
               />
               <ListRow
                 label={t('legal.supportRow')}
-                onPress={() => Linking.openURL('mailto:hola@mimi.app')}
+                onPress={() => Linking.openURL('mailto:carlosprnt@gmail.com')}
                 showDivider={false}
               />
             </View>
