@@ -17,7 +17,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.carlospariente.mimi",
-      "buildNumber": "48",
+      "buildNumber": "49",
       "userInterfaceStyle": "dark",
       "icon": "./assets/icon.png",
       "usesAppleSignIn": true,
@@ -27,16 +27,6 @@
       "infoPlist": {
         "UIStatusBarStyle": "UIStatusBarStyleLightContent",
         "ITSAppUsesNonExemptEncryption": false
-      },
-      "privacyManifests": {
-        "NSPrivacyTracked": false,
-        "NSPrivacyCollectedDataTypes": [],
-        "NSPrivacyAccessedAPITypes": [
-          {
-            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["1C8F.1"]
-          }
-        ]
       }
     },
     "android": {
