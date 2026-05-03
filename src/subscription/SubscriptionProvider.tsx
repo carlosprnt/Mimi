@@ -24,12 +24,15 @@ import {
   restorePurchases as restorePurchasesRemote,
 } from './revenueCat';
 import { hasFeatureAccess } from './features';
+import { useAuthStore } from '@/state/authStore';
 import type {
   PriceInfo,
   ProFeature,
   ProPaywallReason,
   SubscriptionPlan,
 } from './types';
+
+const PRO_OVERRIDE_EMAILS = new Set(['carlosprnt@gmail.com']);
 
 interface PaywallState {
   visible: boolean;
@@ -208,15 +211,19 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
     return getManagementURL();
   }, []);
 
+  const userEmail = useAuthStore((s) => s.user?.email ?? null);
+  const effectivePlan: SubscriptionPlan =
+    userEmail && PRO_OVERRIDE_EMAILS.has(userEmail.toLowerCase()) ? 'pro' : plan;
+
   const hasAccess = useCallback(
-    (feature: ProFeature) => hasFeatureAccess(plan, feature),
-    [plan],
+    (feature: ProFeature) => hasFeatureAccess(effectivePlan, feature),
+    [effectivePlan],
   );
 
   const value = useMemo<SubscriptionContextValue>(
     () => ({
-      plan,
-      isPro: plan === 'pro',
+      plan: effectivePlan,
+      isPro: effectivePlan === 'pro',
       isLoading,
       error,
       prices,
@@ -231,7 +238,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
       openManagement,
     }),
     [
-      plan,
+      effectivePlan,
       isLoading,
       error,
       prices,
