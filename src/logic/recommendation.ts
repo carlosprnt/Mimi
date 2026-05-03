@@ -32,6 +32,7 @@ export interface Recommendation {
   context?: string;
   contextTone?: 'neutral' | 'warn';
   reasoning?: string;
+  napDurationHint?: string;
   primaryAction: 'start' | 'end';
   progress?: {
     elapsedMs: number;
