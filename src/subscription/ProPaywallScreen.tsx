@@ -8,9 +8,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Button, Text, Screen } from '@/components';
 import { colors, fonts, radii, spacing, screenGutter } from '@/theme';
 import { t } from '@/i18n';
+import type { RootStackParamList } from '@/navigation/types';
 import { useSubscription } from './SubscriptionProvider';
 import type { ProPaywallReason } from './types';
 
@@ -59,6 +62,13 @@ export const ProPaywallScreen: React.FC = () => {
     restorePurchases,
     prices,
   } = useSubscription();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const openLegal = (route: 'LegalTerms' | 'LegalPrivacy') => {
+    closePaywall();
+    setTimeout(() => navigation.navigate(route), 280);
+  };
 
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
   const [busy, setBusy] = useState<'monthly' | 'yearly' | 'restore' | null>(null);
@@ -192,6 +202,37 @@ export const ProPaywallScreen: React.FC = () => {
             loading={busy === 'restore'}
             disabled={busy !== null && busy !== 'restore'}
           />
+          <View style={styles.legalLinks}>
+            <Pressable
+              onPress={() => openLegal('LegalTerms')}
+              hitSlop={8}
+              accessibilityRole="link"
+            >
+              <Text
+                variant="footnote"
+                tone="tertiary"
+                style={styles.legalLinkText}
+              >
+                {t('legal.termsRow')}
+              </Text>
+            </Pressable>
+            <Text variant="footnote" tone="tertiary">
+              ·
+            </Text>
+            <Pressable
+              onPress={() => openLegal('LegalPrivacy')}
+              hitSlop={8}
+              accessibilityRole="link"
+            >
+              <Text
+                variant="footnote"
+                tone="tertiary"
+                style={styles.legalLinkText}
+              >
+                {t('legal.privacyRow')}
+              </Text>
+            </Pressable>
+          </View>
         </SafeAreaView>
       </Screen>
     </Modal>
@@ -310,5 +351,15 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.6,
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingTop: spacing.md,
+  },
+  legalLinkText: {
+    textDecorationLine: 'underline',
   },
 });
