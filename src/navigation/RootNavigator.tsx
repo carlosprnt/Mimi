@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   NavigationContainer,
   DarkTheme,
-  useNavigationContainerRef,
 } from '@react-navigation/native';
+import { navigationRef } from './navigationRef';
 import { useBabyStore } from '@/state/babyStore';
 import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader';
 import { HomeScreen } from '@/screens/HomeScreen';
@@ -86,7 +87,6 @@ const RootMainStack: React.FC = () => {
 export const RootNavigator: React.FC = () => {
   const babies = useBabyStore((s) => s.babies);
   const hydrated = useBabyStore((s) => s.hydrated);
-  const navigationRef = useNavigationContainerRef<RootStackParamList>();
   const [routeName, setRouteName] = useState<string | undefined>(undefined);
 
   // The OnboardingHeader is rendered as a sibling of the Stack
@@ -100,7 +100,7 @@ export const RootNavigator: React.FC = () => {
     return unsubscribe;
   }, [navigationRef]);
 
-  if (!hydrated) return null;
+  if (!hydrated) return <View style={{ flex: 1, backgroundColor: colors.bg.base }} />;
 
   const hasBaby = babies.length > 0;
 

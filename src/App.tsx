@@ -12,10 +12,23 @@ import {
 } from '@expo-google-fonts/dm-sans';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { useSessionBootstrap } from '@/hooks/useSessionBootstrap';
+import { useSleepReminders } from '@/hooks/useSleepReminders';
+import { useWidgetReconcile } from '@/hooks/useWidgetReconcile';
 import { colors } from '@/theme';
+import { SubscriptionProvider, ProPaywallScreen } from '@/subscription';
 
 const SessionBootstrap: React.FC = () => {
   useSessionBootstrap();
+  return null;
+};
+
+const WidgetReconcile: React.FC = () => {
+  useWidgetReconcile();
+  return null;
+};
+
+const SleepReminders: React.FC = () => {
+  useSleepReminders();
   return null;
 };
 
@@ -30,11 +43,16 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <View style={styles.root}>
-          <StatusBar style="light" />
-          <SessionBootstrap />
-          {fontsLoaded ? <RootNavigator /> : null}
-        </View>
+        <SubscriptionProvider>
+          <View style={styles.root}>
+            <StatusBar style="light" />
+            <SessionBootstrap />
+            <WidgetReconcile />
+            <SleepReminders />
+            {fontsLoaded ? <RootNavigator /> : <View style={styles.root} />}
+            <ProPaywallScreen />
+          </View>
+        </SubscriptionProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

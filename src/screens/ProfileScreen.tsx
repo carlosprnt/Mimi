@@ -4,17 +4,22 @@ import {
   Image,
   Linking,
   Pressable,
-  ScrollView,
   StyleSheet,
   Switch,
   View,
 } from 'react-native';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Screen,
   HeaderBar,
+  HEADER_BAR_HEIGHT,
   Card,
   ListRow,
   SectionLabel,
@@ -28,6 +33,7 @@ import { useBabyStore } from '@/state/babyStore';
 import { useSleepStore } from '@/state/sleepStore';
 import { useCareEventStore } from '@/state/careEventStore';
 import { useAuthStore } from '@/state/authStore';
+import { isAdminEmail, useAdminStore } from '@/state/adminStore';
 import { useOnboardingDraft } from '@/state/onboardingDraft';
 import {
   deleteAccount,
@@ -40,7 +46,10 @@ import { pushLocalToRemote } from '@/services/pushLocalToRemote';
 import { wipeLocalData } from '@/services/wipeLocalData';
 import { haptics } from '@/logic/haptics';
 import { MainStackParamList } from '@/navigation/types';
+import { resetToOnboardingWelcome } from '@/navigation/navigationRef';
 import { t } from '@/i18n';
+import { cancelAllBedtimeReminders } from '@/services/notifications';
+import { ProBadge, useSubscription } from '@/subscription';
 
 type ConfirmMode = 'closed' | 'delete-account' | 'sign-out';
 
@@ -56,6 +65,23 @@ export const ProfileScreen: React.FC = () => {
   const clearOnboardingDraft = useOnboardingDraft((s) => s.clear);
 
   const authedUser = useAuthStore((s) => s.user);
+  const isAdmin = isAdminEmail(authedUser?.email);
+  const demoMode = useAdminStore((s) => s.demoMode);
+  const setDemoMode = useAdminStore((s) => s.setDemoMode);
+
+  const {
+    isPro,
+    openPaywall,
+    openManagement,
+  } = useSubscription();
+
+  const insets = useSafeAreaInsets();
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
 
   const [mode, setMode] = useState<ConfirmMode>('closed');
   const [deleting, setDeleting] = useState(false);
@@ -65,6 +91,34 @@ export const ProfileScreen: React.FC = () => {
   useEffect(() => {
     void isAppleSignInAvailable().then(setAppleAvailable);
   }, []);
+
+  // If the user downgraded from Pro to Free while a bedtime reminder
+  // was scheduled, the OS-level notification keeps firing until we
+  // cancel it. We don't touch the persisted flag (so the toggle
+  // recovers automatically when they upgrade back) — only the
+  // currently scheduled local notifications.
+  useEffect(() => {
+    if (!isPro && preferences.bedtimeReminder) {
+      void cancelAllBedtimeReminders();
+    }
+  }, [isPro, preferences.bedtimeReminder]);
+
+  const handleManage = async () => {
+    const url = await openManagement();
+    Linking.openURL(url ?? 'itms-apps://apps.apple.com/account/subscriptions').catch(
+      () => {},
+    );
+  };
+
+  const handleBedtimeToggle = (next: boolean) => {
+    if (next && !isPro) {
+      openPaywall('notifications');
+      return;
+    }
+    setPreferences({ bedtimeReminder: next });
+  };
+
+  const bedtimeValue = isPro && preferences.bedtimeReminder;
 
   // After a guest user signs in from this screen, push their local
   // bebés / sesiones / eventos / preferencias up to Supabase so they're
@@ -116,26 +170,18 @@ export const ProfileScreen: React.FC = () => {
 
   const onConfirmSignOut = () => {
     haptics.warning();
-    // Navigate FIRST so ProfileScreen + LiftConfirm unmount cleanly.
-    // Doing it after async work was triggering a Reanimated crash
-    // when the closing-panel animation was interrupted by the
-    // unmount.
-    const parent = navigation.getParent();
-    parent?.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'OnboardingWelcome' }],
-      }),
-    );
-    // Local state cleanup — synchronous, fast, no UI depends on the
-    // outcome (ProfileScreen is already unmounting).
+    // Clear auth FIRST. WelcomeScreen has an auto-redirect effect that
+    // bounces a focused-and-authed user back into the dashboard; if we
+    // navigate while authedUser is still populated it pulls us right
+    // back. Resetting the rest synchronously is safe because the
+    // useSleepReminders infinite-loop bug (the actual cause of the
+    // earlier sign-out crash) is fixed.
     signOutAuth();
     resetBabies();
     resetSleep();
     resetCare();
     clearOnboardingDraft();
-    // Async cleanup in the background. If supabaseSignOut or the
-    // AsyncStorage wipe throw, they can't take down a mounted view.
+    resetToOnboardingWelcome();
     void (async () => {
       try {
         await supabaseSignOut();
@@ -157,21 +203,14 @@ export const ProfileScreen: React.FC = () => {
       Alert.alert(t('profile.deleteAccountFailed'), result.message);
       return;
     }
-    // Navigate first so Profile + its LiftConfirm unmount cleanly,
-    // before we mutate stores or wipe storage.
-    const parent = navigation.getParent();
-    parent?.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'OnboardingWelcome' }],
-      }),
-    );
-    // Local state cleanup (synchronous, no UI mounted on it).
+    // Clear auth FIRST so WelcomeScreen's auto-redirect effect doesn't
+    // bounce us back to the dashboard before stores are reset.
     signOutAuth();
     resetBabies();
     resetSleep();
     resetCare();
     clearOnboardingDraft();
+    resetToOnboardingWelcome();
     // Async wipe of AsyncStorage + widget App Group, fire-and-forget.
     void wipeLocalData();
   };
@@ -194,7 +233,7 @@ export const ProfileScreen: React.FC = () => {
         : null;
 
   return (
-    <Screen backdrop="night">
+    <Screen backdrop="night" edges={['left', 'right']}>
       <LiftConfirm
         open={mode !== 'closed'}
         onClose={closeConfirm}
@@ -211,13 +250,68 @@ export const ProfileScreen: React.FC = () => {
             label: t('common.back'),
             onPress: () => navigation.goBack(),
           }}
+          scrollY={scrollY}
         />
 
-        <ScrollView
-          contentContainerStyle={styles.scroll}
+        <Animated.ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingTop: insets.top + HEADER_BAR_HEIGHT },
+          ]}
           showsVerticalScrollIndicator={false}
           scrollEnabled={mode === 'closed'}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
         >
+          {isPro ? (
+            <Card padded={false} tone="night" style={[styles.card, styles.proCard]}>
+              <View style={styles.proInner}>
+                <View style={styles.proHead}>
+                  <Text variant="headline" tone="primary">
+                    {t('pro.activeTitle')}
+                  </Text>
+                  <ProBadge tone="solid" />
+                </View>
+                <Text variant="callout" tone="secondary" style={styles.proBody}>
+                  {t('pro.activeBody')}
+                </Text>
+                <View style={styles.proActions}>
+                  <Button
+                    title={t('pro.manage')}
+                    onPress={handleManage}
+                    variant="subtle"
+                  />
+                </View>
+              </View>
+            </Card>
+          ) : (
+            <Pressable
+              onPress={() => openPaywall('settings')}
+              accessibilityRole="button"
+              style={({ pressed }) => [pressed && styles.pressedCard]}
+            >
+              <Card padded={false} tone="night" style={[styles.card, styles.proCard]}>
+                <View style={styles.proInner}>
+                  <View style={styles.proHead}>
+                    <Text variant="headline" tone="primary">
+                      {t('pro.settingsTitle')}
+                    </Text>
+                    <ProBadge />
+                  </View>
+                  <Text variant="callout" tone="secondary" style={styles.proBody}>
+                    {t('pro.settingsBody')}
+                  </Text>
+                  <View style={styles.proActions}>
+                    <Button
+                      title={t('pro.unlock')}
+                      onPress={() => openPaywall('settings')}
+                    />
+                  </View>
+                </View>
+              </Card>
+            </Pressable>
+          )}
+
           <SectionLabel label={t('profile.preferences')} />
           <Card padded={false} tone="night" style={styles.card}>
             <View style={styles.inner}>
@@ -234,32 +328,46 @@ export const ProfileScreen: React.FC = () => {
                 }
               />
               <ListRow
-                label={t('profile.reminders')}
-                trailing={
-                  <Switch
-                    value={preferences.remindersEnabled}
-                    onValueChange={(v) => setPreferences({ remindersEnabled: v })}
-                    trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
-                    thumbColor={colors.text.primary}
-                    ios_backgroundColor={colors.border.strong}
-                  />
-                }
-              />
-              <ListRow
                 label={t('profile.bedtimeReminder')}
                 trailing={
-                  <Switch
-                    value={preferences.bedtimeReminder}
-                    onValueChange={(v) => setPreferences({ bedtimeReminder: v })}
-                    trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
-                    thumbColor={colors.text.primary}
-                    ios_backgroundColor={colors.border.strong}
-                  />
+                  <View style={styles.switchTrail}>
+                    {!isPro ? <ProBadge /> : null}
+                    <Switch
+                      value={bedtimeValue}
+                      onValueChange={handleBedtimeToggle}
+                      trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
+                      thumbColor={colors.text.primary}
+                      ios_backgroundColor={colors.border.strong}
+                    />
+                  </View>
                 }
                 showDivider={false}
               />
             </View>
           </Card>
+
+          {isAdmin ? (
+            <>
+              <SectionLabel label={t('profile.adminSection')} />
+              <Card padded={false} tone="night" style={styles.card}>
+                <View style={styles.inner}>
+                  <ListRow
+                    label={t('profile.demoMode')}
+                    trailing={
+                      <Switch
+                        value={demoMode}
+                        onValueChange={setDemoMode}
+                        trackColor={{ false: colors.border.strong, true: colors.accent.strong }}
+                        thumbColor={colors.text.primary}
+                        ios_backgroundColor={colors.border.strong}
+                      />
+                    }
+                    showDivider={false}
+                  />
+                </View>
+              </Card>
+            </>
+          ) : null}
 
           <SectionLabel label={t('drawer.account')} />
           <Card padded={false} tone="night" style={styles.card}>
@@ -403,7 +511,8 @@ export const ProfileScreen: React.FC = () => {
             onPress={() => setMode('delete-account')}
             style={styles.deleteAccount}
           />
-        </ScrollView>
+
+        </Animated.ScrollView>
       </LiftConfirm>
     </Screen>
   );
@@ -419,6 +528,10 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: 'rgba(19, 27, 58, 0.78)',
+  },
+  proCard: {
+    borderWidth: 1,
+    borderColor: 'rgba(168, 165, 230, 0.22)',
   },
   note: {
     marginTop: spacing.xxl,
@@ -493,4 +606,32 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   pressed: { opacity: 0.6 },
+  proInner: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+  },
+  proHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  proBody: {
+    marginBottom: spacing.lg,
+  },
+  proActions: {
+    marginTop: spacing.sm,
+  },
+  restoreNote: {
+    marginTop: spacing.sm,
+  },
+  pressedCard: {
+    opacity: 0.85,
+  },
+  switchTrail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
 });
+

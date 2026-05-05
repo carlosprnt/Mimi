@@ -156,6 +156,11 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
           {recommendation.reasoning}
         </Text>
       ) : null}
+      {recommendation.napDurationHint ? (
+        <Text variant="footnote" tone="tertiary" style={styles.reasoning}>
+          {recommendation.napDurationHint}
+        </Text>
+      ) : null}
 
       {showProgress ? (
         <View style={styles.progressWrap}>

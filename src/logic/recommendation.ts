@@ -32,6 +32,7 @@ export interface Recommendation {
   context?: string;
   contextTone?: 'neutral' | 'warn';
   reasoning?: string;
+  napDurationHint?: string;
   primaryAction: 'start' | 'end';
   progress?: {
     elapsedMs: number;
@@ -158,6 +159,28 @@ export function expectedSleepDurationMs(
   if (months < 12) return 60 * 60 * 1000;
   if (months < 24) return 90 * 60 * 1000;
   return 75 * 60 * 1000;
+}
+
+/**
+ * Expected nap duration for a specific nap number (1-indexed) within a day,
+ * accounting for the fact that earlier naps tend to be longer.
+ */
+export function expectedNapDurationForNumber(napNumber: number, months: number): number {
+  const M = 60 * 1000;
+  if (months < 3) return 45 * M;
+  if (months < 6) {
+    // 3 naps: long, medium, short catnap
+    if (napNumber === 1) return 90 * M;
+    if (napNumber === 2) return 60 * M;
+    return 30 * M;
+  }
+  if (months < 15) {
+    // 2 naps: long morning nap, shorter afternoon nap
+    if (napNumber === 1) return 90 * M;
+    return 45 * M;
+  }
+  if (months < 36) return 120 * M; // 1 nap
+  return 90 * M; // occasional nap for older toddlers
 }
 
 export function sleepTargetsForAge(months: number): SleepTargets {
@@ -536,6 +559,12 @@ export function computeRecommendation(
 
   const shortNaps = todaySessions.filter(isShortNap).length;
   const expectedNaps = expectedNapsForAge(months);
+  const completedNapsToday = todaySessions.filter(
+    (s) => s.kind === 'nap' && s.endedAt && !isMicroNap(s),
+  ).length;
+  const nextNapNumber = completedNapsToday + 1;
+  const napMins = Math.round(expectedNapDurationForNumber(nextNapNumber, months) / 60_000);
+  const napDurationHint = t('recommendation.napDurationHint', { minutes: napMins });
   const totalSleep = totalSleepTodayMs(sessions, now);
 
   // Context layer — prioridad descendente. Solo se muestra una.
@@ -598,6 +627,7 @@ export function computeRecommendation(
       primary: t('recommendation.anytime'),
       supporting: t('recommendation.firstSleep'),
       reasoning: t('recommendation.reasoningNoDataYet'),
+      napDurationHint,
       context,
       contextTone,
       primaryAction: 'start',
@@ -694,6 +724,7 @@ export function computeRecommendation(
         duration: formatShortDuration(-untilMax),
       }),
       reasoning: napReasoning,
+      napDurationHint,
       context,
       contextTone: 'warn',
       primaryAction: 'start',
@@ -714,6 +745,7 @@ export function computeRecommendation(
         time: formatClock(windowEnd),
       }),
       reasoning: napReasoning,
+      napDurationHint,
       context,
       contextTone,
       primaryAction: 'start',
@@ -741,6 +773,7 @@ export function computeRecommendation(
       duration: `${formatShortDuration(untilMin)} – ${formatShortDuration(untilMax)}`,
     }),
     reasoning: reasoningShortNaps,
+    napDurationHint: refersToBedtime ? undefined : napDurationHint,
     context,
     contextTone,
     primaryAction: 'start',

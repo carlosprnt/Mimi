@@ -41,6 +41,8 @@ export const en = {
     bedtimeTitle: 'Time to wind down, {name}',
     bedtimeBody:
       'The bedtime routine starts in 20 minutes. Sweet night ahead.',
+    napTitle: 'Nap time for {name}',
+    napBody: 'A nap is expected in about 20 minutes.',
     permissionDeniedTitle: 'Notifications permission',
     permissionDeniedBody:
       'Turn on notifications for Mimi in Settings → Notifications so we can warn you before bedtime.',
@@ -209,8 +211,9 @@ export const en = {
     weeks: '{count} weeks',
     preferences: 'PREFERENCES',
     clock24h: '24-hour time',
-    reminders: 'Reminders',
     bedtimeReminder: 'Bedtime reminder',
+    adminSection: 'ADMIN',
+    demoMode: 'Demo mode (view as Free)',
     about: 'ABOUT',
     version: 'Version',
     disclaimer: 'Mimi offers gentle guidance — not medical advice.',
@@ -354,6 +357,7 @@ export const en = {
     },
   },
   recommendation: {
+    napDurationHint: 'For this age, the recommended duration is approximately {minutes} minutes.',
     nightSleepInProgress: 'SLEEPING',
     napInProgress: 'SLEEPING',
     restingNight: 'Sleeping.',
@@ -404,6 +408,12 @@ export const en = {
     contextPartialData:
       'Partial data today. Suggestions are orientative.',
   },
+  suggestionInfo: {
+    napBody:
+      'At {age}, {name} typically needs about {expected} naps a day, with wake windows of {minMin}–{maxMin} min. Mimi calculates this suggestion from the last wake or nap and adjusts it if today’s naps have been shorter than usual.',
+    bedtimeBody:
+      'At this age, bedtime usually falls between {earliest} and {latest}. If the last nap ran late, Mimi can shift the suggestion by up to 30 minutes to avoid putting baby down too early.',
+  },
   duration: {
     hm: '{hours}h {minutes}m',
     hOnly: '{hours}h',
@@ -420,11 +430,77 @@ export const en = {
   date: {
     today: 'Today',
     yesterday: 'Yesterday',
-  },  age: {
+  },
+  age: {
     newborn: 'Newborn',
     days: '{count} days',
     monthsFractional: '{value} months',
     months: '{count} months',
+  },
+  pro: {
+    title: 'Mimi Pro',
+    activeTitle: 'Mimi Pro is on',
+    activeBody: 'You have access to every Pro feature.',
+    settingsTitle: 'Mimi Pro',
+    settingsBody:
+      'Unlock more babies, full history, every chart and gentle reminders.',
+    unlock: 'Unlock Mimi Pro',
+    manage: 'Manage subscription',
+    restore: 'Restore purchases',
+    restoreSuccess: 'Purchases restored',
+    restoreError: "We couldn't restore your purchases",
+    notNow: 'Not now',
+    badge: 'Pro',
+    locked: 'Available in Mimi Pro',
+    unlockFeature: 'Unlock',
+    paywall: {
+      title: 'Mimi Pro',
+      subtitle: "More clarity to follow your baby's sleep.",
+      monthly: 'Mimi Pro Monthly',
+      yearly: 'Mimi Pro Yearly',
+      restore: 'Restore purchases',
+      notNow: 'Not now',
+      monthlyFallback: 'Monthly',
+      yearlyFallback: 'Yearly',
+      yearSavings: 'Save ~40%',
+      bullet: {
+        unlimitedDays: 'Track without day limits',
+        multipleBabies: 'Add more than one baby',
+        fullHistory: 'Browse the full history',
+        fullStats: 'Unlock every statistic',
+        notifications: 'Turn on gentle reminders',
+      },
+    },
+    reason: {
+      multipleBabies: {
+        title: 'Look after more than one routine',
+        body: 'With Mimi Pro you can add more than one baby and follow each one separately.',
+      },
+      fullStats: {
+        title: 'Understand how things evolve',
+        body: 'Unlock every chart to see total sleep, naps, night wakings and routine shifts more clearly.',
+      },
+      fullHistory: {
+        title: 'Go back to any day',
+        body: 'With Mimi Pro you can review the full history and see how rest has been changing.',
+      },
+      notifications: {
+        title: 'Get gentle reminders',
+        body: "Turn on bedtime and other reminders so you don't have to keep watching the clock.",
+      },
+      settings: {
+        title: 'Unlock the full potential of the app',
+        body: 'More babies, full history, every statistic and reminders to help you follow each routine.',
+      },
+      unlimitedDays: {
+        title: "You've reached the free limit",
+        body: 'The free plan allows tracking up to 7 days. With Mimi Pro you can track without any day limits.',
+      },
+      generic: {
+        title: 'Unlock the full potential of the app',
+        body: "More tracking, more history and more clarity to understand your baby's sleep.",
+      },
+    },
   },
 } as const;
 

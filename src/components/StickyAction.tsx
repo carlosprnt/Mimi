@@ -13,7 +13,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,23 +30,14 @@ interface StickyActionProps {
 
 const HALO_HEIGHT = 80;
 
-const ButtonHalo: React.FC = () => {
+const StartHalo: React.FC = () => {
   const opacity = useSharedValue(0.45);
 
   useEffect(() => {
     opacity.value = withRepeat(
-      withSequence(
-        withTiming(0.85, {
-          duration: 2200,
-          easing: Easing.inOut(Easing.quad),
-        }),
-        withTiming(0.45, {
-          duration: 2200,
-          easing: Easing.inOut(Easing.quad),
-        }),
-      ),
+      withTiming(0.85, { duration: 2200, easing: Easing.inOut(Easing.quad) }),
       -1,
-      false,
+      true,
     );
   }, [opacity]);
 
@@ -59,18 +49,13 @@ const ButtonHalo: React.FC = () => {
         <Defs>
           <RadialGradient
             id="btn-halo"
-            cx="50"
-            cy="50"
-            rx="55"
-            ry="55"
-            fx="50"
-            fy="50"
+            cx="50" cy="50" rx="55" ry="55" fx="50" fy="50"
             gradientUnits="userSpaceOnUse"
           >
-            <Stop offset="0" stopColor="#D8C8FF" stopOpacity="0.55" />
+            <Stop offset="0"    stopColor="#D8C8FF" stopOpacity="0.55" />
             <Stop offset="0.45" stopColor="#A8A5E6" stopOpacity="0.22" />
-            <Stop offset="0.8" stopColor="#A8A5E6" stopOpacity="0.06" />
-            <Stop offset="1" stopColor="#A8A5E6" stopOpacity="0" />
+            <Stop offset="0.8"  stopColor="#A8A5E6" stopOpacity="0.06" />
+            <Stop offset="1"    stopColor="#A8A5E6" stopOpacity="0"    />
           </RadialGradient>
         </Defs>
         <Ellipse cx="50" cy="50" rx="50" ry="50" fill="url(#btn-halo)" />
@@ -88,7 +73,6 @@ export const StickyAction: React.FC<StickyActionProps> = ({
   moreIcon = 'ellipsis-horizontal',
 }) => {
   const insets = useSafeAreaInsets();
-  const showHalo = variant === 'outline';
 
   return (
     <View
@@ -100,7 +84,7 @@ export const StickyAction: React.FC<StickyActionProps> = ({
     >
       <View style={styles.row}>
         <View style={styles.primarySlot}>
-          {showHalo ? <ButtonHalo /> : null}
+          {variant === 'outline' && <StartHalo />}
           <Button title={title} onPress={onPress} variant={variant} blur />
         </View>
         {onPressMore ? (

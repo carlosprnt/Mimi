@@ -17,43 +17,43 @@ const PRIVACY_ES: LegalDocument = {
   sections: [
     {
       heading: 'Resumen',
-      body: 'Mimi te ayuda a registrar y entender el sueño de tu bebé. Esta política explica qué datos recogemos, por qué, dónde se guardan y cómo puedes borrarlos en cualquier momento.',
+      body: 'Mimi te ayuda a registrar y entender mejor el sueño de tu bebé. Esta política explica qué datos recogemos, para qué los usamos, dónde se guardan y cómo puedes eliminarlos.',
     },
     {
       heading: 'Qué datos recogemos',
-      body: 'Datos que tú introduces sobre tu bebé: nombre, fecha de nacimiento, sexo (opcional), si nació antes de tiempo, sus sesiones de sueño y eventos de cuidado (tomas, cambios, despertares). Si inicias sesión con Apple o Google, también guardamos tu email y nombre de cuenta. Tus preferencias de la app (formato de hora, recordatorios) también se guardan.',
+      body: 'Recogemos los datos que tú introduces sobre tu bebé: nombre, fecha de nacimiento, sexo si decides indicarlo, si nació antes de tiempo, sesiones de sueño y eventos de cuidado como tomas, pañales o despertares. Si inicias sesión con Apple o Google, también guardamos tu email y el nombre asociado a tu cuenta. También se guardan tus preferencias de la app, como el formato de hora o los recordatorios.',
     },
     {
       heading: 'Para qué usamos los datos',
-      body: 'Para mostrarte recomendaciones personalizadas según la edad de tu bebé, sincronizar la información entre tus dispositivos y enviarte recordatorios opcionales sólo si los activas. No usamos tus datos para publicidad ni para entrenar modelos de inteligencia artificial.',
+      body: 'Usamos estos datos para mostrarte sugerencias orientativas según la edad y el patrón de sueño de tu bebé, sincronizar la información entre dispositivos y enviarte recordatorios opcionales si los activas. No usamos tus datos para publicidad ni para entrenar modelos de inteligencia artificial.',
     },
     {
       heading: 'Dónde se guardan los datos',
-      body: 'En tu dispositivo (modo invitado) y, si inicias sesión, en Supabase, un proveedor de base de datos en la Unión Europea. Las comunicaciones siempre van por HTTPS. Tu identidad ante Apple o Google sólo la usan ellos para verificar el acceso; nosotros recibimos un identificador único y tu email.',
+      body: 'Los datos se guardan en tu dispositivo en modo invitado y, si inicias sesión, en Supabase, un proveedor de base de datos ubicado en la Unión Europea. Las comunicaciones se realizan mediante HTTPS. Apple o Google verifican tu identidad cuando usas su inicio de sesión; nosotros recibimos un identificador único y tu email.',
     },
     {
       heading: 'Compartir con terceros',
-      body: 'No vendemos ni cedemos tus datos a terceros con fines publicitarios. Los únicos servicios que tratan tus datos en nuestro nombre son Supabase (alojamiento de la base de datos) y Apple / Google (sólo para la autenticación si la usas).',
+      body: 'No vendemos ni cedemos tus datos a terceros con fines publicitarios. Los únicos servicios que pueden tratar datos en nuestro nombre son Supabase, para alojar la base de datos, y Apple o Google, solo para la autenticación si decides usarla.',
     },
     {
-      heading: 'Tus derechos (RGPD)',
-      body: 'Puedes acceder, modificar y exportar tus datos desde la propia app. Puedes eliminar tu cuenta y todos tus datos de forma permanente desde Ajustes → Eliminar cuenta. Esa acción es irreversible y borra tus datos del servidor inmediatamente.',
+      heading: 'Tus derechos',
+      body: 'Puedes acceder, modificar y exportar tus datos desde la app. También puedes eliminar tu cuenta y todos tus datos de forma permanente desde Ajustes → Eliminar cuenta. Esta acción es irreversible.',
     },
     {
       heading: 'Niños',
-      body: 'Mimi está dirigida a padres y cuidadores adultos que registran datos sobre su bebé. La app no está destinada a menores de 13 años y no recogemos datos directamente del bebé. Los datos del bebé son introducidos voluntariamente por el adulto a cargo.',
+      body: 'Mimi está dirigida a padres, madres y cuidadores adultos que registran información sobre el sueño de su bebé. La app no está destinada a menores de 13 años y no recoge datos directamente del bebé. Los datos son introducidos voluntariamente por el adulto responsable.',
     },
     {
       heading: 'Conservación',
-      body: 'Mantenemos tus datos mientras tu cuenta esté activa. Si eliminas la cuenta, los datos se borran inmediatamente. En modo invitado, los datos sólo viven en tu dispositivo y se eliminan al desinstalar la app.',
+      body: 'Conservamos tus datos mientras tu cuenta esté activa. Si eliminas la cuenta, tus datos se borran. En modo invitado, los datos solo se guardan en tu dispositivo y se eliminan al desinstalar la app.',
     },
     {
       heading: 'Cambios en esta política',
-      body: 'Si hacemos cambios materiales en esta política, lo comunicaremos en la app antes de que tengan efecto.',
+      body: 'Si hacemos cambios importantes en esta política, los comunicaremos en la app antes de que entren en vigor.',
     },
     {
       heading: 'Contacto',
-      body: 'Para cualquier duda sobre privacidad, escríbenos a carlosprnt@gmail.com.',
+      body: 'Para cualquier duda sobre privacidad, puedes escribirnos a carlosprnt@gmail.com.',
     },
   ],
 };
@@ -111,31 +111,31 @@ const TERMS_ES: LegalDocument = {
   sections: [
     {
       heading: 'Aceptación',
-      body: 'Al usar Mimi aceptas estos términos. Si no estás de acuerdo, no uses la app.',
+      body: 'Al usar Mimi, aceptas estos términos. Si no estás de acuerdo, te recomendamos no usar la app.',
     },
     {
       heading: 'Uso de la app',
-      body: 'Mimi es una herramienta de seguimiento del sueño infantil. Las sugerencias de la app son orientativas, basadas en patrones generales por edad, y no sustituyen el consejo de tu pediatra ni de ningún profesional de la salud.',
+      body: 'Mimi es una herramienta para registrar y entender mejor el sueño infantil. Sus sugerencias son orientativas y se basan en patrones generales por edad y en los datos que introduces. No sustituyen el consejo de tu pediatra ni de ningún profesional de la salud.',
     },
     {
       heading: 'Tu cuenta',
-      body: 'Si creas una cuenta, eres responsable de mantener tus credenciales seguras. Comprométete a no usar la app para fines ilegales, ofensivos o que puedan dañar a terceros.',
+      body: 'Si creas una cuenta, eres responsable de mantener tus credenciales seguras. Te comprometes a no usar la app con fines ilegales, ofensivos o que puedan dañar a terceros.',
     },
     {
       heading: 'Limitación de responsabilidad',
-      body: 'Mimi se ofrece "tal cual", sin garantías explícitas o implícitas de que las recomendaciones encajen con tu bebé concreto. Para cualquier decisión médica o de salud, consulta siempre con un profesional cualificado.',
+      body: 'Mimi se ofrece "tal cual", sin garantías explícitas o implícitas de que sus sugerencias encajen con cada situación concreta. Para cualquier decisión médica o relacionada con la salud de tu bebé, consulta siempre con un profesional cualificado.',
     },
     {
       heading: 'Cambios en el servicio',
-      body: 'Podemos modificar, suspender o discontinuar funciones de la app sin previo aviso. Avisaremos en la propia app si los cambios son materiales.',
+      body: 'Podemos modificar, suspender o dejar de ofrecer funciones de la app. Si los cambios son importantes, los comunicaremos en la propia app.',
     },
     {
       heading: 'Cambios en estos términos',
-      body: 'Si actualizamos estos términos, lo comunicaremos en la app antes de que tengan efecto.',
+      body: 'Si actualizamos estos términos, lo comunicaremos en la app antes de que entren en vigor.',
     },
     {
       heading: 'Contacto',
-      body: 'Cualquier consulta sobre estos términos: carlosprnt@gmail.com.',
+      body: 'Para cualquier consulta sobre estos términos, puedes escribirnos a carlosprnt@gmail.com.',
     },
   ],
 };

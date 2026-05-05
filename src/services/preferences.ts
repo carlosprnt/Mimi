@@ -4,7 +4,6 @@ import type { Preferences } from '@/state/babyStore';
 interface PreferencesRow {
   user_id: string;
   use_24h: boolean;
-  reminders_enabled: boolean;
   bedtime_reminder: boolean;
   active_baby_id: string | null;
   updated_at: string;
@@ -12,7 +11,6 @@ interface PreferencesRow {
 
 const toPreferences = (row: PreferencesRow): Preferences => ({
   use24h: row.use_24h,
-  remindersEnabled: row.reminders_enabled,
   bedtimeReminder: row.bedtime_reminder,
 });
 
@@ -47,7 +45,6 @@ export const setPreferencesRemote = async (
   const payload: Record<string, unknown> = {
     user_id: userId,
     use_24h: preferences.use24h,
-    reminders_enabled: preferences.remindersEnabled,
     bedtime_reminder: preferences.bedtimeReminder,
   };
   if (activeBabyId !== undefined) {

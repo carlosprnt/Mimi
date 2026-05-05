@@ -1,31 +1,33 @@
 import { Alert, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { ageInMonths, type Baby } from '@/logic/age';
-import { bedtimeHintForAge } from '@/logic/recommendation';
+import {
+  bedtimeHintForAge,
+  expectedSleepDurationMs,
+  wakeWindowForAge,
+} from '@/logic/recommendation';
 import { t } from '@/i18n';
 
 /**
- * Local notifications for bedtime reminders.
- *
- *   - The reminder fires REMINDER_LEAD_MIN minutes BEFORE the
- *     baby's earliest typical bedtime for their age (derived from
- *     bedtimeHintForAge).
- *   - Daily repeating: a single scheduled trigger with repeats=true,
- *     so iOS keeps firing it until cancelled.
- *   - Per-baby identifier so we can swap reminders cleanly when the
- *     active baby changes.
- *
- * No remote / push setup — purely local. Works in Expo Go.
+ * Local sleep reminders. Mirrors the recommendation engine logic:
+ * projects upcoming sleep times (naps + bedtime) from the last
+ * completed session using age-appropriate wake windows, then
+ * schedules a one-time notification REMINDER_LEAD_MIN minutes before
+ * each. The hook useSleepReminders() reschedules after every session
+ * change, so notifications stay in sync with the actual schedule.
  */
 
 const REMINDER_LEAD_MIN = 20;
 const ID_PREFIX = 'mimi-bedtime-';
+const MAX_REMINDERS = 5;
+const LOOK_AHEAD_HOURS = 48;
+const ASSUMED_MORNING_WAKE_HOUR = 7;
 
-// Foreground notification handler: when the app is open we still want
-// the OS banner/sound (otherwise iOS swallows the notification).
-// Wrapped in try/catch because in environments without the native
-// module linked (e.g. Expo Go on iOS) the call throws synchronously
-// at import time and would crash the whole app.
+interface SleepLikeSession {
+  startedAt: string;
+  endedAt: string | null;
+}
+
 try {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -36,26 +38,21 @@ try {
     }),
   });
 } catch {
-  // expo-notifications native module not available — features below
-  // become best-effort no-ops via their own try/catch wrappers.
+  // expo-notifications native module not available — best-effort no-ops below.
 }
 
-const idFor = (babyId: string): string => `${ID_PREFIX}${babyId}`;
+const idFor = (babyId: string, slot: number): string =>
+  `${ID_PREFIX}${babyId}-${slot}`;
 
 const ensureChannelAndroid = async (): Promise<void> => {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync('bedtime-reminder', {
-    name: 'Bedtime reminders',
+    name: 'Sleep reminders',
     importance: Notifications.AndroidImportance.DEFAULT,
     sound: 'default',
   });
 };
 
-/**
- * Request OS permission to show notifications. If the user previously
- * denied, surface an Alert explaining how to re-enable in Settings.
- * Returns true only when permission is granted.
- */
 export const requestNotificationPermission = async (): Promise<boolean> => {
   const existing = await Notifications.getPermissionsAsync();
   if (existing.granted) return true;
@@ -68,16 +65,6 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   }
   const next = await Notifications.requestPermissionsAsync();
   return next.granted;
-};
-
-export const cancelBedtimeReminder = async (
-  babyId: string,
-): Promise<void> => {
-  try {
-    await Notifications.cancelScheduledNotificationAsync(idFor(babyId));
-  } catch {
-    // Already cancelled / missing — fine.
-  }
 };
 
 export const cancelAllBedtimeReminders = async (): Promise<void> => {
@@ -93,42 +80,125 @@ export const cancelAllBedtimeReminders = async (): Promise<void> => {
   }
 };
 
+function floatToDate(base: Date, hoursFloat: number): Date {
+  const d = new Date(base);
+  const h = Math.floor(hoursFloat);
+  const m = Math.round((hoursFloat - h) * 60);
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+interface UpcomingSleep {
+  time: Date;
+  kind: 'nap' | 'night';
+}
+
 /**
- * Schedule (or replace) a daily bedtime reminder for a given baby.
- * Computes 20 minutes before the EARLIEST bedtime hint for the
- * baby's age. Falls back gracefully if the resulting hour is outside
- * the valid 0-23 range.
+ * Projects upcoming sleep times (naps + bedtime) using the same wake-window
+ * logic as the recommendation engine. Starting from the last completed
+ * session end, advances by the average wake window to find each successive
+ * sleep time. When a projected sleep lands in bedtime territory it pins to
+ * the age-based earliest bedtime and then resets to the next morning.
+ * Returns up to MAX_REMINDERS future entries with their kind.
  */
-export const scheduleBedtimeReminder = async (baby: Baby): Promise<void> => {
-  const months = ageInMonths(baby);
+function projectUpcomingSleepTimes(
+  baby: Baby,
+  sessions: SleepLikeSession[],
+  now: Date,
+): UpcomingSleep[] {
+  const months = ageInMonths(baby, now);
+  const wakeWin = wakeWindowForAge(months);
+  const napDurationMs = expectedSleepDurationMs('nap', months);
   const bedtime = bedtimeHintForAge(months);
-  const totalMinutes =
-    Math.round(bedtime.earliest * 60) - REMINDER_LEAD_MIN;
-  if (totalMinutes < 0 || totalMinutes >= 24 * 60) return;
-  const hour = Math.floor(totalMinutes / 60);
-  const minute = totalMinutes % 60;
+  const avgWakeMs = (wakeWin.minMs + wakeWin.maxMs) / 2;
 
+  const lastCompleted = sessions
+    .filter((s) => s.endedAt)
+    .sort((a, b) => new Date(b.endedAt!).getTime() - new Date(a.endedAt!).getTime())[0];
+
+  let currentWakeMs = lastCompleted
+    ? new Date(lastCompleted.endedAt!).getTime()
+    : now.getTime();
+
+  const horizon = now.getTime() + LOOK_AHEAD_HOURS * 60 * 60 * 1000;
+  const results: UpcomingSleep[] = [];
+
+  while (results.length < MAX_REMINDERS && currentWakeMs < horizon) {
+    const nextSleepMs = currentWakeMs + avgWakeMs;
+    const nextSleepDate = new Date(nextSleepMs);
+    const nextSleepHour = nextSleepDate.getHours() + nextSleepDate.getMinutes() / 60;
+
+    if (nextSleepHour >= bedtime.earliest - 0.25) {
+      // Project lands in bedtime territory — pin to age-based earliest bedtime.
+      const bedtimeDate = floatToDate(nextSleepDate, bedtime.earliest);
+      if (bedtimeDate.getTime() > now.getTime()) {
+        results.push({ time: bedtimeDate, kind: 'night' });
+      }
+      // Advance to the next morning and repeat for the following day.
+      const tomorrow = new Date(nextSleepDate);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(ASSUMED_MORNING_WAKE_HOUR, 0, 0, 0);
+      currentWakeMs = tomorrow.getTime();
+    } else {
+      if (nextSleepMs > now.getTime()) {
+        results.push({ time: nextSleepDate, kind: 'nap' });
+      }
+      currentWakeMs = nextSleepMs + napDurationMs;
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Schedule (or replace) sleep reminders for a given baby. Cancels any
+ * existing reminders, then projects upcoming nap/bedtime times using
+ * wake-window logic and schedules a one-time notification
+ * REMINDER_LEAD_MIN minutes before each. Because useSleepReminders()
+ * calls this reactively after every session change, the schedule stays
+ * in sync with the baby's actual day.
+ */
+export const scheduleSleepReminders = async (
+  baby: Baby,
+  sessions: SleepLikeSession[],
+): Promise<void> => {
   await ensureChannelAndroid();
-  await cancelBedtimeReminder(baby.id);
+  await cancelAllBedtimeReminders();
 
-  try {
-    await Notifications.scheduleNotificationAsync({
-      identifier: idFor(baby.id),
-      content: {
-        title: t('notifications.bedtimeTitle', { name: baby.name }),
-        body: t('notifications.bedtimeBody'),
-        sound: true,
-      },
-      trigger: {
-        hour,
-        minute,
-        repeats: true,
-        channelId: 'bedtime-reminder',
-      } as Notifications.NotificationTriggerInput,
-    });
-  } catch {
-    // Permission not granted yet, or scheduling rejected — caller is
-    // expected to ensure permission first via
-    // requestNotificationPermission().
+  const now = new Date();
+  const upcomingSleepTimes = projectUpcomingSleepTimes(baby, sessions, now);
+
+  for (let i = 0; i < upcomingSleepTimes.length; i++) {
+    const { time: sleepTime, kind } = upcomingSleepTimes[i];
+    const notifTime = new Date(sleepTime.getTime() - REMINDER_LEAD_MIN * 60 * 1000);
+
+    if (notifTime <= now) continue;
+
+    const title =
+      kind === 'night'
+        ? t('notifications.bedtimeTitle', { name: baby.name })
+        : t('notifications.napTitle', { name: baby.name });
+    const body =
+      kind === 'night'
+        ? t('notifications.bedtimeBody')
+        : t('notifications.napBody');
+
+    try {
+      await Notifications.scheduleNotificationAsync({
+        identifier: idFor(baby.id, i),
+        content: {
+          title,
+          body,
+          sound: true,
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: notifTime,
+          channelId: 'bedtime-reminder',
+        },
+      });
+    } catch {
+      // Permission not granted yet or scheduling rejected.
+    }
   }
 };

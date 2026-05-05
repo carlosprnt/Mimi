@@ -12,7 +12,6 @@ import { setPreferencesRemote } from '@/services/preferences';
 import {
   cancelAllBedtimeReminders,
   requestNotificationPermission,
-  scheduleBedtimeReminder,
 } from '@/services/notifications';
 import { useAuthStore } from './authStore';
 
@@ -21,7 +20,6 @@ const currentUserId = (): string | null =>
 
 export interface Preferences {
   use24h: boolean;
-  remindersEnabled: boolean;
   bedtimeReminder: boolean;
 }
 
@@ -43,7 +41,6 @@ interface BabyState {
 
 const DEFAULT_PREFERENCES: Preferences = {
   use24h: true,
-  remindersEnabled: false,
   bedtimeReminder: false,
 };
 
@@ -106,19 +103,15 @@ export const useBabyStore = create<BabyState>()(
         if (userId) void deleteBabyRemote(id);
       },
       setActiveBabyId: (id) => {
+        const previousId = get().activeBabyId;
+        if (previousId === id) return;
         set({ activeBabyId: id });
         const userId = currentUserId();
         if (userId) {
           const prefs = get().preferences;
           void setPreferencesRemote(userId, prefs, id);
         }
-        // Reschedule bedtime reminder for the new active baby (their
-        // age may map to a different bedtime).
-        if (get().preferences.bedtimeReminder) {
-          const baby = get().babies.find((b) => b.id === id);
-          if (baby) void scheduleBedtimeReminder(baby);
-          else void cancelAllBedtimeReminders();
-        }
+        // Sleep reminders are rescheduled reactively by useSleepReminders().
       },
       setPreferences: (patch) => {
         set((state) => ({
@@ -130,20 +123,12 @@ export const useBabyStore = create<BabyState>()(
           const activeId = get().activeBabyId;
           void setPreferencesRemote(userId, next, activeId);
         }
-        // Bedtime reminder toggling: ON → ask permission and schedule
-        // for the active baby; OFF → cancel every scheduled reminder.
-        if (patch.bedtimeReminder !== undefined) {
-          if (patch.bedtimeReminder) {
-            const activeId = get().activeBabyId;
-            const baby = get().babies.find((b) => b.id === activeId);
-            if (baby) {
-              void requestNotificationPermission().then((granted) => {
-                if (granted) void scheduleBedtimeReminder(baby);
-              });
-            }
-          } else {
-            void cancelAllBedtimeReminders();
-          }
+        // Bedtime reminder toggle ON: ask for permission. Scheduling
+        // and cancellation are handled reactively by useSleepReminders().
+        if (patch.bedtimeReminder === true) {
+          void requestNotificationPermission();
+        } else if (patch.bedtimeReminder === false) {
+          void cancelAllBedtimeReminders();
         }
       },
       reset: () =>

@@ -68,6 +68,12 @@ import {
 import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
 import type { Recommendation } from '@/logic/recommendation';
+import {
+  canSwitchToBaby,
+  canTrackDay,
+  canViewDate,
+  useSubscription,
+} from '@/subscription';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -86,6 +92,7 @@ export const HomeScreen: React.FC = () => {
   const baby = useActiveBaby();
   const babies = useBabyStore((s) => s.babies);
   const setActiveBabyId = useBabyStore((s) => s.setActiveBabyId);
+  const { plan, openPaywall } = useSubscription();
   const use24h = useBabyStore((s) => s.preferences.use24h);
   const celebrationId = useCelebrationStore((s) => s.babyId);
   const [babySwitcherOpen, setBabySwitcherOpen] = useState(false);
@@ -220,6 +227,10 @@ export const HomeScreen: React.FC = () => {
       lightImpact();
       setConfirmEnd(true);
     } else {
+      if (!canTrackDay(sessions, new Date(), plan)) {
+        openPaywall('unlimitedDays');
+        return;
+      }
       mediumImpact();
       startSleep(baby.id);
     }
@@ -415,6 +426,10 @@ export const HomeScreen: React.FC = () => {
       bedtime.setDate(bedtime.getDate() - 1);
       bedtime.setHours(21, 0, 0, 0);
     }
+    if (!canTrackDay(sessions, bedtime, plan)) {
+      openPaywall('unlimitedDays');
+      return;
+    }
     addSession(baby.id, {
       id: makeId(),
       startedAt: bedtime.toISOString(),
@@ -436,6 +451,10 @@ export const HomeScreen: React.FC = () => {
     if (editing.sessionId) {
       updateSession(baby.id, editing.sessionId, update);
     } else if (editing.mode === 'addNap' && update.startedAt && update.endedAt) {
+      if (!canTrackDay(sessions, new Date(update.startedAt), plan)) {
+        openPaywall('unlimitedDays');
+        return;
+      }
       addSession(baby.id, {
         id: makeId(),
         startedAt: update.startedAt,
@@ -477,7 +496,13 @@ export const HomeScreen: React.FC = () => {
         <View style={styles.calendarWrap}>
           <DayCalendar
             selectedDate={selectedDate}
-            onSelect={setSelectedDate}
+            onSelect={(date) => {
+              if (!canViewDate(date, plan, now)) {
+                openPaywall('fullHistory');
+                return;
+              }
+              setSelectedDate(date);
+            }}
             now={now}
             daysWithData={daysWithData}
           />
@@ -706,6 +731,11 @@ export const HomeScreen: React.FC = () => {
         activeBabyId={baby?.id ?? null}
         nameTopY={insets.top + 17}
         onSelect={(id) => {
+          if (!canSwitchToBaby(id, baby?.id ?? null, plan)) {
+            setBabySwitcherOpen(false);
+            openPaywall('multipleBabies');
+            return;
+          }
           setActiveBabyId(id);
           useCelebrationStore.getState().trigger(id);
           setBabySwitcherOpen(false);

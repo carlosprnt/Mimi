@@ -1,8 +1,13 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View, Linking } from 'react-native';
+import { StyleSheet, View, Linking } from 'react-native';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, HeaderBar, Text } from '@/components';
+import { Screen, HeaderBar, HEADER_BAR_HEIGHT, Text } from '@/components';
 import {
   getPrivacyDocument,
   getTermsDocument,
@@ -48,13 +53,20 @@ const SectionBody: React.FC<{ text: string }> = ({ text }) => {
 export const LegalDocumentScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
   const route = useRoute<RouteShape>();
+  const insets = useSafeAreaInsets();
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
   const isPrivacy = route.name === 'LegalPrivacy';
   const doc: LegalDocument = isPrivacy
     ? getPrivacyDocument()
     : getTermsDocument();
 
   return (
-    <Screen backdrop="night">
+    <Screen backdrop="night" edges={['left', 'right']}>
       <HeaderBar
         title={doc.title}
         leading={{
@@ -62,10 +74,16 @@ export const LegalDocumentScreen: React.FC = () => {
           label: t('common.back'),
           onPress: () => navigation.goBack(),
         }}
+        scrollY={scrollY}
       />
-      <ScrollView
-        contentContainerStyle={styles.scroll}
+      <Animated.ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: insets.top + HEADER_BAR_HEIGHT + spacing.md },
+        ]}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
         <Text variant="footnote" tone="tertiary" style={styles.lastUpdated}>
           {doc.lastUpdated}
@@ -78,7 +96,7 @@ export const LegalDocumentScreen: React.FC = () => {
             <SectionBody text={section.body} />
           </View>
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
     </Screen>
   );
 };
@@ -86,7 +104,6 @@ export const LegalDocumentScreen: React.FC = () => {
 const styles = StyleSheet.create({
   scroll: {
     paddingHorizontal: screenGutter,
-    paddingTop: spacing.md,
     paddingBottom: spacing.huge,
   },
   lastUpdated: {

@@ -1,10 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Screen,
   HeaderBar,
+  HEADER_BAR_HEIGHT,
   Card,
   Text,
   BarChart,
@@ -23,6 +29,11 @@ import { startOfDay } from '@/logic/format';
 import { haptics } from '@/logic/haptics';
 import { MainStackParamList } from '@/navigation/types';
 import { t } from '@/i18n';
+import {
+  LockedFeatureCard,
+  canViewStatistic,
+  useSubscription,
+} from '@/subscription';
 
 type Range = 'week' | 'month';
 
@@ -206,9 +217,18 @@ const meanAll = (xs: number[]): number =>
 export const HistoryScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<MainStackParamList, 'History'>>();
   const baby = useActiveBaby();
+  const insets = useSafeAreaInsets();
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
   const sessions = useSessionsForBaby(baby?.id ?? null);
   const careEvents = useCareEventsForBaby(baby?.id ?? null);
   const [range, setRange] = useState<Range>('week');
+  const { plan, openPaywall } = useSubscription();
+  const canMonth = plan === 'pro';
 
   const days = useMemo(() => buildDays(range, new Date()), [range]);
   const nightSleepValues = useMemo(
@@ -242,7 +262,7 @@ export const HistoryScreen: React.FC = () => {
   const monthCellWidth = 28;
 
   return (
-    <Screen backdrop="night">
+    <Screen backdrop="night" edges={['left', 'right']}>
       <HeaderBar
         title={t('history.title')}
         leading={{
@@ -250,11 +270,17 @@ export const HistoryScreen: React.FC = () => {
           label: t('common.back'),
           onPress: () => navigation.goBack(),
         }}
+        scrollY={scrollY}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.scroll}
+      <Animated.ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: insets.top + HEADER_BAR_HEIGHT },
+        ]}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
         <View style={styles.toggle}>
           <Pressable
@@ -279,6 +305,10 @@ export const HistoryScreen: React.FC = () => {
           <Pressable
             onPress={() => {
               haptics.selection();
+              if (!canMonth) {
+                openPaywall('fullHistory');
+                return;
+              }
               setRange('month');
             }}
             style={({ pressed }) => [
@@ -327,79 +357,101 @@ export const HistoryScreen: React.FC = () => {
           )}
         </Card>
 
-        <Card variant="bordered" tone="night" style={styles.card}>
-          <View style={styles.cardHead}>
-            <Text variant="eyebrow" tone="tertiary">
-              {t('history.nightWithWakes')}
-            </Text>
-            <Text tone="secondary" style={styles.cardAverage}>
-              {t('history.average')} · {avgWakeCount.toFixed(1)}
-            </Text>
-          </View>
-          {isMonth ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <NightWakeBarChart
-                bars={wakeBars}
-                labels={labels}
-                cellWidth={monthCellWidth}
-              />
-            </ScrollView>
-          ) : (
-            <NightWakeBarChart bars={wakeBars} labels={labels} />
-          )}
-        </Card>
+        {canViewStatistic('nightWakes', plan) ? (
+          <Card variant="bordered" tone="night" style={styles.card}>
+            <View style={styles.cardHead}>
+              <Text variant="eyebrow" tone="tertiary">
+                {t('history.nightWithWakes')}
+              </Text>
+              <Text tone="secondary" style={styles.cardAverage}>
+                {t('history.average')} · {avgWakeCount.toFixed(1)}
+              </Text>
+            </View>
+            {isMonth ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <NightWakeBarChart
+                  bars={wakeBars}
+                  labels={labels}
+                  cellWidth={monthCellWidth}
+                />
+              </ScrollView>
+            ) : (
+              <NightWakeBarChart bars={wakeBars} labels={labels} />
+            )}
+          </Card>
+        ) : (
+          <LockedFeatureCard
+            title={t('history.nightWithWakes')}
+            onPress={() => openPaywall('fullStats')}
+          />
+        )}
 
-        <Card variant="bordered" tone="night" style={styles.card}>
-          <View style={styles.cardHead}>
-            <Text variant="eyebrow" tone="tertiary">
-              {t('history.napsDaily')}
-            </Text>
-            <Text tone="secondary" style={styles.cardAverage}>
-              {t('history.average')} · {formatSleepHours(avgNapMs)}
-            </Text>
-          </View>
-          {isMonth ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {canViewStatistic('napsDaily', plan) ? (
+          <Card variant="bordered" tone="night" style={styles.card}>
+            <View style={styles.cardHead}>
+              <Text variant="eyebrow" tone="tertiary">
+                {t('history.napsDaily')}
+              </Text>
+              <Text tone="secondary" style={styles.cardAverage}>
+                {t('history.average')} · {formatSleepHours(avgNapMs)}
+              </Text>
+            </View>
+            {isMonth ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <BarChart
+                  values={napValues}
+                  labels={labels}
+                  tint={colors.warn.soft}
+                  cellWidth={monthCellWidth}
+                  meanValue={avgNapMs}
+                />
+              </ScrollView>
+            ) : (
               <BarChart
                 values={napValues}
                 labels={labels}
                 tint={colors.warn.soft}
-                cellWidth={monthCellWidth}
+                formatValue={formatSleepHours}
                 meanValue={avgNapMs}
               />
-            </ScrollView>
-          ) : (
-            <BarChart
-              values={napValues}
-              labels={labels}
-              tint={colors.warn.soft}
-              formatValue={formatSleepHours}
-              meanValue={avgNapMs}
-            />
-          )}
-        </Card>
+            )}
+          </Card>
+        ) : (
+          <LockedFeatureCard
+            title={t('history.napsDaily')}
+            onPress={() => openPaywall('fullStats')}
+          />
+        )}
 
-        <Card variant="bordered" tone="night" style={styles.card}>
-          <View style={styles.cardHead}>
-            <Text variant="eyebrow" tone="tertiary">
-              {t('history.moodTitle')}
-            </Text>
-            <Text tone="secondary" style={styles.cardAverage}>
-              {t('history.moodHint')}
-            </Text>
-          </View>
-          {isMonth ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <MoodChart
-                moods={moods}
-                labels={labels}
-                cellWidth={monthCellWidth}
-              />
-            </ScrollView>
-          ) : (
-            <MoodChart moods={moods} labels={labels} />
-          )}
-        </Card>
+        {canViewStatistic('mood', plan) ? (
+          <Card variant="bordered" tone="night" style={styles.card}>
+            <View style={styles.cardHead}>
+              <Text variant="eyebrow" tone="tertiary">
+                {t('history.moodTitle')}
+              </Text>
+              <Text tone="secondary" style={styles.cardAverage}>
+                {t('history.moodHint')}
+              </Text>
+            </View>
+            {isMonth ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <MoodChart
+                  moods={moods}
+                  labels={labels}
+                  cellWidth={monthCellWidth}
+                />
+              </ScrollView>
+            ) : (
+              <MoodChart moods={moods} labels={labels} />
+            )}
+          </Card>
+        ) : (
+          <LockedFeatureCard
+            title={t('history.moodTitle')}
+            caption={t('history.moodHint')}
+            onPress={() => openPaywall('fullStats')}
+          />
+        )}
 
         {sessions.filter((s) => s.endedAt).length === 0 ? (
           <View style={styles.empty}>
@@ -416,7 +468,7 @@ export const HistoryScreen: React.FC = () => {
             </Text>
           </View>
         ) : null}
-      </ScrollView>
+      </Animated.ScrollView>
     </Screen>
   );
 };

@@ -21,7 +21,7 @@ export { Divider } from './Divider';
 export { ListRow } from './ListRow';
 export { Sheet } from './Sheet';
 export { LiftConfirm } from './LiftConfirm';
-export { HeaderBar } from './HeaderBar';
+export { HeaderBar, HEADER_BAR_HEIGHT } from './HeaderBar';
 export { StickyAction } from './StickyAction';
 export { HeroCard } from './HeroCard';
 export { Eyebrow } from './Eyebrow';

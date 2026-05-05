@@ -90,6 +90,13 @@ export const WelcomeScreen: React.FC = () => {
         ? Easing.out(Easing.cubic)
         : Easing.in(Easing.cubic),
     });
+    if (authPanelOpen) {
+      // Two staggered taps as the auth buttons surface — one for each
+      // option (Apple, then Google).
+      haptics.light();
+      const t = setTimeout(() => haptics.light(), 140);
+      return () => clearTimeout(t);
+    }
   }, [authPanelOpen, slide]);
 
   const authedUser = useAuthStore((s) => s.user);
