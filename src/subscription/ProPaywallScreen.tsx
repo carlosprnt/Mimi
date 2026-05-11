@@ -8,14 +8,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as WebBrowser from 'expo-web-browser';
 import { Button, Text, Screen } from '@/components';
 import { colors, fonts, radii, spacing, screenGutter } from '@/theme';
 import { t } from '@/i18n';
-import type { RootStackParamList } from '@/navigation/types';
 import { useSubscription } from './SubscriptionProvider';
 import type { ProPaywallReason } from './types';
+
+const TERMS_URL = 'https://carlosprnt.github.io/Mimi/terms.html';
+const PRIVACY_URL = 'https://carlosprnt.github.io/Mimi/privacy.html';
 
 const BULLETS: { key: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { key: 'pro.paywall.bullet.unlimitedDays', icon: 'calendar-outline' },
@@ -62,12 +63,9 @@ export const ProPaywallScreen: React.FC = () => {
     restorePurchases,
     prices,
   } = useSubscription();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const openLegal = (route: 'LegalTerms' | 'LegalPrivacy') => {
-    closePaywall();
-    setTimeout(() => navigation.navigate(route), 280);
+  const openLegal = (url: string) => {
+    WebBrowser.openBrowserAsync(url).catch(() => {});
   };
 
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
@@ -204,7 +202,7 @@ export const ProPaywallScreen: React.FC = () => {
           />
           <View style={styles.legalLinks}>
             <Pressable
-              onPress={() => openLegal('LegalTerms')}
+              onPress={() => openLegal(TERMS_URL)}
               hitSlop={8}
               accessibilityRole="link"
             >
@@ -220,7 +218,7 @@ export const ProPaywallScreen: React.FC = () => {
               ·
             </Text>
             <Pressable
-              onPress={() => openLegal('LegalPrivacy')}
+              onPress={() => openLegal(PRIVACY_URL)}
               hitSlop={8}
               accessibilityRole="link"
             >
